@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@layer theme, base, components, utilities;
+
+@layer base {
+  :root {
+    --primary: 16 185 129; /* emerald-500 */
+    --primary-dark: 5 150 105; /* emerald-600 */
+  }
+  
+  html {
+    font-size: 15px;
+  }
+  
+  body {
+    @apply text-gray-800 bg-white font-sans text-sm;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 font-medium;
+  }
+  
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+  
+  p {
+    @apply text-sm leading-relaxed text-gray-600;
+  }
+}
+
+@layer utilities {
+  .btn-primary {
+    @apply bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm;
+  }
+  
+  .btn-secondary {
+    @apply bg-white border border-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition-all duration-200 text-sm;
+  }
+  
+  .btn-github {
+    @apply bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm flex items-center;
+  }
+  
+  .card {
+    @apply bg-white border border-gray-100 rounded-xl shadow-sm p-5 hover:shadow-md transition-all duration-200;
+  }
+}
+
+.feature-card {
+  @apply flex flex-col h-full rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200;
+}
+
+.feature-card-header {
+  @apply p-4 flex items-center justify-center bg-emerald-50;
+}
+
+.feature-card-body {
+  @apply p-5;
+}
+
+.container-custom {
+  @apply max-w-5xl mx-auto px-4 sm:px-6;
+}
+
+.section-title {
+  @apply text-2xl md:text-3xl font-bold mb-3;
+}
+
+.section-subtitle {
+  @apply text-sm text-gray-600 max-w-2xl mx-auto mb-10;
+}
