@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { FiGithub, FiUsers } from 'react-icons/fi';
+import { FiGithub } from 'react-icons/fi';
 
 export default function ComingSoonPage() {
   return (
