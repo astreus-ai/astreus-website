@@ -43,7 +43,7 @@ agent.run("Solve this complex task");
           Coming Soon
         </h1>
         
-        <div className="w-20 mt-2 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full mb-6"></div>
+        <div className="w-20 mt-2 h-1.5 bg-gray-900 rounded-full mb-6"></div>
         
         <p className="text-lg md:text-xl text-gray-600 max-w-2xl mb-12">
           We&apos;re working hard to bring you the next generation AI Agent Framework. 

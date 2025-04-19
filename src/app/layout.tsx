@@ -6,8 +6,8 @@ import DynamicFavicon from "./components/DynamicFavicon";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Astreus AI - Advanced AI Agent Framework",
-  description: "Astreus is an open-source platform for building, deploying, and managing AI agents that can reason, learn, and solve complex problems.",
+  title: "Astreus - AI Agent Framework",
+  description: "An AI agent framework for building autonomous systems that solve real-world tasks effectively.",
   icons: {
     icon: '/astreus-logo.svg',
     apple: '/astreus-logo.svg',
