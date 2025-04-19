@@ -1,13 +1,13 @@
+"use client";
+
 import Image from 'next/image';
 import { FiGithub } from 'react-icons/fi';
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 export default function ComingSoonPage() {
-  return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 to-emerald-100 relative overflow-hidden">
-      {/* Code background pattern */}
-      <div className="absolute inset-0 overflow-hidden opacity-[0.03] pointer-events-none select-none">
-        <div className="absolute -right-6 top-20 transform rotate-12 text-5xl text-black font-mono">
-          <pre>{`
+  const [codeText, setCodeText] = useState("");
+  const fullCode = `
 function createAgent() {
   return new Agent({
     name: "Astreus",
@@ -19,16 +19,54 @@ function createAgent() {
 
 const agent = createAgent();
 agent.run("Solve this complex task");
-          `}</pre>
+`;
+
+  useEffect(() => {
+    let i = 0;
+    const typewriterInterval = setInterval(() => {
+      if (i <= fullCode.length) {
+        setCodeText(fullCode.slice(0, i));
+        i++;
+      } else {
+        clearInterval(typewriterInterval);
+      }
+    }, 10);
+    
+    return () => clearInterval(typewriterInterval);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 to-emerald-100 relative overflow-hidden">
+      {/* Code background pattern - fixed position to prevent layout shifts */}
+      <div className="fixed top-0 right-0 w-full h-full overflow-hidden opacity-[0.03] pointer-events-none select-none">
+        <div className="absolute -right-[5rem] sm:-right-[10rem] top-20 transform rotate-12 text-5xl text-black font-mono">
+          <div className="relative w-[600px] h-[1200px] sm:w-[1080px] sm:h-[1080px] overflow-hidden">
+            <pre className="whitespace-pre-wrap font-mono text-5xl">{codeText}</pre>
+          </div>
         </div>
       </div>
       
       {/* Background elements */}
-      <div className="absolute -right-24 -top-24 w-96 h-96 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full opacity-80 blur-3xl"></div>
-      <div className="absolute -left-24 bottom-0 w-72 h-72 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full opacity-80 blur-3xl"></div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.8 }}
+        transition={{ duration: 0.8 }}
+        className="absolute -right-24 -top-24 w-96 h-96 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full blur-3xl"
+      ></motion.div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.8 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="absolute -left-24 bottom-0 w-72 h-72 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full blur-3xl"
+      ></motion.div>
       
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 text-center relative z-10">
-        <div className="mb-4">
+        <motion.div 
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="mb-4"
+        >
           <Image 
             src="/astreus-logo-black.svg" 
             alt="Astreus Logo" 
@@ -37,36 +75,63 @@ agent.run("Solve this complex task");
             className="mx-auto"
             priority
           />
-        </div>
+        </motion.div>
         
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <motion.h1 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+        >
           Coming Soon
-        </h1>
+        </motion.h1>
         
-        <div className="w-20 mt-2 h-1.5 bg-gray-900 rounded-full mb-6"></div>
+        <motion.div 
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-20 mt-2 h-1.5 bg-emerald-500 rounded-full mb-6"
+        ></motion.div>
         
-        <p className="text-lg md:text-xl text-gray-600 max-w-2xl mb-12">
+        <motion.p 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="text-lg md:text-xl text-gray-600 max-w-2xl mb-12"
+        >
           We&apos;re working hard to bring you the next generation AI Agent Framework. 
           Stay tuned for our official launch.
-        </p>
+        </motion.p>
         
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="space-y-6"
+        >
           <div className="flex justify-center gap-4">
-            <a 
+            <motion.a 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               href="https://github.com/astreus-ai" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg flex items-center transition-colors shadow-md"
+              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center transition-colors shadow-md"
             >
               <FiGithub className="mr-2" />
               View on GitHub
-            </a>
+            </motion.a>
           </div>
           
-          <div className="text-gray-500 mt-4 text-sm">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="text-gray-500 mt-4 text-sm"
+          >
             Expected launch: Q3 2024
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
