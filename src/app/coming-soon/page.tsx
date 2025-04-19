@@ -62,9 +62,9 @@ agent.run("Solve this complex task");
       
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 text-center relative z-10">
         <motion.div 
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.25, duration: 0.5 }}
           className="mb-4"
         >
           <Image 
@@ -86,18 +86,11 @@ agent.run("Solve this complex task");
           Coming Soon
         </motion.h1>
         
-        <motion.div 
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-20 mt-2 h-1.5 bg-emerald-500 rounded-full mb-6"
-        ></motion.div>
-        
         <motion.p 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-lg md:text-xl text-gray-600 max-w-2xl mb-12"
+          className="text-lg md:text-xl text-gray-600 max-w-2xl mt-6 mb-12"
         >
           We&apos;re working hard to bring you the next generation AI Agent Framework. 
           Stay tuned for our official launch.
@@ -116,9 +109,9 @@ agent.run("Solve this complex task");
               href="https://github.com/astreus-ai" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg flex items-center transition-colors shadow-md"
+              className="px-6 py-3 text-base bg-black hover:bg-gray-800 text-white rounded-full flex items-center transition-colors shadow-md"
             >
-              <FiGithub className="mr-2" />
+              <FiGithub className="mr-2 text-lg" />
               View on GitHub
             </motion.a>
           </div>
