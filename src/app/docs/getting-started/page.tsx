@@ -22,30 +22,20 @@ export default function GettingStartedPage() {
 
   // Example code blocks
   const installCode = `# Using npm
-npm install @astreus/core
+npm install astreus
 
 # Using yarn
-yarn add @astreus/core
+yarn add astreus
 
 # Using pnpm
-pnpm add @astreus/core`;
+pnpm add astreus`;
 
-  const configCode = `// astreus.config.js
-module.exports = {
-  // Your OpenAI API key (required for using GPT models)
+  const configCode = `// Configure your OpenAI provider
+import { createOpenAIConfig } from 'astreus';
+
+const config = createOpenAIConfig({
   apiKey: process.env.OPENAI_API_KEY,
-  
-  // Default model to use
-  defaultModel: 'gpt-4',
-  
-  // Default settings
-  defaults: {
-    memory: true,
-    verbose: false,
-    timeout: 60000, // 60 seconds
-  },
-  
-  // Optional: Custom model configurations
+  // Optional: model-specific settings
   models: {
     'gpt-4': {
       temperature: 0.7,
@@ -56,43 +46,49 @@ module.exports = {
       maxTokens: 1500,
     },
   },
-};`;
+});`;
 
   const envCode = `# .env
 OPENAI_API_KEY=your_api_key_here`;
 
   const agentCode = `// my-agent.js
-const { Agent } = require('@astreus/core');
+import { 
+  createAgent, 
+  createOpenAIConfig, 
+  OpenAIProvider,
+  createTask
+} from 'astreus';
 
 async function main() {
-  // Create a new agent
-  const assistant = new Agent({
-    name: 'Helpful Assistant',
-    description: 'A helpful AI assistant that answers user questions',
-    models: ['gpt-4'],
-    memory: true,
+  // Configure your provider
+  const config = createOpenAIConfig({
+    apiKey: process.env.OPENAI_API_KEY,
   });
 
-  // Define the 'answer' task
-  await assistant.defineTask({
+  // Create an agent
+  const agent = createAgent({
+    provider: new OpenAIProvider(config),
+    name: 'Helpful Assistant',
+  });
+
+  // Define a task for the agent
+  const answerTask = createTask({
     name: 'answer',
     description: 'Provide a helpful answer to the user question',
     action: async (question) => {
       // The agent will use its AI capabilities to generate a response
-      const response = await assistant.think(\`
+      return await agent.run(\`
         Question: \${question}
         Provide a helpful, accurate, and concise answer.
       \`);
-      
-      return response;
     }
   });
 
-  // Test the agent with a question
+  // Run the task with a question
   const question = "What are the benefits of using AI agents?";
   console.log(\`Question: \${question}\`);
   
-  const answer = await assistant.run('answer', question);
+  const answer = await answerTask.execute(question);
   console.log(\`Answer: \${answer}\`);
 }
 
@@ -187,7 +183,7 @@ Answer: AI agents offer several benefits, including automation of repetitive tas
               className="mb-6"
             />
             <p className="text-gray-600">
-              This will install the core Astreus package that provides all the functionality needed to create and manage AI agents.
+              This will install the Astreus framework that provides all the functionality needed to create and manage AI agents.
             </p>
           </section>
 
@@ -198,46 +194,52 @@ Answer: AI agents offer several benefits, including automation of repetitive tas
               Configuration
             </h2>
             <p className="text-gray-600 mb-4">
-              After installation, you&apos;ll need to configure your environment. Create a new file named <code className="bg-gray-100 px-1 py-0.5 rounded">astreus.config.js</code> in your project root:
+              Astreus supports multiple LLM providers, with OpenAI and Ollama available out of the box. To get started, you&apos;ll need to configure your provider:
             </p>
+            
             <CodeBlock 
               code={configCode} 
               language="javascript" 
               isDark={false} 
               className="mb-6"
             />
-            <p className="text-gray-600 mb-2">
-              Make sure to securely store your API keys. Create a <code className="bg-gray-100 px-1 py-0.5 rounded">.env</code> file:
+            
+            <p className="text-gray-600 mb-4">
+              For security, it&apos;s recommended to use environment variables for your API keys. Create a <code className="bg-gray-100 rounded px-1 py-0.5">.env</code> file in your project root:
             </p>
+            
             <CodeBlock 
               code={envCode} 
               language="bash" 
               isDark={false} 
-              showLineNumbers={false} 
-              className="mb-4"
+              className="mb-6"
             />
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-md mb-6">
-              <p className="text-amber-800 text-sm">
-                <strong>Note:</strong> Never commit your actual API keys to version control. Add <code>.env</code> to your <code>.gitignore</code> file.
-              </p>
-            </div>
+            
+            <p className="text-gray-600">
+              Make sure to install the <code className="bg-gray-100 rounded px-1 py-0.5">dotenv</code> package and add <code className="bg-gray-100 rounded px-1 py-0.5">require(&apos;dotenv&apos;).config()</code> at the top of your main file to load these environment variables.
+            </p>
           </section>
 
-          {/* Creating Your First Agent */}
+          {/* Create Your First Agent */}
           <section id="first-agent" className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
               <FiCode className="mr-3 h-5 w-5 text-emerald-500" />
               Creating Your First Agent
             </h2>
             <p className="text-gray-600 mb-4">
-              Let&apos;s create a simple agent that can respond to user queries. Create a new file named <code className="bg-gray-100 px-1 py-0.5 rounded">my-agent.js</code>:
+              Now let&apos;s create a simple agent that can answer questions. Create a file called <code className="bg-gray-100 rounded px-1 py-0.5">my-agent.js</code> (or <code className="bg-gray-100 rounded px-1 py-0.5">my-agent.ts</code> if you&apos;re using TypeScript):
             </p>
+            
             <CodeBlock 
               code={agentCode} 
               language="javascript" 
               isDark={false} 
               className="mb-6"
             />
+            
+            <p className="text-gray-600">
+              This code creates a new agent with a configured provider, defines a task for it, and then runs that task with a question.
+            </p>
           </section>
 
           {/* Testing Your Agent */}
@@ -247,61 +249,57 @@ Answer: AI agents offer several benefits, including automation of repetitive tas
               Testing Your Agent
             </h2>
             <p className="text-gray-600 mb-4">
-              Now let&apos;s run your agent to see it in action:
+              Run your agent with the following command:
             </p>
+            
             <CodeBlock 
               code={runCode} 
               language="bash" 
               isDark={false} 
-              showLineNumbers={false} 
-              className="mb-6"
+              className="mb-4"
             />
-            <p className="text-gray-600 mb-6">
+            
+            <p className="text-gray-600 mb-4">
               You should see output similar to:
             </p>
+            
             <CodeBlock 
               code={outputCode} 
               language="text" 
               isDark={false} 
-              showLineNumbers={false} 
               className="mb-6"
             />
           </section>
 
           {/* Next Steps */}
-          <section id="next-steps" className="mb-8">
+          <section id="next-steps" className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
               <FiArrowRight className="mr-3 h-5 w-5 text-emerald-500" />
               Next Steps
             </h2>
             <p className="text-gray-600 mb-4">
-              Now that you&apos;ve created your first Astreus agent, here are some next steps to explore:
+              Now that you&apos;ve created your first agent, there&apos;s much more you can explore:
             </p>
-            <ul className="list-disc pl-6 space-y-2 text-gray-600 mb-6">
-              <li>Learn about <Link href="/docs/core-concepts" className="text-emerald-600 hover:underline">Core Concepts</Link> in Astreus</li>
-              <li>Explore the <Link href="/docs/api-reference" className="text-emerald-600 hover:underline">API Reference</Link> for detailed documentation</li>
-              <li>See <Link href="/docs/examples" className="text-emerald-600 hover:underline">Examples</Link> of different agent types and use cases</li>
-              <li>Join our <a href="#" className="text-emerald-600 hover:underline">Discord community</a> to connect with other developers</li>
+            
+            <ul className="list-disc list-inside space-y-2 text-gray-600 mb-6">
+              <li>Learn about <Link href="/docs/core-concepts" className="text-emerald-600 hover:underline">Core Concepts</Link> to understand the architecture</li>
+              <li>Set up a database for agent memory using SQLite or PostgreSQL</li>
+              <li>Create more complex tasks and workflows</li>
+              <li>Try different AI models and providers</li>
+              <li>Explore advanced features like plugin system</li>
             </ul>
-          </section>
 
-          {/* Navigation */}
-          <div className="border-t border-gray-200 pt-6 mt-12 flex justify-between">
-            <Link 
-              href="/docs" 
-              className="inline-flex items-center text-emerald-600 hover:text-emerald-700"
-            >
-              <FiArrowLeft className="mr-2 h-4 w-4" />
-              Back to Docs
-            </Link>
-            <Link 
-              href="/docs/core-concepts" 
-              className="inline-flex items-center text-emerald-600 hover:text-emerald-700"
-            >
-              Core Concepts
-              <FiArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
+            <div className="flex space-x-4 mt-8">
+              <Link href="/docs" className="text-emerald-600 hover:text-emerald-700 flex items-center">
+                <FiArrowLeft className="mr-2 h-4 w-4" />
+                Back to Documentation
+              </Link>
+              <Link href="/docs/core-concepts" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md flex items-center transition-colors">
+                Next: Core Concepts
+                <FiArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </div>
+          </section>
         </div>
       </div>
     </div>

@@ -37,14 +37,13 @@ export default function HeroSection({
       
       <div className="container-custom relative z-10 pt-[72px]">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          <div className="mb-8 relative">
-            <div className="absolute inset-0 -m-6 bg-emerald-100/50 rounded-full blur-xl"></div>
+          <div className="mb-2 relative">
             <Image 
               src={logoSrc}
               alt="Logo" 
               width={80} 
               height={80}
-              className="relative rounded-full shadow-lg p-1 bg-white"
+              className="relative p-1"
             />
           </div>
           

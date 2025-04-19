@@ -165,7 +165,7 @@ export default function PrivacyPolicyPage() {
                   We ensure appropriate safeguards are in place to protect your information when transferred internationally.
                 </p>
 
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 mt-8">8. Children's Privacy</h2>
+                <h2 className="text-2xl font-bold mb-4 text-gray-900 mt-8">8. Children&apos;s Privacy</h2>
                 <p>
                   Our services are not directed to children under the age of 13. We do not knowingly collect personal 
                   information from children under 13. If you are a parent or guardian and believe that your child has 
@@ -175,7 +175,7 @@ export default function PrivacyPolicyPage() {
                 <h2 className="text-2xl font-bold mb-4 text-gray-900 mt-8">9. Changes to This Privacy Policy</h2>
                 <p>
                   We may update this privacy policy from time to time. We will notify you of any changes by posting the 
-                  new privacy policy on this page and updating the "Last Updated" date. You are advised to review this 
+                  new privacy policy on this page and updating the &quot;Last Updated&quot; date. You are advised to review this 
                   privacy policy periodically for any changes.
                 </p>
 

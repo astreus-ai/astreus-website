@@ -41,32 +41,31 @@ export default function DocsPage() {
 
   // Example code blocks
   const installCode = `# Install Astreus using npm
-npm install @astreus/core
+npm install astreus
 
 # Or with yarn
-yarn add @astreus/core`;
+yarn add astreus`;
 
-  const agentCode = `import { Agent } from '@astreus/core';
+  const agentCode = `import { 
+  createAgent, 
+  createOpenAIConfig, 
+  OpenAIProvider 
+} from 'astreus';
 
-// Create a new agent
-const myAgent = new Agent({
+// Configure your provider
+const config = createOpenAIConfig({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Create an agent
+const agent = createAgent({
+  provider: new OpenAIProvider(config),
   name: 'MyFirstAgent',
-  models: ['gpt-4'],
-  memory: true,
 });
 
-// Define agent tasks
-await myAgent.defineTask({
-  name: 'greet',
-  description: 'Greet the user by name',
-  action: async (name) => {
-    return \`Hello, \${name}! I'm \${myAgent.name}.\`;
-  }
-});
-
-// Run the agent
-const result = await myAgent.run('greet', 'World');
-console.log(result); // "Hello, World! I'm MyFirstAgent."`;
+// Use your agent
+const response = await agent.run('Tell me about artificial intelligence');
+console.log(response);`;
 
   return (
     <div className="container-custom max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

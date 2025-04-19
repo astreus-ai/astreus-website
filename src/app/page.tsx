@@ -2,7 +2,7 @@ import Header from './components/Header';
 import HeroSection from './components/HeroSection';
 import FeatureSection from './components/FeatureSection';
 import Footer from './components/Footer';
-import { FiCode, FiBriefcase, FiLayers, FiGithub, FiUsers, FiZap } from 'react-icons/fi';
+import { FiCode, FiLayers, FiGithub, FiUsers, FiZap, FiCommand } from 'react-icons/fi';
 import CommunitySection from './components/CommunitySection';
 import OpenSourceSection from './components/OpenSourceSection';
 
@@ -17,46 +17,46 @@ export default function Home() {
   // Feature cards for the feature section
   const features = [
     {
-      title: 'Intelligent Agents',
-      description: 'Create AI agents that can reason, learn, and take complex actions with our powerful open-source framework.',
+      title: 'Intelligent Agent System',
+      description: 'Create, manage, and control AI agents with a flexible and extensible TypeScript framework designed for real-world applications.',
       icon: <FiCode />,
       iconColor: 'text-emerald-500',
       actionText: 'Learn More',
-      actionLink: '/docs/agents',
+      actionLink: '/docs/core-concepts',
     },
     {
-      title: 'Multi-Model Architecture',
-      description: 'Leverage various AI models together in one cohesive system for maximum intelligence and capability.',
+      title: 'Multiple Provider Support',
+      description: 'Work with OpenAI, Ollama, and more through a unified provider interface that makes switching between LLM providers simple.',
       icon: <FiLayers />,
       iconColor: 'text-emerald-500',
       actionText: 'See Documentation',
-      actionLink: '/docs/architecture',
+      actionLink: '/docs/api-reference',
     },
     {
-      title: 'Enterprise Ready',
-      description: 'Built for scale with secure, reliable infrastructure that meets the needs of companies of all sizes.',
-      icon: <FiBriefcase />,
+      title: 'Task Management',
+      description: 'Handle both synchronous and asynchronous AI operations with a sophisticated task system that keeps your code clean and maintainable.',
+      icon: <FiCommand />,
       iconColor: 'text-emerald-500',
       actionText: 'View Examples',
-      actionLink: '/examples',
-    },
+      actionLink: '/docs/examples',
+    }
   ];
 
   // Open Source benefits
   const openSourceBenefits = [
     {
-      title: 'Free & Open Source',
-      description: 'Astreus is completely free to use and open source under the MIT license. Contribute, modify, and build upon our work.',
+      title: 'MIT Licensed',
+      description: 'Astreus is completely free to use and open source under the MIT license, allowing for both personal and commercial use without restrictions.',
       icon: <FiGithub />,
     },
     {
-      title: 'Community Driven',
-      description: 'Join a growing community of developers building the future of AI agents together. Share ideas and get support.',
+      title: 'Plugin System',
+      description: 'Extend functionality with a powerful plugin system that lets you customize and enhance your agents with additional capabilities.',
       icon: <FiUsers />,
     },
     {
-      title: 'Lightning Fast',
-      description: 'Optimized for performance with a lightweight core and efficient architecture that scales with your needs.',
+      title: 'Memory Management',
+      description: 'Built-in memory management system allows agents to remember past interactions and maintain context across conversations.',
       icon: <FiZap />,
     },
   ];
@@ -82,7 +82,7 @@ export default function Home() {
       title: 'Resources',
       links: [
         { label: 'Documentation', href: '/docs' },
-        { label: 'API Reference', href: '/api' },
+        { label: 'API Reference', href: '/docs/api-reference' },
         { label: 'Tutorials', href: '/tutorials' },
         { label: 'Examples', href: '/examples' },
       ],
@@ -109,22 +109,22 @@ export default function Home() {
 
       <main>
         <HeroSection 
-          title="Open-Source AI Agent Framework"
-          subtitle="Create powerful, intelligent AI agents that can reason, learn, and take complex actions to solve real problems."
+          title="Astreus AI Agent Framework"
+          subtitle="An AI Agent framework for building, deploying, and managing intelligent AI agents with multiple provider support, task management, and built-in memory systems."
           primaryCTA={{ text: 'Get Started', link: '/docs/getting-started' }}
           secondaryCTA={{ text: 'View on GitHub', link: 'https://github.com/astreus-ai/astreus' }}
           logoSrc="/astreus-logo-black.svg"
         />
         
         <FeatureSection 
-          title="Why Choose Astreus"
-          subtitle="A powerful open-source AI framework designed for developers"
+          title="Core Features"
+          subtitle="Everything you need to build powerful AI agents in TypeScript"
           features={features}
         />
 
         <OpenSourceSection
-          title="100% Open Source"
-          subtitle="Astreus is built in the open with the community"
+          title="Open Source & Extensible"
+          subtitle="Build upon a solid foundation with room to grow"
           benefits={openSourceBenefits}
           githubLink="https://github.com/astreus-ai/astreus"
         />

@@ -1,5 +1,6 @@
 import { FiGithub, FiMessageCircle, FiUsers, FiStar } from 'react-icons/fi';
 import { RiTwitterXFill } from 'react-icons/ri';
+import Image from 'next/image';
 
 interface CommunityStats {
   label: string;
@@ -94,9 +95,11 @@ export default function CommunitySection({
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                   <div className="flex items-center mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
-                      <img 
-                        src="https://api.dicebear.com/7.x/lorelei/svg?seed=50&backgroundColor=0fa573" 
+                      <Image 
+                        src="https://api.dicebear.com/7.x/lorelei/png?seed=50&backgroundColor=0fa573" 
                         alt="Developer"
+                        width={40}
+                        height={40}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -109,9 +112,11 @@ export default function CommunitySection({
                   <div className="flex gap-2 flex-wrap mb-3">
                     {Array.from({ length: 8 }).map((_, i) => (
                       <div key={i} className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-                        <img 
-                          src={`https://api.dicebear.com/7.x/lorelei/svg?seed=${i + 100}&backgroundColor=0fa573`} 
+                        <Image 
+                          src={`https://api.dicebear.com/7.x/lorelei/png?seed=${i + 100}&backgroundColor=0fa573`} 
                           alt={`Community avatar ${i + 1}`}
+                          width={32}
+                          height={32}
                           className="w-full h-full object-cover"
                         />
                       </div>
