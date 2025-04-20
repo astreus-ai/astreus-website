@@ -56,7 +56,7 @@ export default function StepDiagram({ steps, title, subtitle }: StepDiagramProps
               )}
               
               <h3 className="text-lg font-medium mb-2">{step.title}</h3>
-              <p className="text-gray-600 text-sm">{step.description}</p>
+              <p className="text-gray-600 text-base">{step.description}</p>
             </div>
           ))}
         </div>

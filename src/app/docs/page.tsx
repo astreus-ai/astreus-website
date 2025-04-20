@@ -1,71 +1,26 @@
 import Link from 'next/link';
 import { FiArrowRight, FiBookOpen, FiCode, FiTerminal, FiPackage, FiHome } from 'react-icons/fi';
 import { CodeBlock } from '../components/CodeBlock';
+import { docSections, sidebarLinks, docCodeExamples } from '../constants';
 
 export default function DocsPage() {
-  // Documentation sections
-  const docSections = [
-    {
-      title: 'Getting Started',
-      description: 'Start building your first AI agent with Astreus. Learn the basics and set up your development environment.',
-      icon: <FiBookOpen className="h-6 w-6 text-emerald-500" />,
-      href: '/docs/getting-started',
-    },
-    {
-      title: 'Core Concepts',
-      description: 'Understand the architecture and key concepts behind Astreus AI agents.',
-      icon: <FiCode className="h-6 w-6 text-emerald-500" />,
-      href: '/docs/core-concepts',
-    },
-    {
-      title: 'API Reference',
-      description: 'Detailed API documentation for all Astreus components and modules.',
-      icon: <FiTerminal className="h-6 w-6 text-emerald-500" />,
-      href: '/docs/api-reference',
-    },
-    {
-      title: 'Examples',
-      description: 'Explore real-world examples and use cases for Astreus AI agents.',
-      icon: <FiPackage className="h-6 w-6 text-emerald-500" />,
-      href: '/docs/examples',
-    },
-  ];
-
-  // Sidebar navigation
-  const sidebarLinks = [
-    { icon: <FiBookOpen className="h-4 w-4" />, label: 'Getting Started', href: '/docs/getting-started' },
-    { icon: <FiCode className="h-4 w-4" />, label: 'Core Concepts', href: '/docs/core-concepts' },
-    { icon: <FiTerminal className="h-4 w-4" />, label: 'API Reference', href: '/docs/api-reference' },
-    { icon: <FiPackage className="h-4 w-4" />, label: 'Examples', href: '/docs/examples' },
-  ];
-
-  // Example code blocks
-  const installCode = `# Install Astreus using npm
-npm install astreus
-
-# Or with yarn
-yarn add astreus`;
-
-  const agentCode = `import { 
-  createAgent, 
-  createOpenAIConfig, 
-  OpenAIProvider 
-} from 'astreus';
-
-// Configure your provider
-const config = createOpenAIConfig({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Create an agent
-const agent = createAgent({
-  provider: new OpenAIProvider(config),
-  name: 'MyFirstAgent',
-});
-
-// Use your agent
-const response = await agent.run('Tell me about artificial intelligence');
-console.log(response);`;
+  // Function to render the correct icon based on iconType
+  const renderIcon = (iconType: string, className: string) => {
+    switch (iconType) {
+      case 'FiBookOpen':
+        return <FiBookOpen className={className} />;
+      case 'FiCode':
+        return <FiCode className={className} />;
+      case 'FiTerminal':
+        return <FiTerminal className={className} />;
+      case 'FiPackage':
+        return <FiPackage className={className} />;
+      case 'FiHome':
+        return <FiHome className={className} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container-custom max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -90,7 +45,7 @@ console.log(response);`;
                   href={link.href}
                   className="text-gray-600 hover:text-emerald-600 flex items-center px-3 py-2 rounded-md hover:bg-gray-50"
                 >
-                  {link.icon}
+                  {renderIcon(link.iconType, "mr-2 h-4 w-4")}
                   <span className="ml-2">{link.label}</span>
                 </Link>
               ))}
@@ -114,11 +69,11 @@ console.log(response);`;
               <Link 
                 key={index} 
                 href={section.href}
-                className="block bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-100 transition-all duration-200"
+                className="block bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:border-emerald-100 transition-all duration-200"
               >
                 <div className="flex items-start">
                   <div className="flex-shrink-0 mt-1">
-                    {section.icon}
+                    {renderIcon(section.iconType, "h-6 w-6 text-emerald-500")}
                   </div>
                   <div className="ml-5">
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">{section.title}</h3>
@@ -141,7 +96,7 @@ console.log(response);`;
               </p>
 
               <CodeBlock 
-                code={installCode}
+                code={docCodeExamples.install}
                 language="bash"
                 isDark={false}
                 className="mb-6"
@@ -150,7 +105,7 @@ console.log(response);`;
               <div className="bg-white rounded-lg p-5 border border-gray-200 mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Create your first agent</h3>
                 <CodeBlock 
-                  code={agentCode}
+                  code={docCodeExamples.agent}
                   language="javascript"
                   isDark={false}
                   className="mb-0"

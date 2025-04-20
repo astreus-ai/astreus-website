@@ -1,23 +1,30 @@
 import Link from 'next/link';
 import { FiArrowRight, FiArrowLeft, FiActivity, FiDatabase, FiCpu, FiMessageCircle, FiBookOpen, FiCode, FiTerminal, FiPackage, FiHome } from 'react-icons/fi';
+import { sidebarLinks, coreConceptsToc } from '../../constants';
 
 export default function CoreConceptsPage() {
   // Table of contents links
-  const tocLinks = [
-    { label: 'Agent Architecture', href: '#agent-architecture' },
-    { label: 'Memory Systems', href: '#memory-systems' },
-    { label: 'Reasoning Engine', href: '#reasoning-engine' },
-    { label: 'Tasks & Actions', href: '#tasks-actions' },
-    { label: 'Integration Methods', href: '#integration-methods' },
-  ];
+  const tocLinks = coreConceptsToc;
 
-  // Sidebar navigation
-  const sidebarLinks = [
-    { icon: <FiBookOpen className="h-4 w-4" />, label: 'Getting Started', href: '/docs/getting-started' },
-    { icon: <FiCode className="h-4 w-4" />, label: 'Core Concepts', href: '/docs/core-concepts' },
-    { icon: <FiTerminal className="h-4 w-4" />, label: 'API Reference', href: '/docs/api-reference' },
-    { icon: <FiPackage className="h-4 w-4" />, label: 'Examples', href: '/docs/examples' },
-  ];
+  // Sidebar navigation is now imported from constants.ts
+
+  // Function to render the correct icon based on iconType
+  const renderIcon = (iconType: string) => {
+    switch (iconType) {
+      case 'FiBookOpen':
+        return <FiBookOpen className="h-4 w-4" />;
+      case 'FiCode':
+        return <FiCode className="h-4 w-4" />;
+      case 'FiTerminal':
+        return <FiTerminal className="h-4 w-4" />;
+      case 'FiPackage':
+        return <FiPackage className="h-4 w-4" />;
+      case 'FiHome':
+        return <FiHome className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container-custom max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
@@ -57,7 +64,7 @@ export default function CoreConceptsPage() {
                       : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
                   }`}
                 >
-                  {link.icon}
+                  {renderIcon(link.iconType)}
                   <span className="ml-2">{link.label}</span>
                 </Link>
               ))}

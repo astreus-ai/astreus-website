@@ -4,22 +4,11 @@ import Image from 'next/image';
 import { FiGithub } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { brandInfo, comingSoonCodeSnippet, comingSoonInfo } from '../constants';
 
 export default function ComingSoonPage() {
   const [codeText, setCodeText] = useState("");
-  const fullCode = `
-function createAgent() {
-  return new Agent({
-    name: "Astreus",
-    models: ["gpt-4", "claude-3"],
-    tools: [search, generate],
-    memory: new Memory()
-  });
-}
-
-const agent = createAgent();
-agent.run("Solve this complex task");
-`;
+  const fullCode = comingSoonCodeSnippet;
 
   useEffect(() => {
     let i = 0;
@@ -36,7 +25,7 @@ agent.run("Solve this complex task");
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 to-emerald-100 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-white relative overflow-hidden">
       {/* Code background pattern - fixed position to prevent layout shifts */}
       <div className="fixed top-0 right-0 w-full h-full overflow-hidden opacity-[0.03] pointer-events-none select-none">
         <div className="absolute -right-[5rem] sm:-right-[10rem] top-20 transform rotate-12 text-5xl text-black font-mono">
@@ -68,8 +57,8 @@ agent.run("Solve this complex task");
           className="mb-4"
         >
           <Image 
-            src="/astreus-logo-black.svg" 
-            alt="Astreus Logo" 
+            src={brandInfo.logo} 
+            alt={`${brandInfo.name} Logo`} 
             width={80} 
             height={80}
             className="mx-auto"
@@ -83,7 +72,7 @@ agent.run("Solve this complex task");
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
         >
-          Coming Soon
+          {comingSoonInfo.title}
         </motion.h1>
         
         <motion.p 
@@ -92,8 +81,7 @@ agent.run("Solve this complex task");
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-lg md:text-xl text-gray-600 max-w-2xl mt-6 mb-12"
         >
-          We&apos;re working hard to bring you the next generation AI Agent Framework. 
-          Stay tuned for our official launch.
+          {comingSoonInfo.description}
         </motion.p>
         
         <motion.div 
@@ -106,10 +94,10 @@ agent.run("Solve this complex task");
             <motion.a 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              href="https://github.com/astreus-ai" 
+              href={comingSoonInfo.githubLink} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="px-6 py-3 text-base bg-black hover:bg-gray-800 text-white rounded-full flex items-center transition-colors shadow-md"
+              className="px-6 py-3 text-base bg-black hover:bg-gray-800 text-white rounded-full flex items-center transition-colors shadow-sm"
             >
               <FiGithub className="mr-2 text-lg" />
               View on GitHub
@@ -120,9 +108,9 @@ agent.run("Solve this complex task");
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="text-gray-500 mt-4 text-sm"
+            className="text-gray-500 mt-4"
           >
-            Expected launch: Q3 2024
+            Expected launch: {comingSoonInfo.expectedLaunch}
           </motion.div>
         </motion.div>
       </div>

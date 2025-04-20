@@ -35,7 +35,7 @@ export default function IntegrationGrid({ integrations, title }: IntegrationGrid
                   className="w-6 h-6"
                 />
               </div>
-              <span className="text-xs font-medium text-gray-700">{integration.name}</span>
+              <span className="text-base font-medium text-gray-700">{integration.name}</span>
             </div>
           ))}
         </div>

@@ -25,7 +25,7 @@ export default function RootLayout({
         <link rel="icon" href="/astreus-logo.svg" id="favicon" />
         <link rel="apple-touch-icon" href="/astreus-logo.svg" id="apple-touch-icon" />
       </head>
-      <body className={`${inter.className} bg-white`}>
+      <body className={`${inter.className} bg-white text-base`}>
         <DynamicFavicon />
         {children}
       </body>

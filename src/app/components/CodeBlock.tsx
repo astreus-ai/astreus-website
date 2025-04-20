@@ -37,7 +37,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       <div className="relative">
         {/* Language badge */}
         <div className="absolute top-2 left-2 z-10">
-          <span className="px-2 py-1 text-xs font-medium text-gray-50 bg-green-600/80 hover:bg-green-700/90 rounded cursor-pointer">
+          <span className="px-2 py-1 text-base font-medium text-gray-50 bg-green-600/80 hover:bg-green-700/90 rounded cursor-pointer">
             {language}
           </span>
         </div>

@@ -25,9 +25,7 @@ export default function Card({
   className = '',
 }: CardProps) {
   return (
-    <div className={`group relative bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden ${className}`}>
-      {/* Card top decoration - subtle linear gradient */}
-      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500"></div>
+    <div className={`group relative bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-1 overflow-hidden ${className}`}>
       
       {/* Background pattern - only visible on hover */}
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-center opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none"></div>
@@ -45,10 +43,10 @@ export default function Card({
       {/* Content */}
       <div className="p-6 pt-0">
         <h3 className="text-xl font-semibold mb-3 group-hover:text-emerald-600 transition-colors">{title}</h3>
-        <p className="text-gray-600 mb-6 text-sm leading-relaxed">{description}</p>
+        <p className="text-gray-600 mb-6 text-base leading-relaxed">{description}</p>
         
         {actionText && (
-          <Link href={actionLink} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-1 relative">
+          <Link href={actionLink} className="text-base font-medium text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-1 relative">
             <span className="relative z-10">{actionText}</span>
             <FiArrowRight className="h-3.5 w-3.5 ml-1 group-hover:translate-x-0.5 transition-transform" />
             {/* Underline effect on hover */}

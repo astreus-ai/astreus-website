@@ -1,103 +1,21 @@
 import Link from 'next/link';
 import { FiArrowRight, FiArrowLeft, FiDownload, FiPlay, FiSettings, FiCode, FiBookOpen, FiTerminal, FiPackage, FiHome } from 'react-icons/fi';
 import { CodeBlock } from '../../components/CodeBlock';
+import { sidebarLinks, gettingStartedToc, gettingStartedExamples } from '../../constants';
 
 export default function GettingStartedPage() {
   // Table of contents links
-  const tocLinks = [
-    { label: 'Installation', href: '#installation' },
-    { label: 'Configuration', href: '#configuration' },
-    { label: 'Creating Your First Agent', href: '#first-agent' },
-    { label: 'Testing Your Agent', href: '#testing' },
-    { label: 'Next Steps', href: '#next-steps' },
-  ];
+  const tocLinks = gettingStartedToc;
 
-  // Sidebar navigation
-  const sidebarLinks = [
-    { icon: <FiBookOpen className="h-4 w-4" />, label: 'Getting Started', href: '/docs/getting-started' },
-    { icon: <FiCode className="h-4 w-4" />, label: 'Core Concepts', href: '/docs/core-concepts' },
-    { icon: <FiTerminal className="h-4 w-4" />, label: 'API Reference', href: '/docs/api-reference' },
-    { icon: <FiPackage className="h-4 w-4" />, label: 'Examples', href: '/docs/examples' },
-  ];
+  // Sidebar navigation is now imported from constants.ts
 
-  // Example code blocks
-  const installCode = `# Using npm
-npm install astreus
-
-# Using yarn
-yarn add astreus
-
-# Using pnpm
-pnpm add astreus`;
-
-  const configCode = `// Configure your OpenAI provider
-import { createOpenAIConfig } from 'astreus';
-
-const config = createOpenAIConfig({
-  apiKey: process.env.OPENAI_API_KEY,
-  // Optional: model-specific settings
-  models: {
-    'gpt-4': {
-      temperature: 0.7,
-      maxTokens: 2000,
-    },
-    'gpt-3.5-turbo': {
-      temperature: 0.9,
-      maxTokens: 1500,
-    },
-  },
-});`;
-
-  const envCode = `# .env
-OPENAI_API_KEY=your_api_key_here`;
-
-  const agentCode = `// my-agent.js
-import { 
-  createAgent, 
-  createOpenAIConfig, 
-  OpenAIProvider,
-  createTask
-} from 'astreus';
-
-async function main() {
-  // Configure your provider
-  const config = createOpenAIConfig({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-
-  // Create an agent
-  const agent = createAgent({
-    provider: new OpenAIProvider(config),
-    name: 'Helpful Assistant',
-  });
-
-  // Define a task for the agent
-  const answerTask = createTask({
-    name: 'answer',
-    description: 'Provide a helpful answer to the user question',
-    action: async (question) => {
-      // The agent will use its AI capabilities to generate a response
-      return await agent.run(\`
-        Question: \${question}
-        Provide a helpful, accurate, and concise answer.
-      \`);
-    }
-  });
-
-  // Run the task with a question
-  const question = "What are the benefits of using AI agents?";
-  console.log(\`Question: \${question}\`);
-  
-  const answer = await answerTask.execute(question);
-  console.log(\`Answer: \${answer}\`);
-}
-
-main().catch(console.error);`;
-
-  const runCode = `node my-agent.js`;
-
-  const outputCode = `Question: What are the benefits of using AI agents?
-Answer: AI agents offer several benefits, including automation of repetitive tasks, 24/7 availability, consistent performance, scalability, personalization capabilities, and the ability to process and analyze large amounts of data quickly. They can also work alongside humans to enhance productivity and decision-making by handling routine queries while allowing people to focus on more complex problems that require human creativity and empathy.`;
+  // Example code blocks are now imported from constants.ts
+  const installCode = gettingStartedExamples.install;
+  const configCode = gettingStartedExamples.config;
+  const envCode = gettingStartedExamples.env;
+  const agentCode = gettingStartedExamples.agent;
+  const runCode = gettingStartedExamples.run;
+  const outputCode = gettingStartedExamples.output;
 
   return (
     <div className="container-custom max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
@@ -127,20 +45,40 @@ Answer: AI agents offer several benefits, including automation of repetitive tas
                 <FiHome className="mr-2 h-4 w-4" />
                 Overview
               </Link>
-              {sidebarLinks.map((link, index) => (
-                <Link 
-                  key={index} 
-                  href={link.href}
-                  className={`flex items-center px-3 py-2 rounded-md ${
-                    link.href === '/docs/getting-started' 
-                      ? 'text-emerald-600 font-medium bg-emerald-50' 
-                      : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {link.icon}
-                  <span className="ml-2">{link.label}</span>
-                </Link>
-              ))}
+              {sidebarLinks.map((link, index) => {
+                // Function to render the correct icon based on iconType
+                const renderIcon = (iconType: string) => {
+                  switch (iconType) {
+                    case 'FiBookOpen':
+                      return <FiBookOpen className="h-4 w-4" />;
+                    case 'FiCode':
+                      return <FiCode className="h-4 w-4" />;
+                    case 'FiTerminal':
+                      return <FiTerminal className="h-4 w-4" />;
+                    case 'FiPackage':
+                      return <FiPackage className="h-4 w-4" />;
+                    case 'FiHome':
+                      return <FiHome className="h-4 w-4" />;
+                    default:
+                      return null;
+                  }
+                };
+
+                return (
+                  <Link 
+                    key={index} 
+                    href={link.href}
+                    className={`flex items-center px-3 py-2 rounded-md ${
+                      link.href === '/docs/getting-started' 
+                        ? 'text-emerald-600 font-medium bg-emerald-50' 
+                        : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {renderIcon(link.iconType)}
+                    <span className="ml-2">{link.label}</span>
+                  </Link>
+                );
+              })}
             </nav>
 
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
@@ -198,48 +136,43 @@ Answer: AI agents offer several benefits, including automation of repetitive tas
             </p>
             
             <CodeBlock 
-              code={configCode} 
-              language="javascript" 
-              isDark={false} 
+              code={configCode}
+              language="javascript"
+              isDark={false}
               className="mb-6"
             />
-            
-            <p className="text-gray-600 mb-4">
-              For security, it&apos;s recommended to use environment variables for your API keys. Create a <code className="bg-gray-100 rounded px-1 py-0.5">.env</code> file in your project root:
-            </p>
-            
-            <CodeBlock 
-              code={envCode} 
-              language="bash" 
-              isDark={false} 
-              className="mb-6"
-            />
-            
-            <p className="text-gray-600">
-              Make sure to install the <code className="bg-gray-100 rounded px-1 py-0.5">dotenv</code> package and add <code className="bg-gray-100 rounded px-1 py-0.5">require(&apos;dotenv&apos;).config()</code> at the top of your main file to load these environment variables.
-            </p>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6">
+              <h3 className="font-medium text-amber-800 mb-1">API Key Security</h3>
+              <p className="text-amber-700 text-sm">
+                Never hardcode your API keys directly in your code. Use environment variables or a secure configuration management system. 
+                Create a <code>.env</code> file in your project root:
+              </p>
+              <CodeBlock 
+                code={envCode}
+                language="bash"
+                isDark={false}
+                className="mt-3"
+              />
+            </div>
           </section>
 
-          {/* Create Your First Agent */}
+          {/* Creating Your First Agent */}
           <section id="first-agent" className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
               <FiCode className="mr-3 h-5 w-5 text-emerald-500" />
               Creating Your First Agent
             </h2>
             <p className="text-gray-600 mb-4">
-              Now let&apos;s create a simple agent that can answer questions. Create a file called <code className="bg-gray-100 rounded px-1 py-0.5">my-agent.js</code> (or <code className="bg-gray-100 rounded px-1 py-0.5">my-agent.ts</code> if you&apos;re using TypeScript):
+              Now let&apos;s create a basic agent that can answer questions. Create a new file called <code>my-agent.js</code>:
             </p>
             
             <CodeBlock 
-              code={agentCode} 
-              language="javascript" 
-              isDark={false} 
+              code={agentCode}
+              language="javascript"
+              isDark={false}
               className="mb-6"
             />
-            
-            <p className="text-gray-600">
-              This code creates a new agent with a configured provider, defines a task for it, and then runs that task with a question.
-            </p>
           </section>
 
           {/* Testing Your Agent */}
@@ -249,24 +182,24 @@ Answer: AI agents offer several benefits, including automation of repetitive tas
               Testing Your Agent
             </h2>
             <p className="text-gray-600 mb-4">
-              Run your agent with the following command:
+              Run your agent to see it in action:
             </p>
             
             <CodeBlock 
-              code={runCode} 
-              language="bash" 
-              isDark={false} 
+              code={runCode}
+              language="bash"
+              isDark={false}
               className="mb-4"
             />
-            
+
             <p className="text-gray-600 mb-4">
-              You should see output similar to:
+              You should see output similar to this:
             </p>
             
             <CodeBlock 
-              code={outputCode} 
-              language="text" 
-              isDark={false} 
+              code={outputCode}
+              language="bash"
+              isDark={false}
               className="mb-6"
             />
           </section>
@@ -278,24 +211,43 @@ Answer: AI agents offer several benefits, including automation of repetitive tas
               Next Steps
             </h2>
             <p className="text-gray-600 mb-4">
-              Now that you&apos;ve created your first agent, there&apos;s much more you can explore:
+              Now that you have your first agent up and running, you can explore more advanced features:
             </p>
             
-            <ul className="list-disc list-inside space-y-2 text-gray-600 mb-6">
-              <li>Learn about <Link href="/docs/core-concepts" className="text-emerald-600 hover:underline">Core Concepts</Link> to understand the architecture</li>
-              <li>Set up a database for agent memory using SQLite or PostgreSQL</li>
-              <li>Create more complex tasks and workflows</li>
-              <li>Try different AI models and providers</li>
-              <li>Explore advanced features like plugin system</li>
+            <ul className="space-y-3 mb-6">
+              <li className="flex">
+                <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center bg-emerald-100 rounded-full">
+                  <span className="text-sm text-emerald-600">1</span>
+                </div>
+                <p className="ml-3 text-gray-600">
+                  Learn about <Link href="/docs/core-concepts" className="text-emerald-600 hover:underline">Core Concepts</Link> of the Astreus framework
+                </p>
+              </li>
+              <li className="flex">
+                <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center bg-emerald-100 rounded-full">
+                  <span className="text-sm text-emerald-600">2</span>
+                </div>
+                <p className="ml-3 text-gray-600">
+                  Explore the <Link href="/docs/api-reference" className="text-emerald-600 hover:underline">API Reference</Link> for detailed documentation
+                </p>
+              </li>
+              <li className="flex">
+                <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center bg-emerald-100 rounded-full">
+                  <span className="text-sm text-emerald-600">3</span>
+                </div>
+                <p className="ml-3 text-gray-600">
+                  Check out practical <Link href="/docs/examples" className="text-emerald-600 hover:underline">Examples</Link> to see Astreus in action
+                </p>
+              </li>
             </ul>
 
-            <div className="flex space-x-4 mt-8">
-              <Link href="/docs" className="text-emerald-600 hover:text-emerald-700 flex items-center">
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+              <Link href="/docs" className="inline-flex items-center text-emerald-600 hover:text-emerald-700">
                 <FiArrowLeft className="mr-2 h-4 w-4" />
-                Back to Documentation
+                Documentation Overview
               </Link>
-              <Link href="/docs/core-concepts" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md flex items-center transition-colors">
-                Next: Core Concepts
+              <Link href="/docs/core-concepts" className="inline-flex items-center text-emerald-600 hover:text-emerald-700">
+                Core Concepts
                 <FiArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>

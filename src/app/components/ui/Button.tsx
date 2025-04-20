@@ -27,18 +27,18 @@ export default function Button({
   disabled = false,
 }: ButtonProps) {
   // Base classes
-  const baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-200 rounded-md';
+  const baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-200 rounded-full text-base';
   
   // Size classes
   const sizeClasses = {
-    sm: 'text-sm py-1.5 px-3',
+    sm: 'py-1.5 px-3',
     md: 'py-2 px-4',
-    lg: 'text-lg py-3 px-6',
+    lg: 'py-3 px-6',
   };
   
   // Variant classes
   const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+    primary: 'bg-black hover:bg-gray-800 text-white',
     secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-800',
     outline: 'border border-gray-300 hover:bg-gray-50 text-gray-700',
     text: 'text-blue-600 hover:text-blue-700 hover:bg-blue-50',

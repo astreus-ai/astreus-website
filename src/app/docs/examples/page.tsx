@@ -1,87 +1,34 @@
 import Link from 'next/link';
 import { FiArrowLeft, FiBookOpen, FiCode, FiTerminal, FiPackage, FiHome, FiMessageCircle, FiSearch, FiServer, FiGlobe } from 'react-icons/fi';
 import { CodeBlock } from '../../components/CodeBlock';
+import { sidebarLinks, examplesToc, examplesPageCode } from '../../constants';
 
 export default function ExamplesPage() {
   // Table of contents links
-  const tocLinks = [
-    { label: 'Chatbot Example', href: '#chatbot' },
-    { label: 'Search Agent', href: '#search-agent' },
-    { label: 'API Integration', href: '#api-integration' },
-    { label: 'Web Interaction', href: '#web-interaction' },
-  ];
+  const tocLinks = examplesToc;
 
-  // Sidebar navigation
-  const sidebarLinks = [
-    { icon: <FiBookOpen className="h-4 w-4" />, label: 'Getting Started', href: '/docs/getting-started' },
-    { icon: <FiCode className="h-4 w-4" />, label: 'Core Concepts', href: '/docs/core-concepts' },
-    { icon: <FiTerminal className="h-4 w-4" />, label: 'API Reference', href: '/docs/api-reference' },
-    { icon: <FiPackage className="h-4 w-4" />, label: 'Examples', href: '/docs/examples' },
-  ];
+  // Sidebar navigation is now imported from constants.ts
 
   // Example code block for chatbot
-  const chatbotCode = `const { Agent } = require('@astreus/core');
+  const chatbotCode = examplesPageCode.chatbot;
 
-// Create a chatbot agent
-const chatbot = new Agent({
-  name: 'Support Bot',
-  models: ['gpt-4'],
-  memory: {
-    type: 'conversation',
-    capacity: 10
-  }
-});
-
-// Define the chat response task
-await chatbot.defineTask({
-  name: 'chat',
-  description: 'Respond to user messages in a helpful and friendly manner',
-  action: async (message, context) => {
-    // Use the conversation history from context
-    const history = context.memory.getConversation();
-    
-    // Generate a response considering the conversation history
-    const response = await chatbot.think(\`
-      Conversation history:
-      \${history.map(m => \`\${m.role}: \${m.content}\`).join('\\n')}
-      
-      User: \${message}
-      
-      Respond as a helpful support agent. Be friendly and concise.
-    \`);
-    
-    // Save the interaction to memory
-    context.memory.addToConversation({
-      role: 'user',
-      content: message
-    });
-    
-    context.memory.addToConversation({
-      role: 'assistant',
-      content: response
-    });
-    
-    return response;
-  }
-});
-
-// Example usage
-async function main() {
-  console.log("Support Bot: Hello! How can I help you today?");
-  
-  // This would normally come from user input
-  const responses = [
-    await chatbot.run('chat', "I'm having trouble installing your software."),
-    await chatbot.run('chat', "It keeps showing an error during installation."),
-    await chatbot.run('chat', "Yes, I'm using Windows 11."),
-  ];
-  
-  responses.forEach(response => {
-    console.log(\`Support Bot: \${response}\`);
-  });
-}
-
-main();`;
+  // Function to render the correct icon based on iconType
+  const renderIcon = (iconType: string) => {
+    switch (iconType) {
+      case 'FiBookOpen':
+        return <FiBookOpen className="h-4 w-4" />;
+      case 'FiCode':
+        return <FiCode className="h-4 w-4" />;
+      case 'FiTerminal':
+        return <FiTerminal className="h-4 w-4" />;
+      case 'FiPackage':
+        return <FiPackage className="h-4 w-4" />;
+      case 'FiHome':
+        return <FiHome className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container-custom max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
@@ -121,7 +68,7 @@ main();`;
                       : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
                   }`}
                 >
-                  {link.icon}
+                  {renderIcon(link.iconType)}
                   <span className="ml-2">{link.label}</span>
                 </Link>
               ))}

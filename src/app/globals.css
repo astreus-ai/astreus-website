@@ -3,8 +3,8 @@
 
 @layer base {
   :root {
-    --primary: 16 185 129; /* emerald-500 */
-    --primary-dark: 5 150 105; /* emerald-600 */
+    --primary: 0 0 0; /* black instead of emerald-500 */
+    --primary-dark: 17 24 39; /* gray-800 instead of emerald-600 */
   }
   
   html {
@@ -12,7 +12,7 @@
   }
   
   body {
-    @apply text-gray-800 bg-white font-sans text-sm;
+    @apply text-gray-800 bg-white font-sans text-base;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -32,34 +32,34 @@
   }
   
   p {
-    @apply text-sm leading-relaxed text-gray-600;
+    @apply text-base leading-relaxed text-gray-600;
   }
 }
 
 @layer utilities {
   .btn-primary {
-    @apply bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm;
+    @apply bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-full transition-all duration-200 text-base;
   }
   
   .btn-secondary {
-    @apply bg-white border border-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition-all duration-200 text-sm;
+    @apply bg-white border border-gray-200 text-gray-800 font-medium py-2 px-4 rounded-full hover:bg-gray-50 transition-all duration-200 text-base;
   }
   
   .btn-github {
-    @apply bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm flex items-center;
+    @apply bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-full transition-all duration-200 text-base flex items-center;
   }
   
   .card {
-    @apply bg-white border border-gray-100 rounded-xl shadow-sm p-5 hover:shadow-md transition-all duration-200;
+    @apply bg-white border border-gray-100 rounded-xl shadow-sm p-5 transition-all duration-200;
   }
 }
 
 .feature-card {
-  @apply flex flex-col h-full rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200;
+  @apply flex flex-col h-full rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm transition-all duration-200;
 }
 
 .feature-card-header {
-  @apply p-4 flex items-center justify-center bg-emerald-50;
+  @apply p-4 flex items-center justify-center bg-gray-50;
 }
 
 .feature-card-body {
@@ -75,5 +75,5 @@
 }
 
 .section-subtitle {
-  @apply text-sm text-gray-600 max-w-2xl mx-auto mb-10;
+  @apply text-base text-gray-600 max-w-2xl mx-auto mb-10;
 }

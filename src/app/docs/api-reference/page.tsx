@@ -1,33 +1,37 @@
 import Link from 'next/link';
 import { FiArrowRight, FiArrowLeft, FiBookOpen, FiCode, FiTerminal, FiPackage, FiHome, FiSettings, FiDatabase, FiLayers } from 'react-icons/fi';
 import { CodeBlock } from '../../components/CodeBlock';
+import { sidebarLinks, apiReferenceToc, apiReferenceExamples } from '../../constants';
 
 export default function ApiReferencePage() {
   // Table of contents links
-  const tocLinks = [
-    { label: 'Agent API', href: '#agent-api' },
-    { label: 'Memory API', href: '#memory-api' },
-    { label: 'Models API', href: '#models-api' },
-    { label: 'Tasks API', href: '#tasks-api' },
-    { label: 'Utility Functions', href: '#utility-functions' },
-  ];
+  const tocLinks = apiReferenceToc;
 
-  // Sidebar navigation
-  const sidebarLinks = [
-    { icon: <FiBookOpen className="h-4 w-4" />, label: 'Getting Started', href: '/docs/getting-started' },
-    { icon: <FiCode className="h-4 w-4" />, label: 'Core Concepts', href: '/docs/core-concepts' },
-    { icon: <FiTerminal className="h-4 w-4" />, label: 'API Reference', href: '/docs/api-reference' },
-    { icon: <FiPackage className="h-4 w-4" />, label: 'Examples', href: '/docs/examples' },
-  ];
+  // Sidebar navigation is now imported from constants.ts
 
-  // API code examples
-  const constructorExample = `new Agent(options: AgentOptions)`;
-  
-  const defineTaskExample = `async defineTask(options: TaskOptions): Promise<void>`;
-  
-  const runExample = `async run(taskName: string, ...args: any[]): Promise<any>`;
-  
-  const thinkExample = `async think(prompt: string, options?: ThinkOptions): Promise<string>`;
+  // API code examples are now imported from constants.ts
+  const constructorExample = apiReferenceExamples.constructor;
+  const defineTaskExample = apiReferenceExamples.defineTask;
+  const runExample = apiReferenceExamples.run;
+  const thinkExample = apiReferenceExamples.think;
+
+  // Function to render the correct icon based on iconType
+  const renderIcon = (iconType: string) => {
+    switch (iconType) {
+      case 'FiBookOpen':
+        return <FiBookOpen className="h-4 w-4" />;
+      case 'FiCode':
+        return <FiCode className="h-4 w-4" />;
+      case 'FiTerminal':
+        return <FiTerminal className="h-4 w-4" />;
+      case 'FiPackage':
+        return <FiPackage className="h-4 w-4" />;
+      case 'FiHome':
+        return <FiHome className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container-custom max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
@@ -67,7 +71,7 @@ export default function ApiReferencePage() {
                       : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
                   }`}
                 >
-                  {link.icon}
+                  {renderIcon(link.iconType)}
                   <span className="ml-2">{link.label}</span>
                 </Link>
               ))}

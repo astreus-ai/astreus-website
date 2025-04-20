@@ -1,75 +1,85 @@
+'use client';
+
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { motion } from 'framer-motion';
+import { 
+  navItems, 
+  footerColumns, 
+  socialLinks, 
+  brandInfo,
+  headerCta,
+  legalDates
+} from '../constants';
 
 export default function PrivacyPolicyPage() {
-  // Header navigation items
-  const navItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Features', href: '/features' },
-    { label: 'Use Cases', href: '/use-cases' },
-    { label: 'Roadmap', href: '/roadmap' },
-    { label: 'Docs', href: '/docs' },
-    { label: 'GitHub', href: 'https://github.com/astreus-ai/astreus' },
-  ];
-
   // Last updated date
-  const lastUpdated = 'June 15, 2024';
+  const lastUpdated = legalDates.privacyPolicy;
 
-  // Footer columns
-  const footerColumns = [
-    {
-      title: 'Product',
-      links: [
-        { label: 'Features', href: '/features' },
-        { label: 'Use Cases', href: '/use-cases' },
-        { label: 'Roadmap', href: '/roadmap' },
-        { label: 'Privacy Policy', href: '/privacy-policy' },
-        { label: 'Terms of Service', href: '/terms-of-service' },
-      ],
-    },
-    {
-      title: 'Resources',
-      links: [
-        { label: 'Documentation', href: '/docs' },
-        { label: 'API Reference', href: '/api' },
-        { label: 'Tutorials', href: '/tutorials' },
-        { label: 'Examples', href: '/examples' },
-      ],
-    },
-    {
-      title: 'Community',
-      links: [
-        { label: 'GitHub', href: 'https://github.com/astreus-ai/astreus' },
-        { label: 'Discord', href: 'https://discord.gg/astreus' },
-        { label: 'X', href: 'https://x.com/astreusai' },
-        { label: 'Blog', href: '/blog' },
-      ],
-    },
-  ];
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header 
-        logo="/astreus-logo-black.svg"
-        brandName="Astreus"
+        logo={brandInfo.logo}
+        brandName={brandInfo.name}
         navItems={navItems}
-        cta={{ label: 'Get Started', href: '/docs/getting-started' }}
+        cta={headerCta}
       />
 
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-4xl font-bold mb-6 text-gray-900">
+            <motion.div 
+              className="max-w-4xl mx-auto"
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+            >
+              <motion.h1 
+                className="text-4xl font-bold mb-6 text-gray-900"
+                variants={itemVariants}
+              >
                 Privacy Policy
-              </h1>
-              <p className="text-gray-600 mb-4">
+              </motion.h1>
+              <motion.p 
+                className="text-gray-600 mb-4"
+                variants={itemVariants}
+              >
                 Last Updated: {lastUpdated}
-              </p>
-              <div className="h-0.5 w-full bg-gray-100 my-8"></div>
+              </motion.p>
+              <motion.div 
+                className="h-0.5 w-full bg-gray-100 my-8"
+                variants={itemVariants}
+              ></motion.div>
               
-              <div className="prose prose-lg max-w-none text-gray-700">
+              <motion.div 
+                className="prose prose-lg max-w-none text-gray-700"
+                variants={itemVariants}
+              >
                 <h2 className="text-2xl font-bold mb-4 text-gray-900 mt-8">1. Introduction</h2>
                 <p>
                   Welcome to Astreus AI. We respect your privacy and are committed to protecting your personal data. 
@@ -187,21 +197,17 @@ export default function PrivacyPolicyPage() {
                   <strong>Email:</strong> privacy@astreus.ai<br />
                   <strong>Address:</strong> Astreus AI, Inc., 123 Tech Plaza, San Francisco, CA 94107, USA
                 </p>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
       </main>
 
       <Footer 
-        logo="/astreus-logo-black.svg"
-        brandName="Astreus"
+        logo={brandInfo.logo}
+        brandName={brandInfo.name}
         columns={footerColumns}
-        socialLinks={{
-          twitter: 'https://x.com/astreusai',
-          github: 'https://github.com/astreus-ai/astreus',
-          discord: 'https://discord.gg/astreus',
-        }}
+        socialLinks={socialLinks}
       />
     </div>
   );
