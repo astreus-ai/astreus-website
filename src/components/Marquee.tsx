@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { i } from 'framer-motion/client';
 
 const Marquee = () => {
   const marqueeVariants = {
@@ -20,21 +19,22 @@ const Marquee = () => {
     }
   };
 
+  // Create the repeating text content using actual spaces rather than &nbsp;
+  const textContent = "·   UNIFIED AGENT API   ·   MULTI-PROVIDER SUPPORT   ·   MEMORY MANAGEMENT   ·   TASK ORCHESTRATION   ·   PLUGIN SYSTEM   ·   PERSISTENCE LAYER   ·   EMBEDDINGS SUPPORT   ·   TYPE SAFETY   ·   ASTREUS AI AGENT FRAMEWORK   ";
+  
+  // Repeat the text multiple times to ensure continuous appearance
+  const repeatedTextContent = Array(6).fill(textContent).join('');
+
   return (
     <motion.div 
-      className="z-20 w-[120%] ml-[-10%] bg-white border-t-2 border-b-2 border-black py-2 flex absolute top-[280px] md:top-[300px] overflow-hidden transform -rotate-[10deg] shadow-lg"
+      className="z-20 absolute w-[300vw] left-[-100vw] bg-white border-t-2 border-b-2 border-black py-2 flex top-[240px] sm:top-[300px] md:top-[360px] lg:top-[350px] xl:top-[380px] overflow-visible transform -rotate-[10deg] shadow-lg"
       initial="hidden"
       animate="visible"
       variants={marqueeVariants}
     >
-      <div className="min-w-full flex-none flex justify-around gap-4 scroll marquee-content">
-        <div className="text-black uppercase text-base md:text-xl leading-[26px] whitespace-nowrap">
-          ·&nbsp;&nbsp;&nbsp;UNIFIED AGENT API&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;MULTI-PROVIDER SUPPORT&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;MEMORY MANAGEMENT&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;TASK ORCHESTRATION&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;PLUGIN SYSTEM&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;PERSISTENCE LAYER&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;EMBEDDINGS SUPPORT&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;TYPE SAFETY&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;ASTREUS AI AGENT FRAMEWORK&nbsp;&nbsp;&nbsp;
-        </div>
-      </div>
-      <div className="min-w-full flex-none flex justify-around gap-4 scroll marquee-content">
-        <div className="text-black uppercase text-base md:text-xl leading-[26px] whitespace-nowrap">
-          ·&nbsp;&nbsp;&nbsp;UNIFIED AGENT API&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;MULTI-PROVIDER SUPPORT&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;MEMORY MANAGEMENT&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;TASK ORCHESTRATION&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;PLUGIN SYSTEM&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;PERSISTENCE LAYER&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;EMBEDDINGS SUPPORT&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;TYPE SAFETY&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;ASTREUS AI AGENT FRAMEWORK&nbsp;&nbsp;&nbsp;
+      <div className="w-full flex-none flex justify-start gap-0 scroll marquee-content">
+        <div className="text-black uppercase text-base sm:text-xl leading-[26px] whitespace-nowrap">
+          {repeatedTextContent}
         </div>
       </div>
     </motion.div>

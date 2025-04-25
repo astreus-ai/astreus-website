@@ -5,6 +5,17 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 const Features = () => {
+  const featuresList = [
+    "Unified Agent API",
+    "Multi-Provider Support",
+    "Memory Management",
+    "Task Orchestration",
+    "Plugin System",
+    "Persistence Layer",
+    "Embeddings Support",
+    "Type Safety"
+  ];
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -47,79 +58,36 @@ const Features = () => {
   return (
     <motion.div 
       id="what" 
-      className="w-full max-w-[623px] flex flex-col justify-start items-center border-b-2 border-[#1e1e1e] pb-[60px] text-[#1e1e1e] text-center text-3xl md:text-5xl leading-[139%] relative"
+      className="w-full max-w-[623px] flex sm:flex-row flex-col justify-start items-center border-b-2 border-[#1e1e1e] sm:pb-[60px] pb-[32px] text-[#1e1e1e] text-center text-3xl md:text-5xl leading-[139%] relative"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
       variants={containerVariants}
     >
-      <motion.p 
-        className="text-[#1e1e1e] text-center text-2xl leading-tight font-inter mt-5 mb-5"
-        variants={itemVariants}
-      >
-        Framework Capabilities:
-      </motion.p>
-      <motion.span 
-        variants={itemVariants} 
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl"
-      >
-        Unified Agent API
-      </motion.span>
-      <motion.span 
-        variants={itemVariants}
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
-        style={{ animationDelay: '100ms' }}
-      >
-        Multi-Provider Support
-      </motion.span>
-      <motion.span 
-        variants={itemVariants}
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
-        style={{ animationDelay: '200ms' }}
-      >
-        Memory Management
-      </motion.span>
-      <motion.span 
-        variants={itemVariants}
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
-        style={{ animationDelay: '300ms' }}
-      >
-        Task Orchestration
-      </motion.span>
-      <motion.span 
-        variants={itemVariants}
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
-        style={{ animationDelay: '400ms' }}
-      >
-        Plugin System
-      </motion.span>
-      <motion.span 
-        variants={itemVariants}
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
-        style={{ animationDelay: '500ms' }}
-      >
-        Persistence Layer
-      </motion.span>
-      <motion.span 
-        variants={itemVariants}
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
-        style={{ animationDelay: '600ms' }}
-      >
-        Embeddings Support
-      </motion.span>
-      <motion.span 
-        variants={itemVariants}
-        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
-        style={{ animationDelay: '700ms' }}
-      >
-        Type Safety
-      </motion.span>
+      <div className="flex flex-col items-center justify-center">
+        <motion.p 
+          className="text-[#1e1e1e] text-center text-2xl leading-tight font-inter mt-5 mb-5"
+          variants={itemVariants}
+        >
+          Framework Capabilities:
+        </motion.p>
+        {featuresList.map((feature, index) => (
+          <motion.span 
+            key={index}
+            variants={itemVariants}
+            className="font-pixel mt-1 opacity-0 animate-fade-in text-base md:text-xl" 
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            {feature}
+          </motion.span>
+        ))}
+      </div>
       <motion.div 
-        className="absolute top-[20%] left-[-55%] z-0 hidden md:flex"
+        className="sm:absolute flex sm:top-[20%] left-0 sm:left-[-55%] z-0"
         variants={imageVariants}
       >
         <Image 
-          src="/astreus-gadget-closed.png" 
+          src="/astreus-gadget-closed.webp" 
           alt="AI Agent Development" 
           width={270} 
           height={270}

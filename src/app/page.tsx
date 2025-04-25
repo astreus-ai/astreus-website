@@ -94,6 +94,7 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+      <Marquee />
       <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 py-12 md:py-16 relative overflow-hidden">
         <Hero />
         <motion.div 

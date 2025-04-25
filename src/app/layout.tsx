@@ -11,7 +11,7 @@ const pressStart2P = Press_Start_2P({
 })
 
 export const metadata: Metadata = {
-  title: 'Astreus - AI Agent Framework',
+  title: 'Astreus',
   description: 'Astreus is an AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).',
   icons: {
     icon: '/astreus-logo.svg',

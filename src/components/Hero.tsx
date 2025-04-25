@@ -36,10 +36,10 @@ const Hero = () => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center relative mt-8 mb-64">
+    <div className="w-full flex flex-col items-center justify-center relative mt-12 sm:mt-8 mb-64 sm:mb-80 lg:mb-64">
       <div className="w-full relative">
         <motion.h1 
-          className="text-[#1e1e1e] text-center text-7xl sm:text-8xl md:text-[180px] lg:text-[220px] xl:text-[250px] leading-none tracking-tighter relative z-10 font-semibold"
+          className="text-[#1e1e1e] text-center text-6xl sm:text-[140px] md:text-[160px] lg:text-[220px] xl:text-[250px] leading-none tracking-tighter relative z-10 font-semibold"
           initial="hidden"
           animate="visible"
           variants={titleVariants}
@@ -47,13 +47,13 @@ const Hero = () => {
           ASTREUS
         </motion.h1>
         <motion.div 
-          className="absolute top-[7.5rem] left-[50%] md:left-[50%] transform -translate-x-1/2 z-[15]"
+          className="absolute w-[200px] xs:w-[220px] sm:w-[250px] md:w-[300px] lg:w-[350px] xl:w-[400px] top-[2.5rem] sm:top-[5rem] md:top-[7.5rem] left-[50%] md:left-[52.5%] lg:left-[55%] transform -translate-x-1/2 z-[15]"
           initial="hidden"
           animate="visible"
           variants={imageVariants}
         >
           <Image 
-            src="/astreus-gadget.png"
+            src="/astreus-gadget.webp"
             alt="AI Character" 
             width={270} 
             height={270}
@@ -62,7 +62,6 @@ const Hero = () => {
           />
         </motion.div>
       </div>
-      <Marquee />
     </div>
   );
 };
