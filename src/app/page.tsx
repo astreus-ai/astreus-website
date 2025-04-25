@@ -83,7 +83,7 @@ export default function Home() {
             variants={githubButtonVariants}
           >
             <a 
-              href="https://github.com/astreus-ai/astreus" 
+              href="https://github.com/astreus-ai" 
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors inline-block shadow-md"

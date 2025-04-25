@@ -162,7 +162,7 @@ const Footer: React.FC<FooterProps> = ({ onVisibilityChange }) => {
               className="mx-auto"
             >
               <Link 
-                href="https://github.com/astreus-ai/astreus" 
+                href="https://github.com/astreus-ai" 
                 target="_blank"
                 className="px-6 py-3 flex items-center gap-2 bg-white border-2 border-[#1e1e1e] hover:bg-gray-50 transition-colors shadow-md"
               >

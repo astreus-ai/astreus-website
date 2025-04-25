@@ -61,61 +61,61 @@ const Features = () => {
       </motion.p>
       <motion.span 
         variants={itemVariants} 
-        className="opacity-0 animate-fade-in"
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl"
       >
         Unified Agent API
       </motion.span>
       <motion.span 
         variants={itemVariants}
-        className="opacity-0 animate-fade-in" 
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
         style={{ animationDelay: '100ms' }}
       >
         Multi-Provider Support
       </motion.span>
       <motion.span 
         variants={itemVariants}
-        className="opacity-0 animate-fade-in" 
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
         style={{ animationDelay: '200ms' }}
       >
         Memory Management
       </motion.span>
       <motion.span 
         variants={itemVariants}
-        className="opacity-0 animate-fade-in" 
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
         style={{ animationDelay: '300ms' }}
       >
         Task Orchestration
       </motion.span>
       <motion.span 
         variants={itemVariants}
-        className="opacity-0 animate-fade-in" 
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
         style={{ animationDelay: '400ms' }}
       >
         Plugin System
       </motion.span>
       <motion.span 
         variants={itemVariants}
-        className="opacity-0 animate-fade-in" 
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
         style={{ animationDelay: '500ms' }}
       >
         Persistence Layer
       </motion.span>
       <motion.span 
         variants={itemVariants}
-        className="opacity-0 animate-fade-in" 
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
         style={{ animationDelay: '600ms' }}
       >
         Embeddings Support
       </motion.span>
       <motion.span 
         variants={itemVariants}
-        className="opacity-0 animate-fade-in" 
+        className="font-pixel mt-1 opacity-0 animate-fade-in text-lg md:text-xl" 
         style={{ animationDelay: '700ms' }}
       >
         Type Safety
       </motion.span>
       <motion.div 
-        className="absolute top-[20%] left-[-50%] z-0 hidden md:flex"
+        className="absolute top-[20%] left-[-55%] z-0 hidden md:flex"
         variants={imageVariants}
       >
         <Image 

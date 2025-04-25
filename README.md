@@ -1,10 +1,10 @@
 # Astreus Landing Page
 
-This is the official landing page for the Astreus TypeScript AI Agent Framework.
+This is the official landing page for the Astreus AI Agent Framework.
 
 ## About Astreus
 
-Astreus is a TypeScript AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).
+Astreus is an AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).
 
 Key features:
 - Unified Agent API
@@ -27,7 +27,7 @@ This project uses Next.js with TypeScript and Tailwind CSS.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/astreus-ai/astreus-landing.git
+git clone https://github.com/astreus-ai-landing.git
 cd astreus-landing
 ```
 
@@ -61,4 +61,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Learn More
 
-To learn more about Astreus, check out the [Astreus repository](https://github.com/astreus-ai/astreus). 
+To learn more about Astreus, check out the [Astreus repository](https://github.com/astreus-ai). 

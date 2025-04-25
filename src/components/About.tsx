@@ -44,7 +44,7 @@ const About = () => {
         className="text-[#1e1e1e] text-center text-xl md:text-2xl leading-tight mb-4"
         variants={textVariants}
       >
-        A TypeScript AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs)
+        An AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs)
       </motion.div>
     </motion.div>
   );

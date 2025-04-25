@@ -9,6 +9,7 @@ module.exports = {
     extend: {
       fontFamily: {
         'inter': ['Inter', 'sans-serif'],
+        'pixel': ['var(--font-press-start-2p)'],
       },
       colors: {
         black: '#1e1e1e',
