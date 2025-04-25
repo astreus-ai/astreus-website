@@ -7,13 +7,14 @@ import { motion } from 'framer-motion';
 
 const Hero = () => {
   const titleVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
     visible: {
       opacity: 1,
       y: 0,
+      scale: 1,
       transition: {
         type: "spring",
-        stiffness: 200,
+        stiffness: 300,
         damping: 20,
         delay: 0.2
       }

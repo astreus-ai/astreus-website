@@ -86,7 +86,7 @@ export default function Home() {
               href="https://github.com/astreus-ai/astreus" 
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors inline-block"
+              className="flex items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors inline-block shadow-md"
             >
               <RiStarLine className="inline-block" />
               <span className="font-medium text-base">Star on GitHub</span>

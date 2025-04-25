@@ -17,6 +17,20 @@ const About = () => {
     }
   };
 
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 15,
+        delay: 0.2
+      }
+    }
+  };
+
   return (
     <motion.div 
       id="who" 
@@ -28,6 +42,7 @@ const About = () => {
     >
       <motion.div 
         className="text-[#1e1e1e] text-center text-xl md:text-2xl leading-tight mb-4"
+        variants={textVariants}
       >
         A TypeScript AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs)
       </motion.div>

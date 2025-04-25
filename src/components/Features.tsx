@@ -17,10 +17,11 @@ const Features = () => {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 20, scale: 0.97 },
     visible: {
       opacity: 1,
       y: 0,
+      scale: 1,
       transition: {
         type: "spring",
         stiffness: 300,
@@ -58,16 +59,63 @@ const Features = () => {
       >
         Framework Capabilities:
       </motion.p>
-      <motion.span variants={itemVariants}>Unified Agent API</motion.span>
-      <motion.span variants={itemVariants}>Multi-Provider Support</motion.span>
-      <motion.span variants={itemVariants}>Memory Management</motion.span>
-      <motion.span variants={itemVariants}>Task Orchestration</motion.span>
-      <motion.span variants={itemVariants}>Plugin System</motion.span>
-      <motion.span variants={itemVariants}>Persistence Layer</motion.span>
-      <motion.span variants={itemVariants}>Embeddings Support</motion.span>
-      <motion.span variants={itemVariants}>Type Safety</motion.span>
+      <motion.span 
+        variants={itemVariants} 
+        className="opacity-0 animate-fade-in"
+      >
+        Unified Agent API
+      </motion.span>
+      <motion.span 
+        variants={itemVariants}
+        className="opacity-0 animate-fade-in" 
+        style={{ animationDelay: '100ms' }}
+      >
+        Multi-Provider Support
+      </motion.span>
+      <motion.span 
+        variants={itemVariants}
+        className="opacity-0 animate-fade-in" 
+        style={{ animationDelay: '200ms' }}
+      >
+        Memory Management
+      </motion.span>
+      <motion.span 
+        variants={itemVariants}
+        className="opacity-0 animate-fade-in" 
+        style={{ animationDelay: '300ms' }}
+      >
+        Task Orchestration
+      </motion.span>
+      <motion.span 
+        variants={itemVariants}
+        className="opacity-0 animate-fade-in" 
+        style={{ animationDelay: '400ms' }}
+      >
+        Plugin System
+      </motion.span>
+      <motion.span 
+        variants={itemVariants}
+        className="opacity-0 animate-fade-in" 
+        style={{ animationDelay: '500ms' }}
+      >
+        Persistence Layer
+      </motion.span>
+      <motion.span 
+        variants={itemVariants}
+        className="opacity-0 animate-fade-in" 
+        style={{ animationDelay: '600ms' }}
+      >
+        Embeddings Support
+      </motion.span>
+      <motion.span 
+        variants={itemVariants}
+        className="opacity-0 animate-fade-in" 
+        style={{ animationDelay: '700ms' }}
+      >
+        Type Safety
+      </motion.span>
       <motion.div 
-        className="absolute top-[20%] left-[-44%] z-0 hidden md:flex"
+        className="absolute top-[20%] left-[-50%] z-0 hidden md:flex"
         variants={imageVariants}
       >
         <Image 
