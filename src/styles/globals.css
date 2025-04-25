@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@layer base {
+  html, body {
+    @apply overflow-x-hidden relative;
+  }
+}
+
+@layer components {
+  .scroll {
+    animation: scroll 45s linear infinite;
+  }
+
+  .scroll2 {
+    animation: scroll 120s linear infinite;
+  }
+
+  .reverse {
+    animation-direction: reverse;
+  }
+
+  .marquee-image {
+    transform: translateZ(0);
+  }
+
+  .marquee-content {
+    will-change: transform; 
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - 1rem));
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* For viewport widths up to 762px */
+@media (max-width: 762px) {
+  .marquee {
+    top: 188px;
+  }
+}
+
+/* For viewport widths up to 674px */
+@media (max-width: 674px) {
+  .marquee {
+    top: 158px;
+  }
+}
+
+/* For viewport widths up to 570px */
+@media (max-width: 570px) {
+  .marquee {
+    top: 165px;
+  }
+}
+
+/* For viewport widths up to 479px */
+@media (max-width: 479px) {
+  .marquee {
+    top: 96px;
+  }
+}
+
+/* For viewport widths up to 414px */
+@media (max-width: 414px) {
+  .marquee {
+    top: 89px;
+  }
+}
+
+/* For viewport widths up to 336px */
+@media (max-width: 336px) {
+  .marquee {
+    top: 82px;
+  }
+} 

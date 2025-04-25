@@ -1,16 +1,29 @@
-# Astreus AI Landing Page
+# Astreus Landing Page
 
-This is the landing page for Astreus AI, an open-source AI agent framework. The landing page showcases Astreus's features, benefits, and community.
+This is the official landing page for the Astreus TypeScript AI Agent Framework.
 
-## 🚀 Features
+## About Astreus
 
-- Modern Next.js 15 application
-- Responsive design using Tailwind CSS v4
-- React 19 components
-- TypeScript support
-- Clean, component-based architecture
+Astreus is a TypeScript AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).
 
-## 🔧 Installation
+Key features:
+- Unified Agent API
+- Multi-Provider Support (OpenAI, Ollama)
+- Memory Management
+- Task Orchestration
+- Plugin System
+- Type Safety
+
+## Development
+
+This project uses Next.js with TypeScript and Tailwind CSS.
+
+### Prerequisites
+
+- Node.js 16 or higher
+- npm or yarn
+
+### Getting Started
 
 1. Clone the repository:
 ```bash
@@ -21,43 +34,31 @@ cd astreus-landing
 2. Install dependencies:
 ```bash
 npm install
+# or
+yarn install
 ```
 
 3. Run the development server:
 ```bash
 npm run dev
+# or
+yarn dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 🛠️ Technology Stack
+## Building for Production
 
-- **Framework**: [Next.js 15](https://nextjs.org/)
-- **UI Library**: [React 19](https://react.dev/)
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **Icons**: React Icons
-- **Language**: TypeScript
+```bash
+npm run build
+# or
+yarn build
+```
 
-## 📁 Project Structure
+## License
 
-- `/src/app` - Main application code
-  - `/components` - Reusable UI components
-  - `/docs` - Documentation pages
-  - `page.tsx` - Landing page component
-  - `layout.tsx` - Root layout component
-  - `globals.css` - Global styles
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 📝 Scripts
+## Learn More
 
-- `npm run dev` - Start the development server
-- `npm run build` - Build the application for production
-- `npm run start` - Start the production server
-- `npm run lint` - Run ESLint to check code quality
-
-## 🚀 Deployment
-
-This site can be deployed to any platform that supports Next.js, such as Vercel, Netlify, or traditional hosting providers.
-
-## 📄 License
-
-This project is licensed under the MIT License. 
+To learn more about Astreus, check out the [Astreus repository](https://github.com/astreus-ai/astreus). 

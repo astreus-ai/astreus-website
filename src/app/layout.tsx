@@ -1,34 +1,24 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import DynamicFavicon from "./components/DynamicFavicon";
+import '@/styles/globals.css'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "Astreus - AI Agent Framework",
-  description: "An AI agent framework for building autonomous systems that solve real-world tasks effectively.",
-  icons: {
-    icon: '/astreus-logo.svg',
-    apple: '/astreus-logo.svg',
-  },
-};
+  title: 'Astreus - TypeScript AI Agent Framework',
+  description: 'Astreus is a TypeScript AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/astreus-logo.svg" id="favicon" />
-        <link rel="apple-touch-icon" href="/astreus-logo.svg" id="apple-touch-icon" />
-      </head>
-      <body className={`${inter.className} bg-white text-base`}>
-        <DynamicFavicon />
+      <body className={inter.className}>
         {children}
       </body>
     </html>
-  );
-}
+  )
+} 
