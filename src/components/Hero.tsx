@@ -47,7 +47,7 @@ const Hero = () => {
           ASTREUS
         </motion.h1>
         <motion.div 
-          className="absolute w-[200px] xs:w-[220px] sm:w-[250px] md:w-[300px] lg:w-[350px] xl:w-[400px] top-[2.5rem] sm:top-[5rem] md:top-[7.5rem] left-[50%] md:left-[52.5%] lg:left-[55%] transform -translate-x-1/2 z-[15]"
+          className="absolute w-[200px] xs:w-[220px] sm:w-[250px] md:w-[300px] lg:w-[350px] xl:w-[400px] top-[2.5rem] sm:top-[5rem] md:top-[7.5rem] left-[50%] md:left-[52.5%] lg:left-[55%] z-[15]"
           initial="hidden"
           animate="visible"
           variants={imageVariants}

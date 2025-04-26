@@ -91,7 +91,7 @@ const Features = () => {
           alt="AI Agent Development" 
           width={270} 
           height={270}
-          className="object-cover animate-float" 
+          className="object-cover animate-float w-[180px] h-[180px] xs:w-[270px] xs:h-[270px]" 
         />
       </motion.div>
     </motion.div>

@@ -123,7 +123,7 @@ const Footer: React.FC<FooterProps> = ({ onVisibilityChange }) => {
                     <span className="absolute left-0 top-1/2 w-full h-[1.5px] bg-[#1e1e1e] transform -translate-y-1/2"></span>
                   </span>
                 </Link>
-                <div className="absolute -top-3 -right-2 bg-[#1e1e1e] text-white text-xs px-2 py-1 rounded-sm transform rotate-3">
+                <div className="absolute -top-3 -right-2 bg-[#1e1e1e] text-white text-xs px-2 py-1 transform rotate-3">
                   Coming Soon
                 </div>
               </motion.div>
@@ -147,7 +147,7 @@ const Footer: React.FC<FooterProps> = ({ onVisibilityChange }) => {
                     <span className="absolute left-0 top-1/2 w-full h-[1.5px] bg-[#1e1e1e] transform -translate-y-1/2"></span>
                   </span>
                 </Link>
-                <div className="absolute -top-3 -right-2 bg-[#1e1e1e] text-white text-xs px-2 py-1 rounded-sm transform rotate-3">
+                <div className="absolute -top-3 -right-2 bg-[#1e1e1e] text-white text-xs px-2 py-1 transform rotate-3">
                   Coming Soon
                 </div>
               </motion.div>
