@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="public/astreus-gadget.webp" alt="Astreus Logo" height="200">
+    <img src="public/astreus-gadget.webp" alt="Astreus Logo" width="240">
 </p>
 
 This is the official landing page for the Astreus AI Agent Framework.
