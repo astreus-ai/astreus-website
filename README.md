@@ -8,18 +8,6 @@ This is the official landing page for the Astreus AI Agent Framework.
 
 Astreus is an AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).
 
-## 🌟 Features
-- Unified Agent API
-- Multi-Provider Support (OpenAI, Anthropic, Ollama, etc.)
-- Memory Management
-- Task Orchestration
-- Plugin System
-- Type Safety
-- Tool Integration
-- Conversation History Management
-- Fast Inference
-- Customizable Templates
-
 ## 📱 Development
 
 This project uses Next.js with TypeScript and Tailwind CSS.
@@ -29,7 +17,7 @@ This project uses Next.js with TypeScript and Tailwind CSS.
 - Node.js 16 or higher
 - npm or yarn
 
-### 🚀 Getting Started
+### Getting Started
 
 1. Clone the repository:
 ```bash
