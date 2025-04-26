@@ -5,11 +5,11 @@ import { motion, useAnimationControls } from 'framer-motion';
 
 const Marquee = () => {
   const marqueeVariants = {
-    hidden: { opacity: 0, scale: 0.9, rotate: "-5deg" },
+    hidden: { opacity: 0, scale: 0.9, rotate: "0deg" },
     visible: {
       opacity: 1,
       scale: 1,
-      rotate: "-10deg",
+      rotate: "-5deg",
       transition: {
         type: "spring",
         stiffness: 300,
@@ -23,7 +23,7 @@ const Marquee = () => {
   
   return (
     <motion.div 
-      className="z-20 absolute -translate-x-[10%] w-[120vw] left-0 bg-white border-t-2 border-b-2 border-black py-2 top-[240px] sm:top-[300px] md:top-[360px] lg:top-[350px] xl:top-[380px] overflow-hidden transform -rotate-[10deg] shadow-lg"
+      className="z-20 absolute -translate-x-[10%] w-[120vw] left-0 bg-white border-t-2 border-b-2 border-black py-2 top-[240px] sm:top-[300px] md:top-[360px] lg:top-[350px] xl:top-[380px] overflow-hidden transform -rotate-[5deg] shadow-lg"
       initial="hidden"
       animate="visible"
       variants={marqueeVariants}

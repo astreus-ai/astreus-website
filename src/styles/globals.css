@@ -11,9 +11,6 @@
   --box-shadow-button: 0 5px rgba(0, 0, 0, 0.15);
   --box-shadow-container: 0 8px rgba(0, 0, 0, 0.15);
   --box-shadow-marquee: 0 8px rgba(0, 0, 0, 0.2);
-  --keyframes-float-0: { transform: 'translateY(0)' };
-  --keyframes-float-50: { transform: 'translateY(-20px)' };
-  --keyframes-float-100: { transform: 'translateY(0)' };
   --keyframes-fade-in-from: { opacity: 0 };
   --keyframes-fade-in-to: { opacity: 1 };
 }
@@ -47,6 +44,18 @@
 
   .animate-marquee {
     animation: marquee 60s linear infinite;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0);
   }
 }
 
