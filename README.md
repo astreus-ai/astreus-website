@@ -10,18 +10,18 @@ Astreus is an AI Agent Framework designed to help you easily build, deploy, and 
 
 ## 📱 Development
 
-This project uses Next.js with TypeScript and Tailwind CSS.
+This project uses Next.js with TypeScript and Tailwind CSS with modern ES module syntax.
 
 ### Prerequisites
 
-- Node.js 16 or higher
+- Node.js 18 or higher
 - npm or yarn
 
 ### Getting Started
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/astreus-landing.git
+git clone https://github.com/astreus-ai/astreus-landing.git
 cd astreus-landing
 ```
 
@@ -55,13 +55,27 @@ yarn build
 ├── public/             # Static assets
 ├── src/
 │   ├── components/     # React components
+│   │   ├── About.tsx   # About section
+│   │   ├── Features.tsx # Features section
+│   │   ├── Footer.tsx  # Footer component
+│   │   ├── Hero.tsx    # Hero section
+│   │   ├── Marquee.tsx # Animated marquee component with refined animations
+│   │   └── ...
 │   ├── pages/          # Next.js pages
-│   ├── styles/         # CSS and styling
+│   ├── styles/         # CSS and styling with updated animations
 │   ├── lib/            # Utility functions
 │   └── hooks/          # Custom React hooks
-├── package.json        # Project dependencies
+├── package.json        # Project dependencies with updated React and Next.js versions
 └── tsconfig.json       # TypeScript configuration
 ```
+
+## 🎨 Recent Updates
+
+- Refined Marquee component with smoother animations and transitions
+- Added new float animation keyframes for enhanced visual effects
+- Updated to ES module syntax in configuration files
+- Upgraded React and Next.js dependencies
+- Improved global styles for better maintainability
 
 ## 🤝 Contributing
 
