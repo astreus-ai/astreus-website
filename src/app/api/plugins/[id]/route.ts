@@ -5,11 +5,12 @@ import { getToken } from 'next-auth/jwt';
 // GET a single plugin by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const plugin = await prisma.plugin.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!plugin) {

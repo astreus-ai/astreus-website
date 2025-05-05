@@ -3,14 +3,15 @@ import prisma from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Get a specific user
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;  
     const auth = await verifyAuth(request);
     
     if (!auth.isAuthenticated || !auth.isAdmin) {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
     
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: {
         id: true,
         username: true,
@@ -51,6 +52,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // Delete a user
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
+    
     const auth = await verifyAuth(request);
     
     if (!auth.isAuthenticated || !auth.isAdmin) {
@@ -62,7 +65,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     
     // Prevent deleting your own account or the last admin account
     const user = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     });
     
     if (!user) {
@@ -95,7 +98,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     
     // Delete the user
     await prisma.user.delete({
-      where: { id: params.id }
+      where: { id: id }
     });
     
     return NextResponse.json(

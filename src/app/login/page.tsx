@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { RiLoginBoxLine, RiLockPasswordLine, RiMailLine, RiErrorWarningLine, RiWifiOffLine } from 'react-icons/ri';
@@ -12,7 +12,8 @@ import { signIn, useSession } from 'next-auth/react';
 let redirectAttempts = 0;
 const MAX_REDIRECTS = 2;
 
-export default function LoginPage() {
+// Create a client component that uses useSearchParams
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -158,5 +159,25 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// Main component wrapped with Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen bg-[#d7e1e1]">
+        <div className="m-auto w-full max-w-md p-8">
+          <div className="bg-white shadow-xl p-8 border-2 border-[#1e1e1e]">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold">Login</h1>
+              <p className="text-gray-600 mt-2">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 } 
