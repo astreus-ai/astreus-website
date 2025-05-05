@@ -6,17 +6,22 @@ import Hero from '@/components/Hero';
 import About from '@/components/About';
 import Features from '@/components/Features';
 import Footer from '@/components/Footer';
-import { RiStarLine } from 'react-icons/ri';
+import { RiPuzzle2Line } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [isFooterVisible, setIsFooterVisible] = useState(false);
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   const handleFooterVisibilityChange = (visible: boolean) => {
     setIsFooterVisible(visible);
   };
 
-  const githubButtonVariants = {
+  const pluginsButtonVariants = {
     initial: { opacity: 0, y: -20 },
     animate: { 
       opacity: 1, 
@@ -24,7 +29,7 @@ export default function Home() {
       transition: {
         type: "spring",
         stiffness: 300,
-        delay: 0.5
+        delay: 0.7
       }
     },
     exit: { 
@@ -80,22 +85,21 @@ export default function Home() {
             exit="exit"
             whileHover="hover"
             whileTap="tap"
-            variants={githubButtonVariants}
+            variants={pluginsButtonVariants}
           >
-            <a 
-              href="https://github.com/astreus-ai" 
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link 
+              href="/plugins"
+              target="_self"
               className="flex flex-row items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors shadow-md"
             >
-              <RiStarLine />
-              <span className="font-medium text-base">Star on GitHub</span>
-            </a>
+              <RiPuzzle2Line />
+              <span className="font-medium text-base">Explore Plugins</span>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
       <Marquee />
-      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 py-12 md:py-16 relative overflow-hidden">
+      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 py-12 md:py-16 relative overflow-hidden">
         <Hero />
         <motion.div 
           className="flex flex-col justify-center items-center gap-6"

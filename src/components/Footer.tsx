@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { RiBook2Line, RiGithubLine, RiPuzzle2Line } from 'react-icons/ri';
 import { motion } from 'framer-motion';
+import Button from '@/components/ui/Button';
 
 interface FooterProps {
   onVisibilityChange?: (isVisible: boolean) => void;
@@ -60,28 +60,6 @@ const Footer: React.FC<FooterProps> = ({ onVisibilityChange }) => {
     }
   };
 
-  const buttonVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 15
-      }
-    },
-    hover: { 
-      scale: 1.05,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 10
-      }
-    },
-    tap: { scale: 0.95 }
-  };
-
   return (
     <footer 
       id="footer" 
@@ -105,70 +83,48 @@ const Footer: React.FC<FooterProps> = ({ onVisibilityChange }) => {
           <div className="flex flex-col items-center gap-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <motion.div
-                variants={buttonVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover="hover"
-                whileTap="tap"
+                variants={itemVariants}
                 className="relative"
               >
-                <Link 
-                  href="#" 
-                  className="px-6 py-3 flex items-center gap-2 bg-white border-2 border-[#1e1e1e] hover:bg-gray-50 transition-colors relative shadow-md"
+                <Button 
+                  icon={<RiBook2Line size={20} />}
                   onClick={(e) => e.preventDefault()}
                 >
-                  <RiBook2Line size={20} />
                   <span className="font-medium relative">
                     Documentation
                     <span className="absolute left-0 top-1/2 w-full h-[1.5px] bg-[#1e1e1e] transform -translate-y-1/2"></span>
                   </span>
-                </Link>
+                </Button>
                 <div className="absolute -top-3 -right-2 bg-[#1e1e1e] text-white text-xs px-2 py-1 transform rotate-3">
                   Coming Soon
                 </div>
               </motion.div>
 
               <motion.div
-                variants={buttonVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover="hover"
-                whileTap="tap"
+                variants={itemVariants}
                 className="relative"
               >
-                <Link 
-                  href="#" 
-                  className="px-6 py-3 flex items-center gap-2 bg-white border-2 border-[#1e1e1e] hover:bg-gray-50 transition-colors relative shadow-md"
-                  onClick={(e) => e.preventDefault()}
+                <Button 
+                  icon={<RiPuzzle2Line size={20} />}
+                  href="/plugins"
+                  target="_self"
                 >
-                  <RiPuzzle2Line size={20} />
-                  <span className="font-medium relative">
-                    Plugin Library
-                    <span className="absolute left-0 top-1/2 w-full h-[1.5px] bg-[#1e1e1e] transform -translate-y-1/2"></span>
-                  </span>
-                </Link>
-                <div className="absolute -top-3 -right-2 bg-[#1e1e1e] text-white text-xs px-2 py-1 transform rotate-3">
-                  Coming Soon
-                </div>
+                  Plugin Library
+                </Button>
               </motion.div>
             </div>
 
             <motion.div
-              variants={buttonVariants}
-              initial="hidden"
-              animate="visible"
-              whileHover="hover"
-              whileTap="tap"
+              variants={itemVariants}
               className="mx-auto"
             >
-              <Link 
-                href="https://github.com/astreus-ai" 
-                target="_blank"
-                className="px-6 py-3 flex items-center gap-2 bg-white border-2 border-[#1e1e1e] hover:bg-gray-50 transition-colors shadow-md"
+              <Button 
+                icon={<RiGithubLine size={20} />}
+                href="https://github.com/astreus-ai"
+                {...{ target: "_blank" }}
               >
-                <RiGithubLine size={20} />
-                <span className="font-medium">View on GitHub</span>
-              </Link>
+                View on GitHub
+              </Button>
             </motion.div>
           </div>
           
