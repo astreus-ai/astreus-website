@@ -6,7 +6,7 @@ import Hero from '@/components/Hero';
 import About from '@/components/About';
 import Features from '@/components/Features';
 import Footer from '@/components/Footer';
-import { RiPuzzle2Line } from 'react-icons/ri';
+import { RiBook2Line, RiPuzzle2Line } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -23,15 +23,15 @@ export default function Home() {
 
   const pluginsButtonVariants = {
     initial: { opacity: 0, y: -20 },
-    animate: { 
+    animate: (custom: number) => ({ 
       opacity: 1, 
       y: 0,
       transition: {
         type: "spring",
         stiffness: 300,
-        delay: 0.7
+        delay: custom * 0.3 + 0.4
       }
-    },
+    }),
     exit: { 
       opacity: 0, 
       y: -20,
@@ -78,24 +78,44 @@ export default function Home() {
     <div className="bg-[#d7e1e1] min-h-screen">
       <AnimatePresence>
         {!isFooterVisible && (
-          <motion.div 
-            className="fixed top-5 right-5 z-50"
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            whileHover="hover"
-            whileTap="tap"
-            variants={pluginsButtonVariants}
-          >
-            <Link 
-              href="/plugins"
-              target="_self"
-              className="flex flex-row items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors shadow-md"
+          <div className="fixed top-5 right-5 z-50 flex flex-row gap-4">
+            <motion.div 
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              whileHover="hover"
+              whileTap="tap"
+              variants={pluginsButtonVariants}
+              custom={0}
             >
-              <RiPuzzle2Line />
-              <span className="font-medium text-base">Explore Plugins</span>
-            </Link>
-          </motion.div>
+              <Link 
+                href="/docs"
+                target="_self"
+                className="flex flex-row items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors shadow-md"
+              >
+                <RiBook2Line />
+                <span className="font-medium text-base">Documentation</span>
+              </Link>
+            </motion.div>
+            <motion.div 
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              whileHover="hover"
+              whileTap="tap"
+              variants={pluginsButtonVariants}
+              custom={1}
+            >
+              <Link 
+                href="/plugins"
+                target="_self"
+                className="flex flex-row items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors shadow-md"
+              >
+                <RiPuzzle2Line />
+                <span className="font-medium text-base">Explore Plugins</span>
+              </Link>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
       <Marquee />

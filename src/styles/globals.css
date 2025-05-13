@@ -19,6 +19,60 @@
   html, body {
     @apply overflow-x-hidden relative;
   }
+  
+  /* Text content wrapping */
+  p, h1, h2, h3, h4, h5, h6, li, span, div:not(.codeblock-container) {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Ensure code blocks don't wrap */
+  pre, code {
+    white-space: pre !important;
+    overflow-x: auto !important;
+  }
+  
+  /* Custom Scrollbar */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: #d7e1e1;
+    border: 1px solid #d7e1e1;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: #1e1e1e;
+    border: 2px solid #d7e1e1;
+    border-radius: 10px;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background: #333;
+  }
+  
+  /* Custom Scrollbar */
+  .light-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .light-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border: none;
+  }
+  
+  .light-scrollbar::-webkit-scrollbar-thumb {
+    background: #d7e1e1;
+    border: 2px solid #1e1e1e;
+    border-radius: 10px;
+  }
+  
+  .light-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #b9c1c1;
+  }
 }
 
 @layer utilities {

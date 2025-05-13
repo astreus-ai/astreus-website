@@ -36,7 +36,7 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   disabled,
   href,
-  target = '_blank',
+  target = '_self',
   onClick,
   ...props
 }) => {

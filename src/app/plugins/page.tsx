@@ -8,6 +8,7 @@ import { RiApps2Line, RiLoader4Line, RiArrowLeftLine, RiArrowRightLine, RiDataba
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
 import router from 'next/router';
+import Image from 'next/image';
 
 interface Plugin {
   id: string;
@@ -204,19 +205,20 @@ export default function PluginsPage() {
     <div className="bg-[#d7e1e1] min-h-screen flex flex-col">
       <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 flex-grow">
         <motion.div 
-          className="mb-12 mt-32 text-center"
+          className="mb-12 mt-32 text-center flex flex-col items-center"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
+          <Image src="/astreus-logo-black.svg" alt="Astreus Logo" width={100} height={100} />
           <motion.h1 
-            className="text-4xl md:text-5xl font-bold mb-4"
+            className="text-4xl md:text-5xl font-bold mt-2 mb-4"
             variants={titleVariants}
           >
             Astreus Plugin Library
           </motion.h1>
           <motion.p 
-            className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-10"
+            className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto"
             variants={titleVariants}
           >
             Extend your AI agents with powerful tools and integrations from the Astreus ecosystem
