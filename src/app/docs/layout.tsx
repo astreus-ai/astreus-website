@@ -131,7 +131,7 @@ export default function DocsLayout({
     <div className="bg-[#d7e1e1] min-h-screen pb-24 flex flex-col">
       <div className="container mx-auto px-4 flex-grow">
         {/* Hero Section */}
-        <div className="mb-12 mt-32">
+        <div className="mb-12 mt-18">
           <Link href="/docs" target="_self">
             <motion.div 
               className="text-center flex flex-col items-center"

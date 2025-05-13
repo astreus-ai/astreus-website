@@ -205,7 +205,7 @@ export default function PluginsPage() {
     <div className="bg-[#d7e1e1] min-h-screen flex flex-col">
       <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 flex-grow">
         <motion.div 
-          className="mb-12 mt-32 text-center flex flex-col items-center"
+          className="mb-12 mt-18 text-center flex flex-col items-center"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
