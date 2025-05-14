@@ -210,7 +210,7 @@ export default function PluginsPage() {
           animate="visible"
           variants={containerVariants}
         >
-          <Image src="/astreus-logo-black.svg" alt="Astreus Logo" width={100} height={100} />
+              <Image src="/plugins-illustration.webp" alt="Astreus Logo" width={957} height={704} className="w-full max-w-[320px] mb-2" />
           <motion.h1 
             className="text-4xl md:text-5xl font-bold mt-2 mb-4"
             variants={titleVariants}

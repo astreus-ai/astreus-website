@@ -78,7 +78,7 @@ export default function Home() {
     <div className="bg-[#d7e1e1] min-h-screen">
       <AnimatePresence>
         {!isFooterVisible && (
-          <div className="fixed top-5 right-5 z-50 flex flex-row gap-4">
+          <div className="fixed top-5 right-5 z-50 sm:flex flex-row gap-4 hidden">
             <motion.div 
               initial="initial"
               animate="animate"
@@ -119,7 +119,7 @@ export default function Home() {
         )}
       </AnimatePresence>
       <Marquee />
-      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 py-12 md:py-16 relative overflow-hidden">
+      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 pt-4 pb-12 sm:py-12 md:py-16 relative overflow-hidden">
         <Hero />
         <motion.div 
           className="flex flex-col justify-center items-center gap-6"

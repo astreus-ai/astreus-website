@@ -134,12 +134,12 @@ export default function DocsLayout({
         <div className="mb-12 mt-18">
           <Link href="/docs" target="_self">
             <motion.div 
-              className="text-center flex flex-col items-center"
+              className="text-center flex flex-col items-center mx-auto"
               initial="hidden"
               animate="visible"
               variants={containerVariants}
             >
-              <Image src="/astreus-logo-black.svg" alt="Astreus Logo" width={100} height={100} />
+              <Image src="/docs-illustration.webp" alt="Astreus Logo" width={957} height={704} className="w-full max-w-[320px]" />
               <motion.h1 
                 className="text-4xl md:text-5xl font-bold mt-2 mb-4"
                 variants={titleVariants}
