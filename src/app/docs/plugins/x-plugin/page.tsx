@@ -78,6 +78,19 @@ export default function XPluginPage() {
           An X (formerly Twitter) integration plugin for the Astreus AI agent framework, allowing agents to interact with X.
         </motion.p>
         
+        <motion.div
+          className="bg-gray-100 p-4 rounded-md border border-gray-300 mb-8"
+          variants={itemVariants}
+        >
+          <h3 className="font-press-start-2p text-lg mb-2 text-[#1e1e1e] font-bold">New in Version 0.1.4</h3>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Native OpenAI function calling format support for direct LLM tool integration</li>
+            <li>Enhanced OAuth authentication with automatic fallback between OAuth 2.0 and 1.0a</li>
+            <li>Improved error handling and logging with Astreus logger integration</li>
+            <li>Updated build configuration with proper file extensions (.mjs for ESM, .cjs for CommonJS)</li>
+          </ul>
+        </motion.div>
+        
         <motion.h2 
           className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
           variants={itemVariants}
@@ -96,6 +109,14 @@ export default function XPluginPage() {
           <motion.li className="flex items-start" variants={itemVariants}>
             <span className="font-bold mr-2">•</span>
             <span><span className="font-medium">Comprehensive X Integration</span>: Access profiles, tweets, search, post tweets, and more</span>
+          </motion.li>
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">OpenAI Function Calling</span>: Native support for OpenAI function calling format</span>
+          </motion.li>
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">Flexible Authentication</span>: Support for both OAuth 2.0 and 1.0a with automatic fallback</span>
           </motion.li>
           <motion.li className="flex items-start" variants={itemVariants}>
             <span className="font-bold mr-2">•</span>
@@ -147,6 +168,10 @@ X_API_KEY=your_api_key
 X_API_SECRET_KEY=your_api_secret
 X_ACCESS_TOKEN=your_access_token
 X_ACCESS_TOKEN_SECRET=your_access_token_secret
+
+# OAuth 2.0 credentials (optional)
+X_CLIENT_ID=your_client_id
+X_CLIENT_SECRET=your_client_secret
 
 # Configuration options
 CACHE_TWEET_SECONDS=300  # Cache tweets for 5 minutes
@@ -214,6 +239,8 @@ const xPlugin = new XPlugin({
   apiSecret: 'your_api_secret',
   accessToken: 'your_access_token',
   accessSecret: 'your_access_token_secret',
+  clientId: 'your_client_id',       // OAuth 2.0 support
+  clientSecret: 'your_client_secret', // OAuth 2.0 support
   cacheTweetSeconds: 600,
   logLevel: 'debug'  // Set logging verbosity
 });
@@ -329,6 +356,110 @@ const response = await agent.chat(\`
   What patterns do you see?
 \`);
 
+console.log(response);`}
+          />
+        </motion.div>
+        
+        <motion.h2 
+          className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
+          variants={itemVariants}
+        >
+          Integration with Astreus Structured Responses
+        </motion.h2>
+        
+        <motion.p 
+          className="mb-4"
+          variants={itemVariants}
+        >
+          The X plugin works seamlessly with the structured response handling introduced in Astreus 0.1.3:
+        </motion.p>
+        
+        <motion.div variants={codeVariants}>
+          <CodeBlock 
+            language="typescript"
+            code={`import { createAgent, createProvider, createMemory } from '@astreus-ai/astreus';
+import XPlugin from '@astreus-ai/x-plugin';
+
+// Create dependencies
+const memory = await createMemory();
+const provider = createProvider({ type: 'openai', model: 'gpt-4o' });
+
+// Initialize X plugin
+const xPlugin = new XPlugin();
+await xPlugin.init();
+
+// Create an agent with the X plugin
+const agent = await createAgent({
+  name: 'X Analyzer',
+  description: 'An agent that analyzes X content',
+  provider,
+  memory,
+  plugins: [xPlugin],
+  systemPrompt: 'You are an expert social media analyst. Help users gather and analyze content from X.'
+});
+
+// When a user asks about X, the agent can now use the X plugin tools
+// and leverage structured response handling
+const response = await agent.chat(
+  "What are the top 5 tweets from @OpenAI in the past week? Summarize their main points."
+);
+
+// The agent will automatically:
+// 1. Use the x_get_tweets tool to fetch tweets from OpenAI
+// 2. Process the structured response containing tweet data
+// 3. Generate a summary based on the content
+console.log(response);`}
+          />
+        </motion.div>
+        
+        <motion.h2 
+          className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
+          variants={itemVariants}
+        >
+          Advanced: Using Native OpenAI Functions
+        </motion.h2>
+        
+        <motion.p 
+          className="mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.4:</span> You can now directly use OpenAI's function calling format with the X plugin:
+        </motion.p>
+        
+        <motion.div variants={codeVariants}>
+          <CodeBlock 
+            language="typescript"
+            code={`import { createAgent, createProvider } from 'astreus';
+import XPlugin from '@astreus-ai/x-plugin';
+
+// Create an X plugin instance
+const xPlugin = new XPlugin();
+await xPlugin.init();
+
+// Create an OpenAI provider with a model that supports function calling
+const provider = createProvider({
+  type: 'openai',
+  model: 'gpt-4o'
+});
+
+// Get the native OpenAI function definitions
+const nativeFunctions = xPlugin.getNativeOpenAIFunctions();
+
+// Create an agent with the plugin
+const agent = await createAgent({
+  name: 'X Assistant',
+  description: 'An assistant specialized in X interactions',
+  provider: provider,
+  memory: memory,
+  plugins: [xPlugin],
+  systemPrompt: \`You are an AI assistant specialized in social media.
+You can help users find, analyze, and post content on X (formerly Twitter).\`
+});
+
+// The agent will now use the X tools with native OpenAI function calling
+const response = await agent.chat(
+  "What are the current trending topics on X?"
+);
 console.log(response);`}
           />
         </motion.div>

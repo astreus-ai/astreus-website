@@ -117,6 +117,10 @@ export default function AgentPage() {
           </motion.li>
           <motion.li className="flex items-start" variants={itemVariants}>
             <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">Structured Response Handling</span>: Process structured tool calls from LLMs</span>
+          </motion.li>
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
             <span><span className="font-medium">Task System</span>: Break down complex requests into manageable tasks</span>
           </motion.li>
           <motion.li className="flex items-start" variants={itemVariants}>
@@ -159,11 +163,10 @@ const provider = createProvider({
 
 // Create a basic agent
 const agent = await createAgent({
-  name: 'MyAssistant',
-  description: 'A helpful AI assistant',
-  provider: provider,
-  memory: memory,
-  database: db
+  name: 'MyAssistant',  // optional, defaults to "Assistant" if not provided
+  provider: provider,   // either provider or model is required
+  memory: memory,       // required
+  database: db          // optional
 });
 
 // Or with more configuration options
@@ -177,6 +180,13 @@ const advancedAgent = await createAgent({
 });`}
           />
         </motion.div>
+        
+        <motion.p 
+          className="mt-4 mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.3:</span> Many parameters are now optional with sensible defaults. You only need to provide a memory instance and either a provider or model.
+        </motion.p>
         
         <motion.h2 
           className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
@@ -213,7 +223,9 @@ const response3 = await agent.chat(
   "user-456",
   {
     metadata: { topic: "quantum-computing" },  // Add metadata to this message
-    useTaskSystem: true  // Enable task system for complex requests
+    useTaskSystem: true,                       // Enable task system for complex requests
+    temperature: 0.7,                          // Control response randomness (default: 0.7)
+    maxTokens: 2048                            // Limit response length (default: 2048)
   }
 );`}
           />
@@ -434,6 +446,70 @@ const tasks = agent.getTasks();
 
 // Get tasks for a specific session
 const sessionTasks = agent.getSessionTasks("user-123");`}
+          />
+        </motion.div>
+        
+        <motion.h2 
+          className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
+          variants={itemVariants}
+        >
+          Working with Structured Tool Responses
+        </motion.h2>
+        
+        <motion.p 
+          className="mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.3:</span> Agents can now work with structured tool responses from language models:
+        </motion.p>
+        
+        <motion.div variants={codeVariants}>
+          <CodeBlock 
+            language="typescript"
+            code={`import { createAgent, createProvider, createMemory, PluginManager } from '@astreus-ai/astreus';
+
+// Create a calculator plugin
+const calculatorPlugin = {
+  name: 'calculator',
+  description: 'Perform mathematical calculations',
+  parameters: {
+    properties: {
+      expression: {
+        type: 'string',
+        description: 'The mathematical expression to evaluate'
+      }
+    },
+    required: ['expression']
+  },
+  execute: async ({ expression }) => {
+    try {
+      // Simple eval for demonstration purposes only
+      // In production, use a secure math evaluation library
+      return { result: eval(expression) };
+    } catch (error) {
+      return { error: 'Invalid expression' };
+    }
+  }
+};
+
+// Register the plugin
+PluginManager.register(calculatorPlugin);
+
+// Create an agent with the plugin
+const memory = await createMemory();
+const provider = createProvider({ type: 'openai', model: 'gpt-4-turbo' });
+const agent = await createAgent({
+  name: 'MathBot',
+  provider,
+  memory,
+  systemPrompt: 'You are a helpful math assistant.',
+  tools: [calculatorPlugin]  // Attach the tool to the agent
+});
+
+// Now when a user asks a math question, the agent can use the calculator tool
+const response = await agent.chat("What is 135 * 27.5?");
+console.log(response); // The agent will use the calculator tool and respond with the result
+`}
           />
         </motion.div>
         

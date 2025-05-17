@@ -117,6 +117,14 @@ export default function TasksPage() {
           </motion.li>
           <motion.li className="flex items-start" variants={itemVariants}>
             <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">Smart Tool Selection</span>: Auto-select appropriate tools for tasks using LLMs</span>
+          </motion.li>
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">Task Context</span>: Share data between related tasks</span>
+          </motion.li>
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
             <span><span className="font-medium">Cancellation</span>: Cancel tasks at any point</span>
           </motion.li>
           <motion.li className="flex items-start" variants={itemVariants}>
@@ -159,10 +167,18 @@ const advancedTaskManager = createTaskManager({
   database: db,
   memory: memory,
   agentId: 'agent-123',
-  sessionId: 'session-456'
+  sessionId: 'session-456',
+  concurrency: 5  // Process up to 5 tasks in parallel (default: 3)
 });`}
           />
         </motion.div>
+        
+        <motion.p 
+          className="mt-4 mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.3:</span> The task manager now has improved concurrency control and better integration with the agent system.
+        </motion.p>
         
         <motion.h2 
           className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
@@ -202,8 +218,17 @@ const task = await createTask({
     // Task implementation
     console.log('Processing file:', input.filePath);
     
+    // Access task context (new in v0.1.3)
+    const previousData = await context.get('previousAnalysis');
+    if (previousData) {
+      console.log('Found previous analysis:', previousData);
+    }
+    
     // Simulate processing
     await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Save data to context for future tasks (new in v0.1.3)
+    await context.set('currentAnalysis', { timestamp: new Date(), rowCount: 100 });
     
     return {
       success: true,
@@ -486,6 +511,133 @@ if (loadedTask) {
     console.log('Task already completed with result:', loadedTask.getResult());
   }
 }`}
+          />
+        </motion.div>
+        
+        <motion.h2 
+          className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
+          variants={itemVariants}
+        >
+          Smart Tool Selection
+        </motion.h2>
+        
+        <motion.p 
+          className="mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.3:</span> Tasks can now automatically select the most appropriate tools using LLM-based intent recognition:
+        </motion.p>
+        
+        <motion.div variants={codeVariants}>
+          <CodeBlock 
+            language="typescript"
+            code={`import { 
+  createTask, 
+  createMemory, 
+  createProvider, 
+  PluginManager 
+} from '@astreus-ai/astreus';
+
+// Register some plugins
+PluginManager.register({
+  name: 'weatherApi',
+  description: 'Get weather information for a location',
+  execute: async ({ location }) => {
+    // Implementation
+    return { temperature: 72, conditions: 'sunny' };
+  }
+});
+
+PluginManager.register({
+  name: 'calculator',
+  description: 'Perform mathematical calculations',
+  execute: async ({ expression }) => {
+    return { result: eval(expression) };
+  }
+});
+
+// Create task with a model that will be used for tool selection
+const memory = await createMemory();
+const model = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' }).getModel('gpt-3.5-turbo');
+
+// When this task is created, it will use the LLM to select appropriate tools
+const weatherTask = await createTask({
+  name: 'Check weather in New York',
+  description: 'Find the current weather conditions in New York City',
+  // The model will automatically select the weatherApi tool based on the task description
+  model: model
+}, memory);
+
+// Execute the task - it will use the selected tools
+const result = await weatherTask.execute();
+console.log(result);`}
+          />
+        </motion.div>
+        
+        <motion.h2 
+          className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
+          variants={itemVariants}
+        >
+          Task Context Management
+        </motion.h2>
+        
+        <motion.p 
+          className="mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.3:</span> Tasks can share data using the task context system:
+        </motion.p>
+        
+        <motion.div variants={codeVariants}>
+          <CodeBlock 
+            language="typescript"
+            code={`import { createTaskManager, createMemory } from '@astreus-ai/astreus';
+
+const memory = await createMemory();
+const taskManager = createTaskManager({ 
+  memory,
+  sessionId: 'user-123'  // All tasks in this manager will share the same context
+});
+
+// Create a task that writes to context
+const dataCollectionTask = await taskManager.createTask({
+  name: 'Collect Data',
+  execute: async (input, context) => {
+    // Do some work...
+    
+    // Save data to task context
+    await context.set('userData', {
+      name: 'Alice',
+      preferences: ['hiking', 'reading']
+    });
+    
+    return { success: true };
+  }
+});
+
+// Create a task that reads from context
+const recommendationTask = await taskManager.createTask({
+  name: 'Generate Recommendations',
+  // This task depends on the first task
+  dependencies: [dataCollectionTask.id],
+  execute: async (input, context) => {
+    // Get data from task context
+    const userData = await context.get('userData');
+    
+    if (!userData) {
+      return { error: 'No user data available' };
+    }
+    
+    // Use the data
+    console.log(\`Generating recommendations for \${userData.name}\`);
+    const recommendations = userData.preferences.map(pref => \`A great \${pref} activity\`);
+    
+    return { recommendations };
+  }
+});
+
+// Execute all tasks
+await taskManager.runTasks();`}
           />
         </motion.div>
         

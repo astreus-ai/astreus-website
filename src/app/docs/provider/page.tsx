@@ -113,6 +113,10 @@ export default function ProviderPage() {
           </motion.li>
           <motion.li className="flex items-start" variants={itemVariants}>
             <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">Structured Tool Responses</span>: Handle function/tool calling from LLMs</span>
+          </motion.li>
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
             <span><span className="font-medium">Embedding Support</span>: Generate and manage vector embeddings for semantic search</span>
           </motion.li>
           <motion.li className="flex items-start" variants={itemVariants}>
@@ -462,6 +466,114 @@ type OllamaModelConfig = {
         >
           Generates a completion for the given messages.
         </motion.p>
+
+        <motion.h2 
+          className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
+          variants={itemVariants}
+        >
+          Working with Tools
+        </motion.h2>
+        
+        <motion.p 
+          className="mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.3:</span> You can now work directly with tool calls from the provider:
+        </motion.p>
+        
+        <motion.div variants={codeVariants}>
+          <CodeBlock 
+            language="typescript"
+            code={`import { createProvider } from '@astreus-ai/astreus';
+
+// Create a provider and get a model
+const provider = createProvider({ type: 'openai', model: 'gpt-4o' });
+const model = provider.getModel('gpt-4o');
+
+// Define tools
+const tools = [
+  {
+    name: 'getWeather',
+    description: 'Get the current weather in a location',
+    parameters: {
+      properties: {
+        location: {
+          type: 'string',
+          description: 'The city and state, e.g. San Francisco, CA'
+        },
+        unit: {
+          type: 'string',
+          enum: ['celsius', 'fahrenheit'],
+          default: 'celsius'
+        }
+      },
+      required: ['location']
+    }
+  }
+];
+
+// Create a completion with tools
+const response = await model.complete(
+  [
+    { role: 'system', content: 'You are a helpful weather assistant.' },
+    { role: 'user', content: 'What\'s the weather in New York?' }
+  ],
+  {
+    tools,
+    toolCalling: true,  // Enable tool calling
+    temperature: 0.2
+  }
+);
+
+// The response will be a structured object if tools were called
+if (typeof response === 'object' && response.toolCalls) {
+  console.log('Tool calls detected:', response.toolCalls);
+  
+  for (const toolCall of response.toolCalls) {
+    if (toolCall.name === 'getWeather') {
+      const { location, unit } = toolCall.arguments;
+      
+      // In a real app, you would call your weather service here
+      const weatherData = await fetchWeatherData(location, unit);
+      
+      // You can then use this data to continue the conversation
+      console.log(\`Weather data for \${location}:\`, weatherData);
+    }
+  }
+} else {
+  // Standard text response
+  console.log('Text response:', response);
+}`}
+          />
+        </motion.div>
+
+        <motion.h2 
+          className="font-press-start-2p text-xl mt-8 mb-4 text-[#1e1e1e] font-bold"
+          variants={itemVariants}
+        >
+          Provider-Specific Improvements
+        </motion.h2>
+        
+        <motion.p 
+          className="mb-4"
+          variants={itemVariants}
+        >
+          <span className="font-medium">New in v0.1.3:</span> The OpenAI and Ollama providers have been significantly enhanced:
+        </motion.p>
+        
+        <motion.ul 
+          className="space-y-2 mb-6"
+          variants={listVariants}
+        >
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">OpenAI</span>: Better structured tool response handling, improved error management, and support for advanced parameters</span>
+          </motion.li>
+          <motion.li className="flex items-start" variants={itemVariants}>
+            <span className="font-bold mr-2">•</span>
+            <span><span className="font-medium">Ollama</span>: Enhanced local model support, improved response parsing, and better error handling</span>
+          </motion.li>
+        </motion.ul>
       </motion.div>
     </main>
   );

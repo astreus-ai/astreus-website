@@ -85,6 +85,20 @@ export default function DocsPage() {
           conversational agents powered by large language models (LLMs).
         </motion.p>
         
+        <motion.div
+          className="bg-gray-100 p-4 border border-gray-300 mb-8"
+          variants={itemVariants}
+        >
+          <h3 className="font-press-start-2p text-lg mb-2 text-[#1e1e1e] font-bold">New in Version 0.1.3</h3>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Enhanced Agent implementation with default values for optional parameters</li>
+            <li>Improved task management with automatic tool selection</li>
+            <li>Added structured response handling for tool calls</li>
+            <li>New task context system for sharing data between tasks</li>
+            <li>Expanded provider support with better OpenAI and Ollama integration</li>
+          </ul>
+        </motion.div>
+        
         {/* Large navigation buttons */}
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 gap-6 my-12"
