@@ -1,0 +1,96 @@
+---
+title: Providers
+---
+
+Providers establish connections to Language Model APIs, allowing your agents to generate text, answer questions, and perform reasoning tasks.
+
+## Supported Providers
+
+Astreus currently supports the following LLM providers:
+
+- **OpenAI**: Access to models like GPT-4o, GPT-4o-mini, and GPT-3.5 Turbo
+- **Ollama**: Connect to locally hosted models like Llama, Mistral, and others
+
+## Creating a Provider
+
+Use the `createProvider` function to set up a provider:
+
+```typescript
+import { createProvider } from '@astreus-ai/astreus';
+
+// For OpenAI
+const openaiProvider = createProvider({
+  type: 'openai',
+  model: 'gpt-4o-mini'
+  // API key taken from OPENAI_API_KEY environment variable
+});
+
+// For Ollama (local models)
+const ollamaProvider = createProvider({
+  type: 'ollama',
+  baseUrl: "http://localhost:11434",
+  model: "llama3"
+});
+```
+
+## Provider Configuration
+
+### OpenAI Provider Options
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `type` | string | Must be 'openai' | Yes |
+| `model` | string | Model name (e.g., 'gpt-4o', 'gpt-3.5-turbo') | Yes |
+| `apiKey` | string | OpenAI API key | No (defaults to OPENAI_API_KEY env var) |
+| `baseUrl` | string | Custom API endpoint | No |
+| `organizationId` | string | Organization ID for OpenAI | No |
+
+### Ollama Provider Options
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `type` | string | Must be 'ollama' | Yes |
+| `model` | string | Model name (e.g., 'llama3', 'mistral') | Yes |
+| `baseUrl` | string | Ollama API URL | No (defaults to 'http://localhost:11434') |
+
+## Working with Models
+
+Once you have created a provider, you can access specific models:
+
+```typescript
+// Get the default model
+const defaultModel = provider.getDefaultModel();
+
+// List available models
+const availableModels = provider.listModels();
+
+// Get a specific model
+const gpt4 = provider.getModel('gpt-4o');
+```
+
+## Generating Text Completions
+
+You can use the provider directly for completions:
+
+```typescript
+// Generate a completion
+const messages = [
+  { role: 'system', content: 'You are a helpful assistant.' },
+  { role: 'user', content: 'What is the capital of France?' }
+];
+
+const completion = await provider.generateCompletion(messages);
+console.log(completion); // "The capital of France is Paris."
+```
+
+## Advanced Usage: Embedding Generation
+
+Providers can also generate embeddings (vector representations of text) for semantic search:
+
+```typescript
+// Generate embeddings for text content
+const text = "This is a sample text for embedding generation";
+const embedding = await provider.generateEmbedding(text);
+
+// The embedding is a vector (number array) that can be used for semantic search
+``` 

@@ -1,0 +1,181 @@
+---
+title: Tasks
+---
+
+Tasks enable agents to break down complex problems into manageable sub-tasks, execute them in a specific order, and coordinate the results.
+
+## Task Architecture
+
+The Task system consists of:
+
+- **Task Definitions**: Specifications of work to be done
+- **Task Manager**: Coordinates execution and dependencies
+- **Task Results**: Structured outputs from completed tasks
+- **Task Dependencies**: Define execution order and data flow
+
+## Creating Tasks
+
+Tasks are created through the agent instance:
+
+```typescript
+import { createAgent } from '@astreus-ai/astreus';
+
+// After creating an agent
+const agent = await createAgent({ /* configuration */ });
+
+// Create a research task
+const researchTask = agent.createTask({
+  name: "Research Trip",
+  description: "Find information about tourist attractions in Tokyo",
+  input: {
+    destination: "Tokyo",
+    interests: ["history", "food", "technology"]
+  }
+});
+
+console.log(`Task created with ID: ${researchTask.id}`);
+```
+
+## Task Configuration Options
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `name` | string | Task name | Yes |
+| `description` | string | Detailed description of the task | Yes |
+| `input` | object | Input data for the task | No |
+| `dependsOn` | string[] | IDs of tasks that must complete first | No |
+| `maxRetries` | number | Maximum retry attempts if task fails | No (default: 3) |
+| `timeout` | number | Time in milliseconds before task times out | No |
+| `tags` | string[] | Labels for categorizing tasks | No |
+
+## Running Tasks
+
+Execute tasks using the agent's `runTasks` method:
+
+```typescript
+// Run a single task
+const results = await agent.runTasks([researchTask.id]);
+
+// Get the result of the task
+const taskResult = results.get(researchTask.id);
+
+if (taskResult.success) {
+  console.log("Task output:", taskResult.output);
+} else {
+  console.error("Task failed:", taskResult.error);
+}
+```
+
+## Working with Task Dependencies
+
+Tasks can depend on other tasks, creating workflows:
+
+```typescript
+// Create an initial research task
+const researchTask = agent.createTask({
+  name: "Research Options",
+  description: "Find top restaurants in Paris",
+  input: { 
+    city: "Paris", 
+    cuisine: "French" 
+  }
+});
+
+// Create a dependent task that uses the output of the research task
+const planningTask = agent.createTask({
+  name: "Create Dinner Plan",
+  description: "Create a dinner plan based on research results",
+  dependsOn: [researchTask.id],  // This task depends on researchTask
+  input: { 
+    budget: "200 EUR",
+    date: "2023-12-25"
+  }
+});
+
+// Create a third task that depends on planning
+const reservationTask = agent.createTask({
+  name: "Make Reservation",
+  description: "Make restaurant reservation based on dinner plan",
+  dependsOn: [planningTask.id]
+});
+
+// Run all tasks in the correct order
+const results = await agent.runTasks([
+  researchTask.id, 
+  planningTask.id,
+  reservationTask.id
+]);
+```
+
+When a task has dependencies:
+1. Dependencies are executed first in the correct order
+2. Results from dependencies are automatically passed to the dependent task
+3. Task execution is skipped if any dependency fails
+
+## Accessing Task Outputs
+
+Task results are structured to provide detailed information:
+
+```typescript
+// Get results of all tasks
+const results = await agent.runTasks([taskA.id, taskB.id]);
+
+// Access individual task results
+const resultA = results.get(taskA.id);
+const resultB = results.get(taskB.id);
+
+// Each result has these properties:
+console.log(`Task ID: ${resultA.taskId}`);
+console.log(`Success: ${resultA.success}`);
+console.log(`Output: ${JSON.stringify(resultA.output)}`);
+console.log(`Error: ${resultA.error || 'None'}`);
+console.log(`Start Time: ${resultA.startTime}`);
+console.log(`End Time: ${resultA.endTime}`);
+console.log(`Duration: ${resultA.duration}ms`);
+```
+
+## Managing Tasks
+
+You can retrieve and manage tasks:
+
+```typescript
+// Get all tasks associated with the agent
+const allTasks = agent.getTasks();
+
+// Get tasks for a specific session
+const sessionTasks = agent.getSessionTasks("session123");
+
+// Get a specific task by ID
+const task = agent.getTasks().get("task-uuid");
+```
+
+## Error Handling and Retries
+
+Tasks include error handling and retry mechanisms:
+
+```typescript
+// Create a task with custom retry settings
+const dataProcessingTask = agent.createTask({
+  name: "Process Data",
+  description: "Process and analyze the data set",
+  input: { dataFile: "sales_2023.csv" },
+  maxRetries: 5,  // Retry up to 5 times
+  timeout: 300000  // Timeout after 5 minutes (300,000 ms)
+});
+
+// Run task with error handling
+try {
+  const results = await agent.runTasks([dataProcessingTask.id]);
+  const taskResult = results.get(dataProcessingTask.id);
+  
+  if (taskResult.success) {
+    console.log("Task completed successfully!");
+  } else {
+    console.log("Task failed after retries");
+    console.log("Error:", taskResult.error);
+    console.log("Attempts:", taskResult.attempts);
+  }
+} catch (error) {
+  console.error("Error executing tasks:", error);
+}
+``` 

@@ -1,31 +1,40 @@
 {
-  "name": "astreus-landing-new",
+  "name": "astreus-website",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
     "@fontsource/orbitron": "^5.2.5",
     "@fontsource/space-grotesk": "^5.2.7",
     "framer-motion": "^12.12.1",
+    "fumadocs-core": "^15.3.4",
+    "fumadocs-ui": "^15.3.4",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "zod": "^3.25.17"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@fumadocs/cli": "^0.2.0",
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
-    "tailwindcss": "^4",
+    "fumadocs-mdx": "^11.6.5",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.7",
     "typescript": "^5"
   }
 }

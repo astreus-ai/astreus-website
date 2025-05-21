@@ -1,0 +1,183 @@
+---
+title: Quick Start Guide
+---
+
+This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent.
+
+## Installation
+
+Install Astreus via npm:
+
+```bash
+npm install @astreus-ai/astreus
+```
+
+Or using yarn:
+
+```bash
+yarn add @astreus-ai/astreus
+```
+
+## Environment Setup
+
+Create a `.env` file in your project root with your API keys:
+
+```
+# OpenAI API Key (Required for OpenAI provider)
+OPENAI_API_KEY=your_openai_api_key
+
+# Database Configuration
+DATABASE_TYPE=sqlite  # or postgresql
+DATABASE_PATH=./astreus.db  # Only for SQLite
+# DATABASE_URL=postgresql://user:password@localhost:5432/astreus  # For PostgreSQL
+
+# Ollama Configuration (Optional)
+# OLLAMA_BASE_URL=http://localhost:11434
+
+# Logging
+LOG_LEVEL=info  # debug, info, warn, error
+```
+
+## Creating a Simple Agent
+
+Create a file named `simple-agent.js` (or `.ts` if using TypeScript):
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase,
+  logger
+} from '@astreus-ai/astreus';
+
+async function main() {
+  try {
+    // Initialize the database
+    const db = await createDatabase();
+    
+    // Create memory instance
+    const memory = await createMemory({
+      database: db,
+      tableName: "conversations"
+    });
+
+    // Configure your provider
+    const provider = createProvider({
+      type: 'openai',  // Use 'ollama' for local models
+      model: 'gpt-3.5-turbo'  // More affordable option to start with
+    });
+
+    // Create an agent instance
+    const agent = await createAgent({
+      name: 'MyFirstAgent',
+      description: 'A helpful AI assistant',
+      provider: provider,
+      memory: memory,
+      database: db,
+      systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
+    });
+
+    // Chat with your agent
+    const response = await agent.chat("Hello! What can you do for me?");
+    logger.info('Agent response:', response);
+    
+    // Continue the conversation
+    const followup = await agent.chat("Tell me more about the Astreus framework.");
+    logger.info('Agent response:', followup);
+    
+  } catch (error) {
+    logger.error('Error:', error);
+  }
+}
+
+main();
+```
+
+Run your agent:
+
+```bash
+node simple-agent.js
+```
+
+## Adding a Custom Tool
+
+Let's enhance our agent with a custom calculator tool:
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase,
+  logger,
+  Plugin
+} from '@astreus-ai/astreus';
+
+// Create a calculator plugin
+const calculatorPlugin: Plugin = {
+  name: "calculator",
+  description: "Performs basic mathematical calculations",
+  parameters: {
+    expression: {
+      type: "string",
+      description: "The mathematical expression to evaluate (e.g., '2 + 2', '5 * 10')"
+    }
+  },
+  execute: async (params) => {
+    try {
+      // NEVER use eval in production - this is just for demonstration
+      // Use a proper math expression parser in real applications
+      const result = Function(`'use strict'; return (${params.expression})`)();
+      return {
+        success: true,
+        output: `The result of ${params.expression} is ${result}`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error calculating result: ${error.message}`
+      };
+    }
+  }
+};
+
+async function main() {
+  try {
+    // Initialize components
+    const db = await createDatabase();
+    const memory = await createMemory({ database: db, tableName: "conversations" });
+    const provider = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' });
+
+    // Create an agent with the calculator plugin
+    const agent = await createAgent({
+      name: 'CalculatorAgent',
+      description: 'An assistant that can perform calculations',
+      provider: provider,
+      memory: memory,
+      database: db,
+      systemPrompt: "You are a helpful assistant that can perform calculations. Use the calculator tool when asked to compute mathematical expressions.",
+      plugins: [calculatorPlugin]  // Add the plugin here
+    });
+
+    // Test the calculator capability
+    const response = await agent.chat("What is 123 multiplied by 456?");
+    logger.info('Agent response:', response);
+    
+  } catch (error) {
+    logger.error('Error:', error);
+  }
+}
+
+main();
+```
+
+## Next Steps
+
+Now that you've created your first agent, you can:
+
+1. Explore the [Agents](/docs/concepts/agents) documentation to learn about advanced configuration
+2. Add [Memory](/docs/concepts/memory) capabilities with vector search
+3. Create a [RAG](/docs/concepts/rag) system to give your agent knowledge from documents
+4. Build custom [Plugins](/docs/concepts/plugins) to extend your agent's capabilities
+5. Use the [Tasks](/docs/concepts/tasks) system to handle complex workflows 

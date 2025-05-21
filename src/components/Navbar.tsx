@@ -82,8 +82,8 @@ export default function Navbar() {
                   transition={{ delay: 0.8 + (i * 0.1) }}
                 >
                   <Link 
-                    href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "https://docs.astreus.org/" : `/${item.toLowerCase()}`}
-                    target={item === "Github" || item === "Documentation" ? "_blank" : undefined}
+                    href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
+                    target={item === "Github" ? "_blank" : undefined}
                     className="text-white hover:text-white/80 transition-colors"
                   >
                     {item}
@@ -100,8 +100,7 @@ export default function Navbar() {
               className="hidden md:block"
             >
               <Link 
-                href="https://docs.astreus.org/" 
-                target="_blank"
+                href="/docs/guides/quick-start" 
                 className="px-5 py-3 text-sm bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors"
               >
                 GET STARTED
@@ -164,8 +163,8 @@ export default function Navbar() {
             {["Documentation", "Plugins", "Github"].map((item) => (
               <Link 
                 key={item}
-                href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "https://docs.astreus.org/" : `/${item.toLowerCase()}`}
-                target={item === "Github" || item === "Documentation" ? "_blank" : undefined}
+                href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
+                target={item === "Github" ? "_blank" : undefined}
                 className="px-8 py-3 text-base font-medium text-white border border-white/20 rounded-full bg-black/20 hover:bg-white/10 transition-all text-center min-w-[200px]"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -175,8 +174,7 @@ export default function Navbar() {
             
             {/* Get Started button moved right below links */}
             <Link 
-              href="https://docs.astreus.org/" 
-              target="_blank"
+              href="/docs/guides/quick-start" 
               className="px-8 py-3 text-base bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors min-w-[200px] text-center mt-2"
               onClick={() => setMobileMenuOpen(false)}
             >

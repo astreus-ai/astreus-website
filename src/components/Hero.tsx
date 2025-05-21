@@ -103,8 +103,7 @@ const Hero = () => {
         >
           <motion.div variants={buttonVariants}>
             <Link 
-              href="https://docs.astreus.org/" 
-              target="_blank"
+              href="/docs/guides/quick-start" 
               className="px-6 text-sm uppercase py-4 bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors text-lg inline-block"
             >
               Get Started

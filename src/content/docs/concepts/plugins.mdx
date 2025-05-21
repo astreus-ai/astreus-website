@@ -1,0 +1,236 @@
+---
+title: Plugins
+---
+
+Plugins extend agent capabilities by adding tools that can perform specific actions, access external data sources, or integrate with external services.
+
+## Plugin Architecture
+
+Plugins in Astreus consist of:
+
+- **Tools**: Functional units that perform specific operations
+- **Plugin Manager**: Registry system for global tool management
+- **Execution Context**: Secure environment for running plugin code
+- **Input/Output Schemas**: Type definitions for tool parameters and results
+
+## Creating a Plugin
+
+A plugin is simply a JavaScript object that follows the Plugin interface:
+
+```typescript
+import { Plugin } from '@astreus-ai/astreus';
+
+// Create a simple calculator plugin
+const calculatorPlugin: Plugin = {
+  name: "calculator",
+  description: "Performs mathematical calculations",
+  parameters: {
+    expression: {
+      type: "string",
+      description: "The mathematical expression to evaluate"
+    }
+  },
+  execute: async (params) => {
+    try {
+      // WARNING: Never use eval in production code! This is just for illustration
+      const result = eval(params.expression);
+      return {
+        success: true,
+        output: `The result is: ${result}`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to calculate: ${error.message}`
+      };
+    }
+  }
+};
+```
+
+## Creating a Plugin Class
+
+For more complex plugins, you can create a class:
+
+```typescript
+import { Plugin, PluginInstance } from '@astreus-ai/astreus';
+
+class WeatherPlugin implements PluginInstance {
+  private apiKey: string;
+  
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+  
+  // Method to get all tools provided by this plugin
+  getTools(): Plugin[] {
+    return [
+      {
+        name: "getCurrentWeather",
+        description: "Get current weather for a location",
+        parameters: {
+          location: {
+            type: "string",
+            description: "The city and country"
+          }
+        },
+        execute: async (params) => {
+          try {
+            const weather = await this.fetchWeather(params.location);
+            return {
+              success: true,
+              output: weather
+            };
+          } catch (error) {
+            return {
+              success: false,
+              error: `Failed to get weather: ${error.message}`
+            };
+          }
+        }
+      },
+      {
+        name: "getWeatherForecast",
+        description: "Get weather forecast for the next 5 days",
+        parameters: {
+          location: {
+            type: "string",
+            description: "The city and country"
+          }
+        },
+        execute: async (params) => {
+          try {
+            const forecast = await this.fetchForecast(params.location);
+            return {
+              success: true,
+              output: forecast
+            };
+          } catch (error) {
+            return {
+              success: false,
+              error: `Failed to get forecast: ${error.message}`
+            };
+          }
+        }
+      }
+    ];
+  }
+  
+  // Private method to fetch weather data
+  private async fetchWeather(location: string) {
+    // Implementation to call a weather API
+    return `Weather data for ${location}`;
+  }
+  
+  // Private method to fetch forecast data
+  private async fetchForecast(location: string) {
+    // Implementation to call a weather API
+    return `5-day forecast for ${location}`;
+  }
+}
+```
+
+## Using Plugins with Agents
+
+Plugins can be added to agents during creation or afterward:
+
+```typescript
+import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+import { WeatherPlugin } from './plugins/weather';
+
+(async () => {
+  // Initialize the framework components
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: "memories" });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  // Create weather plugin instance
+  const weatherPlugin = new WeatherPlugin("your_api_key");
+  
+  // Create an agent with the plugin
+  const agent = await createAgent({
+    name: 'WeatherAssistant',
+    description: 'An assistant that can check weather',
+    provider: provider,
+    memory: memory,
+    database: db,
+    systemPrompt: "You are a helpful assistant that can check weather information.",
+    plugins: [weatherPlugin]  // Add plugin during agent creation
+  });
+  
+  // Add additional plugin after creation
+  const calculatorPlugin = { /* plugin definition */ };
+  agent.addTool(calculatorPlugin);
+  
+  // Chat with the agent using tools
+  const response = await agent.chat("What's the weather like in Tokyo?");
+  console.log(response);
+})();
+```
+
+## Plugin Configuration
+
+### Plugin Interface
+
+| Property | Type | Description | Required |
+|----------|------|-------------|----------|
+| `name` | string | Unique name for the tool | Yes |
+| `description` | string | Description of what the tool does | Yes |
+| `parameters` | object | Parameter schema for the tool | Yes |
+| `execute` | function | Async function that implements the tool's behavior | Yes |
+| `version` | string | Version of the plugin | No |
+| `author` | string | Author of the plugin | No |
+| `cacheTTL` | number | Time to cache results in seconds | No |
+
+### Parameter Schema
+
+Parameters use a simplified JSON Schema format:
+
+```typescript
+{
+  parameters: {
+    location: {
+      type: "string",
+      description: "City name and country",
+      required: true
+    },
+    unit: {
+      type: "string",
+      description: "Temperature unit (celsius or fahrenheit)",
+      required: false,
+      enum: ["celsius", "fahrenheit"],
+      default: "celsius"
+    }
+  }
+}
+```
+
+## Plugin Security
+
+When developing plugins, follow these security practices:
+
+1. **Validation**: Always validate user inputs before processing
+2. **Error Handling**: Catch and handle all potential errors
+3. **Resource Limits**: Implement timeouts for external service calls
+4. **Credentials**: Never hardcode API keys or credentials
+5. **Permissions**: Clearly define what resources the plugin can access
+
+## Global Plugin Registration
+
+You can register plugins globally for all agents using the PluginManager:
+
+```typescript
+import { PluginManager } from '@astreus-ai/astreus';
+
+// Register a plugin globally
+PluginManager.register(calculatorPlugin);
+
+// Check if a plugin exists
+const exists = PluginManager.has("calculator");
+
+// Get a registered plugin
+const plugin = PluginManager.get("calculator");
+
+// List all registered plugins
+const allPlugins = PluginManager.list();
+``` 

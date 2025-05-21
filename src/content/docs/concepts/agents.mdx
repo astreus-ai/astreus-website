@@ -1,0 +1,154 @@
+---
+title: Agents
+---
+
+Agents are the central component of the Astreus framework. An agent represents an AI assistant capable of holding conversations, performing tasks, and using tools to accomplish goals.
+
+## Agent Architecture
+
+Each Astreus agent consists of:
+
+- **Provider**: Connection to the underlying LLM (OpenAI, Ollama, etc.)
+- **Memory**: Storage system for conversation history
+- **Tools**: Optional capabilities that extend what the agent can do
+- **Tasks**: System for breaking complex requests into manageable sub-tasks
+- **Database**: Persistent storage for agent state and data
+
+## Creating an Agent
+
+To create an agent, use the `createAgent` function:
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase
+} from '@astreus-ai/astreus';
+
+(async () => {
+  // Initialize the database
+  const db = await createDatabase();
+  
+  // Create memory instance
+  const memory = await createMemory({
+    database: db,
+    tableName: "memories",
+    maxEntries: 100
+  });
+
+  // Configure your provider
+  const provider = createProvider({
+    type: 'openai',
+    model: 'gpt-4o-mini'
+  });
+
+  // Create an agent instance
+  const agent = await createAgent({
+    name: 'MyAssistant',
+    description: 'A helpful AI assistant',
+    provider: provider,
+    memory: memory,
+    database: db,
+    systemPrompt: "You are a helpful AI assistant."
+  });
+})();
+```
+
+## Agent Configuration Options
+
+When creating an agent, you can customize its behavior with these options:
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `name` | string | Name of the agent | No (defaults to "Assistant") |
+| `description` | string | Description of the agent | No |
+| `provider` | Provider | LLM provider instance | Yes (if model not provided) |
+| `model` | ProviderModel | Specific model to use | Yes (if provider not provided) |
+| `memory` | Memory | Memory instance for conversation history | Yes |
+| `database` | Database | Database for persistence | No (created if not provided) |
+| `systemPrompt` | string | Instructions that define agent behavior | No |
+| `tools` | Plugin[] | Array of tools/plugins | No |
+| `plugins` | PluginInstance[] | Plugin instances with tool functionality | No |
+| `rag` | RAG | Retrieval system for documents | No |
+
+## Interacting with an Agent
+
+### Basic Chat
+
+The simplest way to interact with an agent is through the `chat` method:
+
+```typescript
+// Send a message to the agent
+const response = await agent.chat("Tell me about TypeScript");
+console.log(response);
+```
+
+### Session Management
+
+You can maintain multiple conversations with the same agent by specifying a session ID:
+
+```typescript
+// First conversation
+const responseA = await agent.chat("Tell me about TypeScript", "sessionA");
+
+// Second conversation (separate from the first)
+const responseB = await agent.chat("What's the weather like?", "sessionB");
+
+// Continue first conversation
+const responseA2 = await agent.chat("How does it compare to JavaScript?", "sessionA");
+```
+
+### Advanced Options
+
+The `chat` method accepts additional options to control behavior:
+
+```typescript
+const response = await agent.chat(
+  "Create a data analysis plan", 
+  "session123",
+  "user456",  // Optional user ID
+  {
+    metadata: { context: "data-science", priority: "high" },
+    temperature: 0.7,  // Control randomness (0.0-1.0)
+    maxTokens: 500,    // Limit response length
+    useTaskSystem: true  // Enable/disable task system
+  }
+);
+```
+
+## Working with History
+
+You can retrieve and manage conversation history:
+
+```typescript
+// Get all history for a session
+const history = await agent.getHistory("session123");
+
+// Get filtered history
+const recentHistory = await agent.getFilteredHistory("session123", {
+  roles: ["user", "assistant"],  // Filter by message role
+  limit: 10,  // Get only the most recent messages
+  fromDate: new Date("2023-01-01")  // Get messages from this date
+});
+
+// Clear history for a session
+await agent.clearHistory("session123");
+```
+
+## Adding Tools at Runtime
+
+You can add new capabilities to an agent after creation:
+
+```typescript
+import { CalculatorPlugin } from './plugins/calculator';
+
+// Create a new plugin
+const calculator = new CalculatorPlugin();
+
+// Add it to the agent
+agent.addTool(calculator);
+
+// Now the agent can use the calculator
+const response = await agent.chat("What is 234 * 789?");
+``` 

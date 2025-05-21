@@ -1,18 +1,15 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
-@theme {
-  --color-background: #000000;
-  --color-foreground: #ffffff;
-  --color-accent: #FF6432; /* Orange accent */
-  
+/* Fumadocs Layout Width */
+:root {
   --font-sans: "Space Grotesk", sans-serif;
-  
-  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @layer base {
   html, body {
-    @apply overflow-x-hidden relative bg-black text-white;
+    @apply overflow-x-hidden relative;
     font-family: var(--font-space-grotesk);
   }
   

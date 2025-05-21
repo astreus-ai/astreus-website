@@ -1,0 +1,15 @@
+// @ts-nocheck -- skip type checking
+import * as docs_10 from "../src/content/docs/plugins/x-plugin.mdx?collection=docs&hash=1747850908862"
+import * as docs_9 from "../src/content/docs/plugins/index.mdx?collection=docs&hash=1747850908862"
+import * as docs_8 from "../src/content/docs/concepts/tasks.mdx?collection=docs&hash=1747850908862"
+import * as docs_7 from "../src/content/docs/concepts/rag.mdx?collection=docs&hash=1747850908862"
+import * as docs_6 from "../src/content/docs/concepts/providers.mdx?collection=docs&hash=1747850908862"
+import * as docs_5 from "../src/content/docs/concepts/plugins.mdx?collection=docs&hash=1747850908862"
+import * as docs_4 from "../src/content/docs/concepts/memory.mdx?collection=docs&hash=1747850908862"
+import * as docs_3 from "../src/content/docs/concepts/agents.mdx?collection=docs&hash=1747850908862"
+import * as docs_2 from "../src/content/docs/guides/quick-start.mdx?collection=docs&hash=1747850908862"
+import * as docs_1 from "../src/content/docs/guides/custom-plugins.mdx?collection=docs&hash=1747850908862"
+import * as docs_0 from "../src/content/docs/index.mdx?collection=docs&hash=1747850908862"
+import { _runtime } from "fumadocs-mdx"
+import * as _source from "../source.config"
+export const docs = _runtime.docs<typeof _source.docs>([{ info: {"path":"index.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/index.mdx"}, data: docs_0 }, { info: {"path":"guides/custom-plugins.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/guides/custom-plugins.mdx"}, data: docs_1 }, { info: {"path":"guides/quick-start.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/guides/quick-start.mdx"}, data: docs_2 }, { info: {"path":"concepts/agents.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/concepts/agents.mdx"}, data: docs_3 }, { info: {"path":"concepts/memory.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/concepts/memory.mdx"}, data: docs_4 }, { info: {"path":"concepts/plugins.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/concepts/plugins.mdx"}, data: docs_5 }, { info: {"path":"concepts/providers.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/concepts/providers.mdx"}, data: docs_6 }, { info: {"path":"concepts/rag.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/concepts/rag.mdx"}, data: docs_7 }, { info: {"path":"concepts/tasks.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/concepts/tasks.mdx"}, data: docs_8 }, { info: {"path":"plugins/index.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/plugins/index.mdx"}, data: docs_9 }, { info: {"path":"plugins/x-plugin.mdx","absolutePath":"/Users/berke/Projects/astreus-ai/astreus-landing/src/content/docs/plugins/x-plugin.mdx"}, data: docs_10 }], [])

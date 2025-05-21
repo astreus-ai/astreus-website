@@ -1,0 +1,202 @@
+---
+title: RAG
+---
+
+RAG (Retrieval Augmented Generation) enables agents to access, search, and reason over document content, providing more accurate and contextual responses.
+
+## RAG Architecture
+
+The RAG system in Astreus consists of:
+
+- **Document Parsing**: Extracting text and metadata from documents
+- **Chunking**: Breaking documents into manageable pieces
+- **Embedding Generation**: Creating vector representations of text chunks
+- **Vector Storage**: Storing embeddings for semantic search
+- **Retrieval**: Finding relevant content based on semantic similarity
+- **Context Augmentation**: Adding retrieved content to agent prompts
+
+## Setting Up RAG
+
+Create a RAG system with documents:
+
+```typescript
+import { 
+  createRAG, 
+  parsePDF, 
+  createProvider, 
+  createDatabase 
+} from '@astreus-ai/astreus';
+
+(async () => {
+  // Initialize components
+  const db = await createDatabase();
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  // Parse a PDF document
+  const document = await parsePDF('path/to/document.pdf');
+  
+  // Create a RAG system with the document
+  const rag = await createRAG({
+    documents: [document],
+    embeddings: provider.getEmbeddingModel(),
+    database: db,
+    tableName: "document_embeddings"
+  });
+  
+  // Now the RAG system can be used with an agent
+})();
+```
+
+## Parsing Multiple Documents
+
+You can parse multiple documents and directories:
+
+```typescript
+import { parsePDF, parseDirectoryOfPDFs } from '@astreus-ai/astreus';
+
+// Parse a single PDF
+const document1 = await parsePDF('path/to/document1.pdf');
+
+// Parse a directory of PDFs
+const documents = await parseDirectoryOfPDFs('path/to/document_directory');
+
+// Create RAG with multiple documents
+const rag = await createRAG({
+  documents: [document1, ...documents],
+  // other configuration
+});
+```
+
+## RAG Configuration Options
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `documents` | Document[] | Array of parsed documents | Yes |
+| `embeddings` | EmbeddingModel | Model for generating embeddings | Yes |
+| `database` | Database | Database for storing embeddings | Yes |
+| `tableName` | string | Table name for storing embeddings | No (default: "rag_embeddings") |
+| `chunkSize` | number | Size of document chunks in characters | No (default: 1000) |
+| `chunkOverlap` | number | Overlap between chunks in characters | No (default: 200) |
+| `maxDocuments` | number | Maximum number of documents to store | No |
+| `maxResultsPerQuery` | number | Maximum results to return per query | No (default: 5) |
+
+## Using RAG with Agents
+
+Integrate RAG with an agent to give it access to document knowledge:
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase,
+  createRAG,
+  parsePDF
+} from '@astreus-ai/astreus';
+
+(async () => {
+  // Initialize components
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: "memories" });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  // Parse documents and create RAG
+  const document = await parsePDF('product_manual.pdf');
+  const rag = await createRAG({
+    documents: [document],
+    embeddings: provider.getEmbeddingModel(),
+    database: db
+  });
+  
+  // Create agent with RAG
+  const agent = await createAgent({
+    name: 'ProductAssistant',
+    description: 'A product support assistant',
+    provider: provider,
+    memory: memory,
+    database: db,
+    rag: rag,  // Add RAG to the agent
+    systemPrompt: "You are a helpful product support assistant. Use the provided product documentation to answer questions accurately."
+  });
+  
+  // The agent can now answer questions about the product manual
+  const response = await agent.chat("How do I reset my device to factory settings?");
+  console.log(response);
+})();
+```
+
+## Querying RAG Directly
+
+You can query the RAG system directly:
+
+```typescript
+// Search for relevant content
+const results = await rag.search(
+  "How to configure network settings", 
+  { limit: 3, threshold: 0.75 }
+);
+
+// Results contain matching document chunks
+results.forEach(result => {
+  console.log(`Document: ${result.document.title}`);
+  console.log(`Score: ${result.score}`);
+  console.log(`Content: ${result.chunk.content}`);
+  console.log(`Page: ${result.chunk.metadata.page}`);
+});
+```
+
+## Document Processing Options
+
+When parsing documents, you can customize the processing:
+
+```typescript
+// Parse a PDF with custom options
+const document = await parsePDF('document.pdf', {
+  titleFromFilename: true,  // Use filename as document title
+  extractImages: true,      // Extract and process images
+  ocrEnabled: true,         // Use OCR for scanned documents
+  language: "en",           // Specify document language
+  metadata: {               // Add custom metadata
+    author: "Jane Smith",
+    department: "Engineering",
+    confidentiality: "Internal"
+  }
+});
+```
+
+## Adding Custom Document Types
+
+The RAG system supports custom document types by implementing the Document interface:
+
+```typescript
+import { Document, createRAG } from '@astreus-ai/astreus';
+
+// Create a custom document
+const customDocument: Document = {
+  id: "doc-123",
+  title: "API Documentation",
+  content: "Full text content of the document...",
+  metadata: {
+    source: "internal-wiki",
+    lastUpdated: "2023-05-15"
+  },
+  chunks: [
+    {
+      id: "chunk-1",
+      content: "Section about authentication...",
+      metadata: { section: "Authentication" }
+    },
+    {
+      id: "chunk-2",
+      content: "Section about endpoints...",
+      metadata: { section: "Endpoints" }
+    }
+  ]
+};
+
+// Use the custom document with RAG
+const rag = await createRAG({
+  documents: [customDocument],
+  // other configuration
+});
+``` 

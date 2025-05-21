@@ -1,0 +1,140 @@
+---
+title: Memory
+---
+
+Memory enables agents to store and recall conversation history, allowing for contextual understanding and continuity in interactions.
+
+## Memory Architecture
+
+Astreus Memory system consists of:
+
+- **Conversation History**: Stores all messages exchanged with the agent
+- **Embedding Storage**: Optional vector representations for semantic search
+- **Session Management**: Organizes conversations into separate sessions
+- **Metadata Support**: Allows attaching additional context to messages
+- **Persistence Layer**: Saves history to a database for long-term storage
+
+## Creating Memory
+
+To create a memory instance, use the `createMemory` function:
+
+```typescript
+import { createMemory, createDatabase } from '@astreus-ai/astreus';
+
+// Initialize the database first
+const db = await createDatabase();
+
+// Create a basic memory instance
+const memory = await createMemory({
+  database: db,
+  tableName: "agent_memories",
+  maxEntries: 50  // Limit the size of conversation history
+});
+
+// Create memory with embeddings enabled for semantic search
+const vectorMemory = await createMemory({
+  database: db,
+  tableName: "vector_memories",
+  maxEntries: 100,
+  enableEmbeddings: true  // Enables semantic search capabilities
+});
+```
+
+## Memory Configuration Options
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `database` | Database | Database instance for persistence | Yes |
+| `tableName` | string | Name of the database table | Yes |
+| `maxEntries` | number | Maximum number of messages to store per session | No (default: 100) |
+| `enableEmbeddings` | boolean | Enable vector embeddings for semantic search | No (default: false) |
+| `embeddingProvider` | Provider | Provider for generating embeddings | No (uses agent's provider if not specified) |
+| `embeddingDimension` | number | Dimension of embedding vectors | No (provider default) |
+
+## Storing and Retrieving Messages
+
+Memory instances provide methods to add and retrieve messages:
+
+```typescript
+// Add a message to memory
+await memory.add({
+  role: "user",  // Can be 'user', 'assistant', 'system', etc.
+  content: "What's the weather like in Paris?",
+  sessionId: "session123",  // Optional, defaults to 'default'
+  userId: "user456",        // Optional user identifier
+  metadata: {               // Optional additional data
+    timestamp: Date.now(),
+    source: "web_interface"
+  }
+});
+
+// Retrieve messages for a session
+const sessionHistory = await memory.getBySession("session123");
+
+// Get the most recent messages
+const recentMessages = await memory.getBySession("session123", { limit: 10 });
+```
+
+## Semantic Search with Embeddings
+
+If embeddings are enabled, you can search for semantically similar content:
+
+```typescript
+// Search for messages that are semantically similar to a query
+const results = await memory.searchSimilar(
+  "travel recommendations",  // Search query
+  {
+    sessionId: "session123",  // Optional: limit search to a specific session
+    limit: 5,                 // Return top 5 most similar results
+    threshold: 0.75           // Minimum similarity score (0-1)
+  }
+);
+
+// Results contains messages most similar to the query
+results.forEach(result => {
+  console.log(`Score: ${result.score}, Content: ${result.entry.content}`);
+});
+```
+
+## Managing Memory
+
+You can manage memory through various utility methods:
+
+```typescript
+// Count messages in a session
+const messageCount = await memory.count("session123");
+
+// Delete specific messages
+await memory.delete(["message_id_1", "message_id_2"]);
+
+// Clear entire session history
+await memory.clear("session123");
+
+// Get summary statistics
+const stats = await memory.getStats();
+console.log(`Total sessions: ${stats.sessionCount}`);
+console.log(`Total messages: ${stats.messageCount}`);
+```
+
+## Working with Multiple Sessions
+
+Memory can manage multiple separate conversations:
+
+```typescript
+// Add messages to different sessions
+await memory.add({
+  role: "user",
+  content: "Tell me about France",
+  sessionId: "travel_planning"
+});
+
+await memory.add({
+  role: "user",
+  content: "What's the capital of Germany?",
+  sessionId: "geography_quiz"
+});
+
+// Retrieve individual session histories
+const travelSession = await memory.getBySession("travel_planning");
+const quizSession = await memory.getBySession("geography_quiz");
+``` 

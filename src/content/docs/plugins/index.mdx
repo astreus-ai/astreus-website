@@ -1,0 +1,42 @@
+---
+title: Plugins
+---
+
+Astreus provides a powerful plugin system that extends agent capabilities with specialized tools for various tasks and integrations. Plugins allow agents to interact with external services, APIs, and data sources.
+
+## Official Plugins
+
+Astreus offers several official plugins to enhance your agents:
+
+- [X Plugin](/docs/plugins/x-plugin) - Interact with the X (formerly Twitter) platform
+- [Weather Plugin](/docs/plugins/weather-plugin) - Access weather forecasts and data
+- [Web Plugin](/docs/plugins/web-plugin) - Browse and extract information from websites
+
+## Getting Started with Plugins
+
+To start using plugins with Astreus, install the desired plugin package alongside Astreus:
+
+```bash
+npm install @astreus-ai/astreus @astreus-ai/x-plugin
+```
+
+Then initialize and use the plugin with your agent:
+
+```typescript
+import { createAgent } from '@astreus-ai/astreus';
+import { XPlugin } from '@astreus-ai/x-plugin';
+
+// Initialize plugin
+const xPlugin = new XPlugin();
+await xPlugin.init();
+
+// Create agent with plugin
+const agent = await createAgent({
+  // ... other configuration
+  plugins: [xPlugin]
+});
+```
+
+## Creating Custom Plugins
+
+You can create your own plugins to extend agent capabilities. See the [Custom Plugins](/docs/guides/custom-plugins) guide for detailed instructions. 

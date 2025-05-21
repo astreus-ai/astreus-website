@@ -1,8 +1,8 @@
 <p align="center">
-    <img src="public/astreus-gadget.webp" alt="Astreus Logo" width="240">
+    <img src="public/astreus-logo.svg" alt="Astreus Logo" width="240">
 </p>
 
-This is the official landing page for the Astreus AI Agent Framework.
+This is the official website for the Astreus AI Agent Framework.
 
 ## ℹ️ About Astreus
 
@@ -22,20 +22,19 @@ Astreus is an AI Agent Framework designed to help you easily build, deploy, and 
 
 ## 📱 Development
 
-This project uses Next.js with TypeScript and Tailwind CSS with modern ES module syntax, and Prisma for database access.
+This project uses Next.js 15 with React 19, TypeScript, and Tailwind CSS 4 with modern ES module syntax. It also uses Fumadocs for documentation.
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 20 or higher
 - npm or yarn
-- PostgreSQL database (for plugin library and user data)
 
 ### Getting Started
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/astreus-ai/astreus-landing.git
-cd astreus-landing
+git clone https://github.com/astreus-ai/astreus-website.git
+cd astreus-website
 ```
 
 2. Install dependencies:
@@ -45,32 +44,14 @@ npm install
 yarn install
 ```
 
-3. Set up your environment variables:
-```bash
-# Create a .env.local file with your database connection string
-DATABASE_URL="postgresql://username:password@localhost:5432/astreus"
-```
-
-4. Set up the database:
-```bash
-# Generate Prisma client
-npm run prisma:generate
-
-# Create and apply migrations
-npm run prisma:migrate
-
-# Seed the database with initial data
-npm run prisma:seed
-```
-
-5. Run the development server:
+3. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
 ```
 
-6. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## 🏗️ Building for Production
 
@@ -84,26 +65,24 @@ yarn build
 
 ```
 ├── public/                # Static assets
-├── prisma/                # Prisma schema and migrations
-│   ├── schema.prisma      # Database schema definition
-│   └── seed.ts            # Database seed script
 ├── src/
 │   ├── app/               # Next.js App Router pages
 │   │   ├── api/           # API routes for data fetching
-│   │   └── plugins/       # Plugin library page
+│   │   ├── docs/          # Documentation pages
+│   │   ├── plugins/       # Plugin library page
+│   │   └── (home)/        # Home page
 │   ├── components/        # React components
-│   │   ├── About.tsx      # About section
-│   │   ├── Features.tsx   # Features section
-│   │   ├── Footer.tsx     # Footer component
 │   │   ├── Hero.tsx       # Hero section
-│   │   ├── Marquee.tsx    # Animated marquee component with refined animations
-│   │   ├── Navigation.tsx # Site navigation
-│   │   └── plugins/       # Plugin library components
-│   ├── styles/            # CSS and styling with updated animations
+│   │   ├── Footer.tsx     # Footer component
+│   │   ├── Navbar.tsx     # Site navigation
+│   │   ├── PluginCard.tsx # Plugin card component
+│   │   └── Rate.tsx       # Rating component
+│   ├── content/           # Content for documentation
+│   │   └── docs/          # Documentation content
+│   ├── constants/         # Constant values and configurations
 │   ├── lib/               # Utility functions and client libraries
-│   │   └── prisma.ts      # Prisma client
-│   └── hooks/             # Custom React hooks
-├── package.json           # Project dependencies with updated React and Next.js versions
+│   └── theme/             # Theme and styling configurations
+├── package.json           # Project dependencies
 └── tsconfig.json          # TypeScript configuration
 ```
 

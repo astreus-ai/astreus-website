@@ -1,0 +1,288 @@
+---
+title: X Plugin
+---
+
+X Plugin (formerly Twitter) enables agents to interact with the X platform, allowing for searching, posting, and analyzing content on X.
+
+## Features
+
+- **Post Tweets**: Create and publish tweets programmatically
+- **Search Tweets**: Find tweets using keywords, hashtags, or other criteria
+- **User Profiles**: Retrieve and analyze user profile information
+- **Task Integration**: Execute X-related operations using Astreus's task system
+- **API Authentication**: Seamless connection to X API using credentials
+
+## Installation
+
+Install the X Plugin along with Astreus:
+
+```bash
+npm install @astreus-ai/astreus @astreus-ai/x-plugin
+```
+
+## Authentication
+
+To use the X Plugin, you'll need X (Twitter) API credentials:
+
+1. Apply for X Developer access at [developer.twitter.com](https://developer.twitter.com)
+2. Create a new project and app in the X Developer portal
+3. Generate API keys, access tokens, and client credentials
+4. Add these credentials to your environment variables
+
+Required environment variables:
+
+```
+X_API_KEY=your-x-api-key
+X_API_SECRET_KEY=your-x-api-secret
+X_ACCESS_TOKEN=your-x-access-token
+X_ACCESS_TOKEN_SECRET=your-x-access-token-secret
+X_CLIENT_ID=your-x-client-id
+X_CLIENT_SECRET=your-x-client-secret
+```
+
+## Basic Usage
+
+Create an agent with the X Plugin:
+
+```typescript
+import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import { XPlugin } from '@astreus-ai/x-plugin';
+
+async function main() {
+  // Initialize Astreus components
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: 'memories' });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  // Initialize X Plugin
+  const xPlugin = new XPlugin();
+  await xPlugin.init();
+  
+  // Create an agent with the X Plugin
+  const agent = await createAgent({
+    name: 'Social Media Agent',
+    description: 'An assistant that can interact with X',
+    provider: provider,
+    memory: memory,
+    database: db,
+    systemPrompt: `You are a helpful assistant that can interact with X (formerly Twitter).
+Help the user search, post, and analyze content on X.`,
+    plugins: [xPlugin]  // Add the plugin directly
+  });
+  
+  // Your agent is now ready to interact with X
+  const response = await agent.chat("Find the latest tweets about #AI");
+  console.log(response);
+}
+
+main();
+```
+
+## Available Tools
+
+The X Plugin provides several tools for interacting with the X platform:
+
+### Post Tweet
+
+```typescript
+// Post a tweet using the agent and task system
+const tweetTask = await agent.createTask({
+  name: "Post Tweet",
+  description: "Post a new tweet to X",
+  input: {
+    text: "Hello world from Astreus X Plugin! #AI #MachineLearning"
+  }
+});
+
+// Run the task
+const taskResults = await agent.runTasks([tweetTask.id]);
+const tweetResult = taskResults.get(tweetTask.id);
+```
+
+### Search Tweets
+
+```typescript
+// Search for tweets
+const searchTask = await agent.createTask({
+  name: "Search Tweets",
+  description: "Find tweets about a specific topic",
+  input: {
+    query: "#machinelearning",
+    limit: 10
+  }
+});
+
+// Run the search task
+const taskResults = await agent.runTasks([searchTask.id]);
+```
+
+### Get User Profile
+
+```typescript
+// Retrieve a user profile
+const profileTask = await agent.createTask({
+  name: "Get User Profile",
+  description: "Retrieve information about a specific X user",
+  input: {
+    username: "OpenAI"
+  }
+});
+
+// Run the profile task
+const taskResults = await agent.runTasks([profileTask.id]);
+```
+
+## X Plugin Starter Project
+
+The [Astreus X Plugin Starter](https://github.com/astreus-ai/astreus-starter) provides a ready-to-use template for building applications with the X Plugin:
+
+1. Clone the starter repository:
+```bash
+git clone https://github.com/astreus-ai/astreus-starter.git
+cd astreus-starter
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up your environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Edit the `.env` file and add your X API credentials and OpenAI API key.
+
+5. Run the example:
+```bash
+npm run dev
+```
+
+## Error Handling
+
+The X Plugin includes robust error handling:
+
+```typescript
+try {
+  const taskResults = await agent.runTasks([tweetTask.id]);
+  const tweetResult = taskResults.get(tweetTask.id);
+  
+  if (tweetResult?.success) {
+    console.log(`Tweet posted successfully`);
+  } else {
+    console.warn("Tweet posting failed");
+    if (tweetResult?.output?.error) {
+      console.error(`Error: ${tweetResult.output.error}`);
+    }
+  }
+} catch (error) {
+  console.error("Error executing task:", error);
+}
+```
+
+## Advanced Usage
+
+### Scheduled Tweets
+
+Create a system to post tweets on a schedule:
+
+```typescript
+import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import { XPlugin } from '@astreus-ai/x-plugin';
+import cron from 'node-cron';
+
+async function main() {
+  // Initialize Astreus and X Plugin components
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: 'memories' });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  const xPlugin = new XPlugin();
+  await xPlugin.init();
+  
+  const agent = await createAgent({
+    name: 'Scheduled Twitter Bot',
+    provider: provider,
+    memory: memory,
+    database: db,
+    plugins: [xPlugin]
+  });
+  
+  // Schedule tweets every day at 9:00 AM
+  cron.schedule('0 9 * * *', async () => {
+    // Generate tweet content (could use the agent to generate content)
+    const tweetText = `Daily AI update: ${new Date().toLocaleDateString()}`;
+    
+    // Create and run the tweet task
+    const tweetTask = await agent.createTask({
+      name: "Daily Tweet",
+      description: "Post daily scheduled tweet",
+      input: { text: tweetText }
+    });
+    
+    await agent.runTasks([tweetTask.id]);
+  });
+  
+  console.log('Scheduled tweet system started');
+}
+
+main();
+```
+
+### Monitoring Keywords
+
+Set up a system to monitor X for specific keywords:
+
+```typescript
+import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import { XPlugin } from '@astreus-ai/x-plugin';
+
+async function monitorKeywords(keywords, interval = 60000) {
+  // Initialize components
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: 'monitoring' });
+  const provider = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' });
+  
+  const xPlugin = new XPlugin();
+  await xPlugin.init();
+  
+  const agent = await createAgent({
+    name: 'X Monitoring Agent',
+    provider: provider,
+    memory: memory,
+    database: db,
+    plugins: [xPlugin]
+  });
+  
+  // Monitoring loop
+  setInterval(async () => {
+    for (const keyword of keywords) {
+      // Create search task
+      const searchTask = await agent.createTask({
+        name: "Monitor Keyword",
+        description: `Search for recent tweets containing ${keyword}`,
+        input: {
+          query: keyword,
+          limit: 10,
+          recent: true
+        }
+      });
+      
+      // Run the task and analyze results
+      const results = await agent.runTasks([searchTask.id]);
+      const searchResult = results.get(searchTask.id);
+      
+      if (searchResult?.success && searchResult.output.tweets?.length > 0) {
+        console.log(`Found ${searchResult.output.tweets.length} tweets containing "${keyword}"`);
+        // Process the tweets (analyze sentiment, categorize, etc.)
+      }
+    }
+  }, interval);
+  
+  console.log(`Monitoring started for keywords: ${keywords.join(', ')}`);
+}
+
+// Start monitoring
+monitorKeywords(['#artificialintelligence', '#machinelearning', 'large language models']);
+``` 

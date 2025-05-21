@@ -1,6 +1,7 @@
 import '@/app/globals.css'
 import type { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
+import { RootProvider } from 'fumadocs-ui/provider';
 
 // Define fonts
 const spaceGrotesk = Space_Grotesk({
@@ -22,9 +23,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable}`}>
-      <body className={`${spaceGrotesk.className} antialiased`}>
-        {children}
+    <html lang="en" className={`${spaceGrotesk.variable}`} suppressHydrationWarning>
+      <body className={`${spaceGrotesk.className} antialiased flex flex-col h-screen`}>
+        <RootProvider>{children}</RootProvider>
       </body>
     </html>
   )

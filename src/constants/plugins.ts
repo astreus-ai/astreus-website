@@ -13,7 +13,7 @@ export const plugins: Plugin[] = [
     title: "X Plugin",
     description: "An X (formerly Twitter) integration plugin for the Astreus AI agent framework, allowing agents to interact with X.",
     githubUrl: "https://github.com/astreus-ai/astreus-x-plugin",
-    docsUrl: "https://docs.astreus.org/plugins/x-plugin",
+    docsUrl: "/docs/plugins/x-plugin",
     tags: ["social", "twitter", "x"]
   },
 ]; 
