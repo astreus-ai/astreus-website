@@ -5,10 +5,9 @@ import { Plugin } from '@/constants/plugins';
 
 interface PluginCardProps {
   plugin: Plugin;
-  index: number;
 }
 
-export default function PluginCard({ plugin, index }: PluginCardProps) {
+export default function PluginCard({ plugin }: PluginCardProps) {
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { 

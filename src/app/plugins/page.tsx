@@ -2,20 +2,18 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PluginCard from '@/components/PluginCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { plugins, Plugin } from '@/constants/plugins';
-import { FiGithub, FiBook, FiSearch } from 'react-icons/fi';
+import { plugins } from '@/constants/plugins';
+import { FiSearch } from 'react-icons/fi';
 
 export default function Plugins() {
-  const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
   useEffect(() => {
-    setMounted(true);
+    // Component mounted
   }, []);
   
   const filteredPlugins = useMemo(() => {
@@ -123,8 +121,8 @@ export default function Plugins() {
             animate="show"
           >
             <AnimatePresence>
-              {filteredPlugins.map((plugin, index) => (
-                <PluginCard key={plugin.id} plugin={plugin} index={index} />
+              {filteredPlugins.map((plugin) => (
+                <PluginCard key={plugin.id} plugin={plugin} />
               ))}
             </AnimatePresence>
           </motion.div>
