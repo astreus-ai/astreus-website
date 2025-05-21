@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-accent: #FF6432; /* Orange accent */
+  
+  --font-sans: "Space Grotesk", sans-serif;
+  
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  html, body {
+    @apply overflow-x-hidden relative bg-black text-white;
+    font-family: var(--font-space-grotesk);
+  }
+  
+  /* Custom Scrollbar */
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: #111111;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 6px;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+@layer utilities {}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

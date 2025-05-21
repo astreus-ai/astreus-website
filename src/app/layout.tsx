@@ -1,14 +1,11 @@
-import '@/styles/globals.css'
+import '@/app/globals.css'
 import type { Metadata } from 'next'
-import { Inter, Press_Start_2P } from 'next/font/google'
-import Providers from './providers'
+import { Space_Grotesk } from 'next/font/google'
 
-const inter = Inter({ subsets: ['latin'] })
-const pressStart2P = Press_Start_2P({
-  weight: '400',
+// Define fonts
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-press-start-2p',
+  variable: '--font-space-grotesk',
 })
 
 export const metadata: Metadata = {
@@ -25,12 +22,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${pressStart2P.variable}`}>
-      <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
+    <html lang="en" className={`${spaceGrotesk.variable}`}>
+      <body className={`${spaceGrotesk.className} antialiased`}>
+        {children}
       </body>
     </html>
   )
-} 
+}

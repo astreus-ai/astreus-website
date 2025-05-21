@@ -1,143 +1,62 @@
 "use client";
 
-import React, { useState } from 'react';
-import Marquee from '@/components/Marquee';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
-import About from '@/components/About';
-import Features from '@/components/Features';
 import Footer from '@/components/Footer';
-import { RiBook2Line, RiPuzzle2Line } from 'react-icons/ri';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-  const [isFooterVisible, setIsFooterVisible] = useState(false);
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
-  const handleFooterVisibilityChange = (visible: boolean) => {
-    setIsFooterVisible(visible);
-  };
-
-  const pluginsButtonVariants = {
-    initial: { opacity: 0, y: -20 },
-    animate: (custom: number) => ({ 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        delay: custom * 0.3 + 0.4
-      }
-    }),
-    exit: { 
-      opacity: 0, 
-      y: -20,
-      transition: {
-        duration: 0.3
-      }
-    },
-    hover: { 
-      scale: 1.05,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 10
-      }
-    },
-    tap: { scale: 0.95 }
-  };
-
-  const contentVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.3,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 15
-      }
-    }
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
-    <div className="bg-[#d7e1e1] min-h-screen">
-      <AnimatePresence>
-        {!isFooterVisible && (
-          <div className="fixed top-5 right-5 z-50 sm:flex flex-row gap-4 hidden">
-            <motion.div 
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              whileHover="hover"
-              whileTap="tap"
-              variants={pluginsButtonVariants}
-              custom={0}
-            >
-              <Link 
-                href="/docs"
-                target="_self"
-                className="flex flex-row items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors shadow-md"
-              >
-                <RiBook2Line />
-                <span className="font-medium text-base">Documentation</span>
-              </Link>
-            </motion.div>
-            <motion.div 
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              whileHover="hover"
-              whileTap="tap"
-              variants={pluginsButtonVariants}
-              custom={1}
-            >
-              <Link 
-                href="/plugins"
-                target="_self"
-                className="flex flex-row items-center gap-2 px-5 py-3 border-2 border-[#1e1e1e] bg-white hover:bg-gray-50 transition-colors shadow-md"
-              >
-                <RiPuzzle2Line />
-                <span className="font-medium text-base">Explore Plugins</span>
-              </Link>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-      <Marquee />
-      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 pt-4 pb-12 sm:py-12 md:py-16 relative overflow-hidden">
+    <div className="min-h-screen sm:h-screen bg-black text-white relative overflow-hidden">
+      {/* Background image with animation */}
+      <motion.div 
+        className="absolute inset-0 z-[0]"
+        initial={{ scale: 1.1, opacity: 0 }}
+        animate={{ 
+          scale: 1,
+          opacity: 1,
+        }}
+        transition={{
+          opacity: { duration: 1.5 },
+          scale: { duration: 2 },
+        }}
+      >
+        <Image
+          src="/background.webp"
+          alt="Background"
+          width={3072}
+          height={1536}
+          priority
+          className="object-cover h-full w-full"
+        />
+      </motion.div>
+      
+      {/* Navbar */}
+      <Navbar />
+
+      {/* Background black */}
+      <div className="absolute z-[1] top-0 left-0 w-full h-full bg-black/0"></div>
+      
+      {/* Background gradient - static */}
+      <div className="absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-[-64px] sm:mt-[32px] w-[900px] h-[240px] rounded-full blur-[100px] bg-black/80"></div>
+
+      {/* Hero section */}
+      <main className="relative z-10 h-full flex flex-col min-h-screen">
         <Hero />
-        <motion.div 
-          className="flex flex-col justify-center items-center gap-6"
-          initial="hidden"
-          animate="visible"
-          variants={contentVariants}
-        >
-          <motion.div variants={itemVariants}>
-            <About />
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <Features />
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <Footer onVisibilityChange={handleFooterVisibilityChange} />
-          </motion.div>
-        </motion.div>
-      </div>
+        
+        {/* Additional content can be added here */}
+        
+        {/* Footer */}
+        <Footer />
+      </main>
     </div>
   );
-} 
+}
