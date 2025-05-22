@@ -31,6 +31,23 @@
   *::-webkit-scrollbar-thumb:hover {
     background: #555;
   }
+  
+  /* Fix spacing between navbar and tree on mobile */
+  @media (max-width: 768px) {    
+    /* Hide TOC navigation on mobile */
+    #nd-tocnav {
+      display: none !important;
+    }
+
+    #nd-page {
+      margin-top: -48px !important;
+    }
+
+    #nd-subnav {
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+    }
+  }
 }
 
 @layer utilities {}

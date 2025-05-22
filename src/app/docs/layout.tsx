@@ -6,7 +6,10 @@ import { source } from '@/lib/source';
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col max-h-screen">
-      <DocsLayout tree={source.pageTree} {...baseOptions}>
+      <DocsLayout 
+        tree={source.pageTree} 
+        {...baseOptions}
+      >
         {children}
       </DocsLayout>
     </div>
