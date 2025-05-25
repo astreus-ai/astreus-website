@@ -1,0 +1,266 @@
+---
+title: Resend Plugin
+---
+
+Resend Plugin enables agents to send emails using the Resend API, providing reliable email delivery with support for templates, rich content, and flexible recipient management.
+
+## Features
+
+- **Official Resend API Integration**: Uses the official Resend API for reliable email delivery
+- **Template Support**: Send emails using pre-built templates with dynamic data
+- **Rich Email Content**: Support for both HTML and plain text emails
+- **Flexible Recipients**: Support for CC and BCC recipients
+- **Custom Sender Configuration**: Configurable sender and reply-to addresses
+- **Enhanced Logging**: Detailed logging of email operations for improved debugging
+- **Integration with Astreus Logger**: Consistent logging patterns with the core framework
+
+## Installation
+
+Install the Resend Plugin along with Astreus:
+
+```bash
+npm install @astreus-ai/astreus @astreus-ai/resend-plugin
+```
+
+## Configuration
+
+To use the Resend Plugin, you'll need a Resend API key:
+
+1. Create a Resend account at [resend.com](https://resend.com/)
+2. Generate an API key from your Resend dashboard
+3. Verify your sending domain
+4. Add your credentials to environment variables
+
+Required environment variables:
+
+```bash
+# Resend API configuration
+RESEND_API_KEY=your_resend_api_key
+RESEND_DEFAULT_FROM=you@example.com
+RESEND_DEFAULT_REPLY_TO=optional_reply_to@example.com
+
+# Logging options
+LOG_LEVEL=info  # Options: error, warn, info, debug
+```
+
+## Basic Usage
+
+Create an agent with the Resend Plugin:
+
+```typescript
+import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import ResendPlugin from '@astreus-ai/resend-plugin';
+
+async function main() {
+  // Initialize Astreus components
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: 'memories' });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  // Initialize Resend Plugin
+  const resendPlugin = new ResendPlugin();
+  await resendPlugin.init();
+  
+  // Create an agent with the Resend Plugin
+  const agent = await createAgent({
+    name: 'Email Agent',
+    description: 'An assistant that can send emails',
+    provider: provider,
+    memory: memory,
+    database: db,
+    systemPrompt: `You are a helpful assistant that can send emails using Resend.
+Help the user compose and send professional emails.`,
+    plugins: [resendPlugin]
+  });
+  
+  // Your agent is now ready to send emails
+  const response = await agent.chat('Send an email to john@example.com with subject "Welcome" and message "Hello, welcome to our service!"');
+  console.log(response);
+}
+
+main();
+```
+
+## Custom Configuration
+
+You can also configure the plugin with custom settings:
+
+```typescript
+import ResendPlugin from '@astreus-ai/resend-plugin';
+
+// Create a plugin with custom configuration
+const resendPlugin = new ResendPlugin({
+  apiKey: 'your_resend_api_key',
+  defaultFrom: 'you@example.com',
+  defaultReplyTo: 'reply@example.com',
+  logLevel: 'debug'  // Set logging verbosity
+});
+
+// Initialize the plugin
+await resendPlugin.init();
+```
+
+## Available Tools
+
+The Resend Plugin provides the following tools for email operations:
+
+### Send Email
+
+Send a text or HTML email to recipients:
+
+```typescript
+const response = await agent.execute('resend_send_email', {
+  to: 'recipient@example.com',
+  subject: 'Hello from Astreus',
+  html: '<h1>Hello World</h1><p>This is a test email from Astreus using Resend.</p>',
+  text: 'Hello World! This is a test email from Astreus using Resend.',
+  from: 'custom@example.com', // Optional, overrides default
+  replyTo: 'reply@example.com', // Optional, overrides default
+  cc: 'cc@example.com', // Optional
+  bcc: 'bcc@example.com' // Optional
+});
+
+console.log(`Email sent with ID: ${response.id}`);
+```
+
+### Send Template Email
+
+Send an email using a pre-built template with dynamic data:
+
+```typescript
+const response = await agent.execute('resend_send_template_email', {
+  to: 'recipient@example.com',
+  templateId: 'template_123abc',
+  templateData: {
+    name: 'John Doe',
+    verificationCode: '123456',
+    link: 'https://example.com/verify'
+  },
+  from: 'custom@example.com', // Optional, overrides default
+  replyTo: 'reply@example.com', // Optional, overrides default
+  cc: 'cc@example.com', // Optional
+  bcc: 'bcc@example.com' // Optional
+});
+
+console.log(`Template email sent with ID: ${response.id}`);
+```
+
+## Error Handling
+
+The plugin methods throw descriptive errors when something goes wrong. Always wrap the calls in try/catch blocks:
+
+```typescript
+try {
+  const response = await agent.execute('resend_send_email', {
+    to: 'recipient@example.com',
+    subject: 'Test Email',
+    html: '<p>Hello World!</p>'
+  });
+  console.log(`Email sent with ID: ${response.id}`);
+} catch (error) {
+  console.error('Failed to send email:', error.message);
+}
+```
+
+## Advanced Usage
+
+### Automated Email Notifications
+
+Create a system to send automated email notifications:
+
+```typescript
+import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import ResendPlugin from '@astreus-ai/resend-plugin';
+
+async function sendWelcomeEmail(userEmail: string, userName: string) {
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: 'memories' });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  const resendPlugin = new ResendPlugin();
+  await resendPlugin.init();
+  
+  const agent = await createAgent({
+    name: 'Welcome Email Agent',
+    description: 'Sends welcome emails to new users',
+    provider: provider,
+    memory: memory,
+    database: db,
+    plugins: [resendPlugin]
+  });
+  
+  try {
+    const response = await agent.execute('resend_send_email', {
+      to: userEmail,
+      subject: 'Welcome to Our Platform!',
+      html: `
+        <h1>Welcome, ${userName}!</h1>
+        <p>Thank you for joining our platform. We're excited to have you on board!</p>
+        <p>Get started by exploring our features and don't hesitate to reach out if you need help.</p>
+        <p>Best regards,<br>The Team</p>
+      `,
+      text: `Welcome, ${userName}! Thank you for joining our platform. We're excited to have you on board!`
+    });
+    
+    console.log(`Welcome email sent to ${userEmail} with ID: ${response.id}`);
+  } catch (error) {
+    console.error('Failed to send welcome email:', error.message);
+  }
+}
+
+// Usage
+await sendWelcomeEmail('newuser@example.com', 'John Doe');
+```
+
+### Bulk Email Sending
+
+Send emails to multiple recipients:
+
+```typescript
+async function sendBulkEmails(recipients: string[], subject: string, content: string) {
+  const promises = recipients.map(async (email) => {
+    try {
+      const response = await agent.execute('resend_send_email', {
+        to: email,
+        subject: subject,
+        html: content
+      });
+      return { email, success: true, id: response.id };
+    } catch (error) {
+      return { email, success: false, error: error.message };
+    }
+  });
+  
+  const results = await Promise.all(promises);
+  return results;
+}
+```
+
+## Debugging
+
+The plugin includes logging capabilities to help troubleshoot issues. You can adjust the logging level using the `LOG_LEVEL` environment variable or by setting the `logLevel` option when creating the plugin instance.
+
+Available log levels:
+- `error`: Only error messages
+- `warn`: Warning and error messages
+- `info`: Informational, warning, and error messages (default)
+- `debug`: All messages including detailed debugging information
+
+## Resend API Documentation
+
+For more details on the Resend API, refer to the official documentation:
+[Resend API Documentation](https://resend.com/docs)
+
+## Best Practices
+
+1. **Verify Your Domain**: Always verify your sending domain in Resend to improve deliverability
+2. **Use Templates**: For recurring emails, use Resend templates for better maintainability
+3. **Handle Errors Gracefully**: Always implement proper error handling for email operations
+4. **Monitor Delivery**: Use Resend's dashboard to monitor email delivery and performance
+5. **Respect Rate Limits**: Be mindful of Resend's rate limits when sending bulk emails
+
+## Support
+
+For issues specific to the Resend Plugin, please visit the [GitHub repository](https://github.com/astreus-ai/astreus-resend-plugin).
+
+For Resend API issues, consult the [Resend documentation](https://resend.com/docs) or contact Resend support. 

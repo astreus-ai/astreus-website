@@ -16,4 +16,20 @@ export const plugins: Plugin[] = [
     docsUrl: "/docs/plugins/x-plugin",
     tags: ["social", "twitter", "x"]
   },
+  {
+    id: "resend-plugin",
+    title: "Resend Plugin",
+    description: "An email integration plugin for the Astreus AI agent framework, allowing agents to send emails using Resend.",
+    githubUrl: "https://github.com/astreus-ai/astreus-resend-plugin",
+    docsUrl: "/docs/plugins/resend-plugin",
+    tags: ["email", "resend", "communication"]
+  },
+  {
+    id: "whatsapp-plugin",
+    title: "WhatsApp Plugin",
+    description: "A WhatsApp integration plugin for the Astreus AI agent framework, allowing agents to interact with WhatsApp messaging using the official WhatsApp Cloud API.",
+    githubUrl: "https://github.com/astreus-ai/astreus-whatsapp-plugin",
+    docsUrl: "/docs/plugins/whatsapp-plugin",
+    tags: ["whatsapp", "messaging", "communication"]
+  }
 ]; 
