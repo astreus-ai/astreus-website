@@ -9,31 +9,39 @@ Astreus provides a powerful plugin system that extends agent capabilities with s
 Astreus offers several official plugins to enhance your agents:
 
 - [X Plugin](/docs/plugins/x-plugin) - Interact with the X (formerly Twitter) platform
-- [Weather Plugin](/docs/plugins/weather-plugin) - Access weather forecasts and data
-- [Web Plugin](/docs/plugins/web-plugin) - Browse and extract information from websites
+- [WhatsApp Plugin](/docs/plugins/whatsapp-plugin) - Send and manage WhatsApp messages using the official WhatsApp Cloud API
+- [Resend Plugin](/docs/plugins/resend-plugin) - Send emails using the Resend API with template support
 
 ## Getting Started with Plugins
 
 To start using plugins with Astreus, install the desired plugin package alongside Astreus:
 
 ```bash
-npm install @astreus-ai/astreus @astreus-ai/x-plugin
+npm install @astreus-ai/astreus @astreus-ai/whatsapp-plugin
 ```
 
 Then initialize and use the plugin with your agent:
 
 ```typescript
-import { createAgent } from '@astreus-ai/astreus';
-import { XPlugin } from '@astreus-ai/x-plugin';
+import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import WhatsAppPlugin from '@astreus-ai/whatsapp-plugin';
+
+// Initialize Astreus components
+const db = await createDatabase();
+const memory = await createMemory({ database: db, tableName: 'memories' });
+const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
 // Initialize plugin
-const xPlugin = new XPlugin();
-await xPlugin.init();
+const whatsAppPlugin = new WhatsAppPlugin();
+await whatsAppPlugin.init();
 
 // Create agent with plugin
 const agent = await createAgent({
-  // ... other configuration
-  plugins: [xPlugin]
+  name: 'WhatsApp Agent',
+  provider: provider,
+  memory: memory,
+  database: db,
+  plugins: [whatsAppPlugin]
 });
 ```
 
