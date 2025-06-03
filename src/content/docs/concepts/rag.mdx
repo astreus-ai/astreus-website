@@ -9,19 +9,34 @@ RAG (Retrieval Augmented Generation) enables agents to access, search, and reaso
 The RAG system in Astreus consists of:
 
 - **Document Parsing**: Extracting text and metadata from documents
-- **Chunking**: Breaking documents into manageable pieces
+- **Chunking**: Breaking documents into manageable pieces (Vector RAG)
 - **Embedding Generation**: Creating vector representations of text chunks
 - **Vector Storage**: Storing embeddings for semantic search
 - **Retrieval**: Finding relevant content based on semantic similarity
 - **Context Augmentation**: Adding retrieved content to agent prompts
 
+## RAG Types
+
+Astreus supports two types of RAG systems:
+
+### Vector RAG
+- **Best for**: Large document collections, semantic search, chunked content
+- **Features**: Document chunking, vector embeddings, similarity search
+- **Tools**: Full CRUD operations (add, get, delete documents)
+
+### Document RAG  
+- **Best for**: Smaller document sets, metadata-based filtering, whole documents
+- **Features**: Document storage, metadata search, content search
+- **Tools**: Search and metadata filtering
+
 ## Setting Up RAG
 
-Create a RAG system with documents:
+### Vector RAG Setup
 
 ```typescript
 import { 
   createRAG, 
+  RAGType,
   parsePDF, 
   createProvider, 
   createDatabase 
@@ -35,16 +50,162 @@ import {
   // Parse a PDF document
   const document = await parsePDF('path/to/document.pdf');
   
-  // Create a RAG system with the document
+  // Create a Vector RAG system
   const rag = await createRAG({
-    documents: [document],
-    embeddings: provider.getEmbeddingModel(),
+    type: RAGType.VECTOR,
     database: db,
-    tableName: "document_embeddings"
+    tableName: "vector_embeddings",
+    chunkSize: 1000,        // Size of text chunks
+    chunkOverlap: 200       // Overlap between chunks
   });
   
-  // Now the RAG system can be used with an agent
+  // Add documents to the RAG system
+  await rag.addDocument({
+    content: document.content,
+    metadata: { source: 'manual', type: 'pdf' }
+  });
 })();
+```
+
+### Document RAG Setup
+
+```typescript
+import { 
+  createRAG, 
+  RAGType,
+  createDatabase 
+} from '@astreus-ai/astreus';
+
+(async () => {
+  // Initialize components
+  const db = await createDatabase();
+  
+  // Create a Document RAG system
+  const rag = await createRAG({
+    type: RAGType.DOCUMENT,
+    database: db,
+    tableName: "documents",
+    storeEmbeddings: true    // Enable semantic search
+  });
+  
+  // Add documents to the RAG system
+  await rag.addDocument({
+    content: "Your document content here...",
+    metadata: { category: 'support', priority: 'high' }
+  });
+})();
+```
+
+## RAG Configuration Options
+
+| Option | Type | Description | Required | RAG Type |
+|--------|------|-------------|----------|----------|
+| `type` | RAGType | Vector or Document RAG | Yes | Both |
+| `database` | Database | Database for storing data | Yes | Both |
+| `tableName` | string | Table name for storage | No | Both |
+| `maxResults` | number | Max results per query | No | Both |
+| `chunkSize` | number | Size of document chunks | No | Vector |
+| `chunkOverlap` | number | Overlap between chunks | No | Vector |
+| `storeEmbeddings` | boolean | Enable embeddings | No | Document |
+
+## Using RAG with Agents
+
+Integrate RAG with an agent to automatically provide document search capabilities:
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase,
+  createRAG,
+  RAGType,
+  parsePDF
+} from '@astreus-ai/astreus';
+
+(async () => {
+  // Initialize components
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db, tableName: "memories" });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  // Parse documents and create RAG
+  const document = await parsePDF('product_manual.pdf');
+  const rag = await createRAG({
+    type: RAGType.VECTOR,
+    database: db,
+    chunkSize: 1000,
+    chunkOverlap: 200
+  });
+  
+  // Add document to RAG
+  await rag.addDocument({
+    content: document.content,
+    metadata: { source: 'product_manual', type: 'documentation' }
+  });
+  
+  // Create agent with RAG - tools are automatically added!
+  const agent = await createAgent({
+    name: 'ProductAssistant',
+    description: 'A product support assistant',
+    provider: provider,
+    memory: memory,
+    database: db,
+    rag: rag,  // RAG tools are automatically created
+    systemPrompt: "You are a helpful product support assistant. Use the rag_search tool to find relevant information from the product documentation before answering questions."
+  });
+  
+  // The agent now has access to RAG tools automatically!
+  const response = await agent.chat("How do I reset my device to factory settings?");
+  console.log(response);
+})();
+```
+
+## Automatic RAG Tools
+
+When you add a RAG instance to an agent, the following tools are automatically available:
+
+### All RAG Types
+- **`rag_search`**: Search through documents using semantic similarity
+
+### Vector RAG Only
+- **`rag_add_document`**: Add new documents to the RAG system
+- **`rag_get_document`**: Retrieve a specific document by ID
+- **`rag_delete_document`**: Delete a document from the system
+
+### Document RAG Only  
+- **`rag_search_by_metadata`**: Search documents by metadata properties
+
+## Tool Usage Examples
+
+The agent can now use these tools automatically:
+
+```typescript
+// The agent will automatically use rag_search when relevant
+const response = await agent.chat("What does the manual say about troubleshooting?");
+
+// For Vector RAG, the agent can also manage documents
+const addResponse = await agent.chat("Add this new FAQ content to our knowledge base: 'Q: How to contact support? A: Email us at support@company.com'");
+
+// For Document RAG, metadata search is available
+const metadataResponse = await agent.chat("Find all high-priority support documents");
+```
+
+## Querying RAG Directly
+
+You can also query the RAG system directly without an agent:
+
+```typescript
+// Search for relevant content
+const results = await rag.search("How to configure network settings", 5);
+
+// Results contain matching document chunks
+results.forEach(result => {
+  console.log(`Content: ${result.content}`);
+  console.log(`Similarity: ${result.similarity}`);
+  console.log(`Source: ${result.sourceId}`);
+  console.log(`Metadata:`, result.metadata);
+});
 ```
 
 ## Parsing Multiple Documents
@@ -60,89 +221,13 @@ const document1 = await parsePDF('path/to/document1.pdf');
 // Parse a directory of PDFs
 const documents = await parseDirectoryOfPDFs('path/to/document_directory');
 
-// Create RAG with multiple documents
-const rag = await createRAG({
-  documents: [document1, ...documents],
-  // other configuration
-});
-```
-
-## RAG Configuration Options
-
-| Option | Type | Description | Required |
-|--------|------|-------------|----------|
-| `documents` | Document[] | Array of parsed documents | Yes |
-| `embeddings` | EmbeddingModel | Model for generating embeddings | Yes |
-| `database` | Database | Database for storing embeddings | Yes |
-| `tableName` | string | Table name for storing embeddings | No (default: "rag_embeddings") |
-| `chunkSize` | number | Size of document chunks in characters | No (default: 1000) |
-| `chunkOverlap` | number | Overlap between chunks in characters | No (default: 200) |
-| `maxDocuments` | number | Maximum number of documents to store | No |
-| `maxResultsPerQuery` | number | Maximum results to return per query | No (default: 5) |
-
-## Using RAG with Agents
-
-Integrate RAG with an agent to give it access to document knowledge:
-
-```typescript
-import { 
-  createAgent, 
-  createProvider,
-  createMemory,
-  createDatabase,
-  createRAG,
-  parsePDF
-} from '@astreus-ai/astreus';
-
-(async () => {
-  // Initialize components
-  const db = await createDatabase();
-  const memory = await createMemory({ database: db, tableName: "memories" });
-  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
-  
-  // Parse documents and create RAG
-  const document = await parsePDF('product_manual.pdf');
-  const rag = await createRAG({
-    documents: [document],
-    embeddings: provider.getEmbeddingModel(),
-    database: db
+// Add all documents to RAG
+for (const doc of documents) {
+  await rag.addDocument({
+    content: doc.content,
+    metadata: doc.metadata
   });
-  
-  // Create agent with RAG
-  const agent = await createAgent({
-    name: 'ProductAssistant',
-    description: 'A product support assistant',
-    provider: provider,
-    memory: memory,
-    database: db,
-    rag: rag,  // Add RAG to the agent
-    systemPrompt: "You are a helpful product support assistant. Use the provided product documentation to answer questions accurately."
-  });
-  
-  // The agent can now answer questions about the product manual
-  const response = await agent.chat("How do I reset my device to factory settings?");
-  console.log(response);
-})();
-```
-
-## Querying RAG Directly
-
-You can query the RAG system directly:
-
-```typescript
-// Search for relevant content
-const results = await rag.search(
-  "How to configure network settings", 
-  { limit: 3, threshold: 0.75 }
-);
-
-// Results contain matching document chunks
-results.forEach(result => {
-  console.log(`Document: ${result.document.title}`);
-  console.log(`Score: ${result.score}`);
-  console.log(`Content: ${result.chunk.content}`);
-  console.log(`Page: ${result.chunk.metadata.page}`);
-});
+}
 ```
 
 ## Document Processing Options
@@ -166,37 +251,33 @@ const document = await parsePDF('document.pdf', {
 
 ## Adding Custom Document Types
 
-The RAG system supports custom document types by implementing the Document interface:
+The RAG system supports custom document types:
 
 ```typescript
-import { Document, createRAG } from '@astreus-ai/astreus';
-
-// Create a custom document
-const customDocument: Document = {
-  id: "doc-123",
-  title: "API Documentation",
+// Add a custom document directly
+await rag.addDocument({
   content: "Full text content of the document...",
   metadata: {
+    title: "API Documentation",
     source: "internal-wiki",
-    lastUpdated: "2023-05-15"
-  },
-  chunks: [
-    {
-      id: "chunk-1",
-      content: "Section about authentication...",
-      metadata: { section: "Authentication" }
-    },
-    {
-      id: "chunk-2",
-      content: "Section about endpoints...",
-      metadata: { section: "Endpoints" }
-    }
-  ]
-};
-
-// Use the custom document with RAG
-const rag = await createRAG({
-  documents: [customDocument],
-  // other configuration
+    lastUpdated: "2023-05-15",
+    category: "technical"
+  }
 });
-``` 
+```
+
+## Best Practices
+
+### Choosing RAG Type
+- Use **Vector RAG** for large documents that benefit from chunking
+- Use **Document RAG** for smaller documents or when you need metadata filtering
+
+### Chunk Configuration (Vector RAG)
+- **Small chunks (500-800)**: Better for precise answers
+- **Large chunks (1000-1500)**: Better for context understanding
+- **Overlap (100-300)**: Ensures important information isn't lost at boundaries
+
+### Metadata Strategy
+- Add meaningful metadata for better filtering
+- Include source, category, date, and other relevant fields
+- Use consistent metadata schemas across documents 

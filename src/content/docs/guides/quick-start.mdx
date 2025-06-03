@@ -172,6 +172,73 @@ async function main() {
 main();
 ```
 
+## Adding RAG (Document Search) Capabilities
+
+Let's create an agent that can search through documents:
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase,
+  createRAG,
+  RAGType,
+  logger
+} from '@astreus-ai/astreus';
+
+async function main() {
+  try {
+    // Initialize components
+    const db = await createDatabase();
+    const memory = await createMemory({ database: db, tableName: "conversations" });
+    const provider = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' });
+
+    // Create a RAG system
+    const rag = await createRAG({
+      type: RAGType.DOCUMENT,
+      database: db,
+      tableName: "knowledge_base"
+    });
+
+    // Add some sample documents
+    await rag.addDocument({
+      content: "The Astreus framework is an AI agent platform that supports RAG, memory, tasks, and plugins. It works with OpenAI and Ollama models.",
+      metadata: { category: "framework", topic: "overview" }
+    });
+
+    await rag.addDocument({
+      content: "To create an agent, use createAgent() with a provider, memory, and database. You can also add tools, plugins, and RAG for enhanced capabilities.",
+      metadata: { category: "tutorial", topic: "getting-started" }
+    });
+
+    // Create an agent with RAG - it automatically gets RAG search tools!
+    const agent = await createAgent({
+      name: 'DocumentAgent',
+      description: 'An assistant that can search through documents',
+      provider: provider,
+      memory: memory,
+      database: db,
+      rag: rag,  // This automatically adds rag_search and rag_search_by_metadata tools
+      systemPrompt: "You are a helpful assistant. When asked questions, use the rag_search tool to find relevant information from the knowledge base before answering."
+    });
+
+    // Test the RAG capabilities
+    const response = await agent.chat("How do I create an agent in Astreus?");
+    logger.info('Agent response:', response);
+    
+    // Test metadata search
+    const categoryResponse = await agent.chat("Show me all framework-related documents");
+    logger.info('Category search response:', categoryResponse);
+    
+  } catch (error) {
+    logger.error('Error:', error);
+  }
+}
+
+main();
+```
+
 ## Next Steps
 
 Now that you've created your first agent, you can:
