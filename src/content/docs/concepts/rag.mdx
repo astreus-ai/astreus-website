@@ -8,7 +8,7 @@ RAG (Retrieval Augmented Generation) enables agents to access, search, and reaso
 
 The RAG system in Astreus consists of:
 
-- **Document Parsing**: Extracting text and metadata from documents
+- **Document Parsing**: Extracting text and metadata from documents (especially PDFs)
 - **Chunking**: Breaking documents into manageable pieces (Vector RAG)
 - **Embedding Generation**: Creating vector representations of text chunks
 - **Vector Storage**: Storing embeddings for semantic search
@@ -23,15 +23,16 @@ Astreus supports two types of RAG systems:
 - **Best for**: Large document collections, semantic search, chunked content
 - **Features**: Document chunking, vector embeddings, similarity search
 - **Tools**: Full CRUD operations (add, get, delete documents)
+- **Storage**: Supports same database or dedicated vector databases (PostgreSQL with pgvector)
 
 ### Document RAG  
 - **Best for**: Smaller document sets, metadata-based filtering, whole documents
 - **Features**: Document storage, metadata search, content search
 - **Tools**: Search and metadata filtering
 
-## Setting Up RAG
+## PDF Processing Workflow
 
-### Vector RAG Setup
+The typical RAG workflow starts with PDF documents:
 
 ```typescript
 import { 
@@ -43,27 +44,180 @@ import {
 } from '@astreus-ai/astreus';
 
 (async () => {
+  // 1. Parse PDF with smart splitting
+  const pdfResult = await parsePDF('manual.pdf', {
+    splitStrategy: 'section',    // Smart section detection
+    includePageNumbers: true,
+    metadata: {
+      source: 'user-manual',
+      version: '2.1'
+    }
+  });
+
+  // 2. Initialize components
+  const db = await createDatabase();
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  // 3. Create Vector RAG system
+  const rag = await createRAG({
+    type: RAGType.VECTOR,
+    database: db,
+    provider: provider,        // Required for embeddings
+    chunkSize: 1000,
+    chunkOverlap: 200
+  });
+  
+  // 4. Add parsed documents to RAG
+  for (const doc of pdfResult.documents) {
+    await rag.addDocument({
+      content: doc.content,
+      metadata: {
+        ...doc.metadata,
+        pdfTitle: pdfResult.pdfMetadata.title,
+        pageCount: pdfResult.pdfMetadata.numPages
+      }
+    });
+  }
+})();
+```
+
+## PDF Splitting Strategies
+
+Choose the right strategy for your documents:
+
+### Section Strategy (Recommended)
+```typescript
+const result = await parsePDF('manual.pdf', {
+  splitStrategy: 'section',     // Detects headers and sections
+  includePageNumbers: true      // Adds page info to metadata
+});
+```
+- **Best for**: Technical manuals, structured documents
+- **Features**: Intelligent section detection, preserves document structure
+
+### Paragraph Strategy
+```typescript
+const result = await parsePDF('article.pdf', {
+  splitStrategy: 'paragraph',   // Splits by paragraphs
+  chunkOverlap: 50             // Small overlap for paragraphs
+});
+```
+- **Best for**: Articles, blogs, narrative content
+- **Features**: Natural paragraph boundaries
+
+### Simple Strategy
+```typescript
+const result = await parsePDF('document.pdf', {
+  splitStrategy: 'simple',      // Fixed-size chunks
+  chunkSize: 800,              // Characters per chunk
+  chunkOverlap: 100            // Overlap between chunks
+});
+```
+- **Best for**: Uniform content, when other strategies fail
+- **Features**: Predictable chunk sizes
+
+## Vector Database Options
+
+### Same Database (Default)
+```typescript
+const rag = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider
+  // Uses main database for vectors
+});
+```
+- **Pros**: Simple setup, single database
+- **Cons**: May impact main database performance
+
+### Dedicated PostgreSQL with pgvector
+```typescript
+const rag = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider,
+  vectorDatabase: {
+    type: VectorDatabaseType.POSTGRES,
+    connectionString: 'postgresql://user:pass@localhost:5432/vectors',
+    options: {
+      tableName: 'document_vectors'
+    }
+  }
+});
+```
+- **Pros**: Optimized for vector operations, better performance
+- **Cons**: Requires separate PostgreSQL setup
+
+### Environment Configuration
+```typescript
+// Automatically loads from environment variables
+const rag = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider
+  // Reads VECTOR_DB_* environment variables
+});
+```
+
+Set these environment variables:
+```bash
+VECTOR_DB_TYPE=postgres
+VECTOR_DB_CONNECTION_STRING=postgresql://user:pass@localhost:5432/vectors
+VECTOR_DB_TABLE_NAME=embeddings
+```
+
+## Setting Up RAG
+
+### Vector RAG Setup
+
+```typescript
+import { 
+  createRAG, 
+  RAGType,
+  parsePDF, 
+  parseDirectoryOfPDFs,
+  createProvider, 
+  createDatabase 
+} from '@astreus-ai/astreus';
+
+(async () => {
   // Initialize components
   const db = await createDatabase();
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
   
-  // Parse a PDF document
-  const document = await parsePDF('path/to/document.pdf');
+  // Parse multiple PDFs
+  const allDocs = await parseDirectoryOfPDFs('./documents/', {
+    splitStrategy: 'section',
+    includePageNumbers: true,
+    metadata: {
+      batch: 'initial-load'
+    }
+  });
   
   // Create a Vector RAG system
   const rag = await createRAG({
     type: RAGType.VECTOR,
     database: db,
+    provider: provider,
     tableName: "vector_embeddings",
     chunkSize: 1000,        // Size of text chunks
-    chunkOverlap: 200       // Overlap between chunks
+    chunkOverlap: 200,      // Overlap between chunks
+    maxResults: 5           // Max results per search
   });
   
-  // Add documents to the RAG system
-  await rag.addDocument({
-    content: document.content,
-    metadata: { source: 'manual', type: 'pdf' }
-  });
+  // Add all documents to the RAG system
+  for (const [filename, result] of Object.entries(allDocs)) {
+    for (const doc of result.documents) {
+      await rag.addDocument({
+        content: doc.content,
+        metadata: {
+          ...doc.metadata,
+          filename,
+          originalTitle: result.pdfMetadata.title
+        }
+      });
+    }
+  }
 })();
 ```
 
@@ -102,10 +256,12 @@ import {
 |--------|------|-------------|----------|----------|
 | `type` | RAGType | Vector or Document RAG | Yes | Both |
 | `database` | Database | Database for storing data | Yes | Both |
+| `provider` | Provider | Provider for embeddings | Recommended | Both |
 | `tableName` | string | Table name for storage | No | Both |
 | `maxResults` | number | Max results per query | No | Both |
 | `chunkSize` | number | Size of document chunks | No | Vector |
 | `chunkOverlap` | number | Overlap between chunks | No | Vector |
+| `vectorDatabase` | VectorDatabaseConfig | Vector DB config | No | Vector |
 | `storeEmbeddings` | boolean | Enable embeddings | No | Document |
 
 ## Using RAG with Agents
@@ -130,19 +286,30 @@ import {
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
   
   // Parse documents and create RAG
-  const document = await parsePDF('product_manual.pdf');
+  const pdfResult = await parsePDF('product_manual.pdf', {
+    splitStrategy: 'section',
+    includePageNumbers: true
+  });
+  
   const rag = await createRAG({
     type: RAGType.VECTOR,
     database: db,
+    provider: provider,
     chunkSize: 1000,
     chunkOverlap: 200
   });
   
   // Add document to RAG
-  await rag.addDocument({
-    content: document.content,
-    metadata: { source: 'product_manual', type: 'documentation' }
-  });
+  for (const doc of pdfResult.documents) {
+    await rag.addDocument({
+      content: doc.content,
+      metadata: {
+        ...doc.metadata,
+        source: 'product_manual',
+        title: pdfResult.pdfMetadata.title
+      }
+    });
+  }
   
   // Create agent with RAG - tools are automatically added!
   const agent = await createAgent({
@@ -206,9 +373,13 @@ results.forEach(result => {
   console.log(`Source: ${result.sourceId}`);
   console.log(`Metadata:`, result.metadata);
 });
+
+// Vector search with custom embedding
+const embedding = await provider.generateEmbedding("network configuration");
+const vectorResults = await rag.searchByVector(embedding, 3, 0.8);
 ```
 
-## Parsing Multiple Documents
+## Processing Multiple Documents
 
 You can parse multiple documents and directories:
 
@@ -216,17 +387,36 @@ You can parse multiple documents and directories:
 import { parsePDF, parseDirectoryOfPDFs } from '@astreus-ai/astreus';
 
 // Parse a single PDF
-const document1 = await parsePDF('path/to/document1.pdf');
+const singleDoc = await parsePDF('path/to/document1.pdf', {
+  splitStrategy: 'section',
+  includePageNumbers: true
+});
 
 // Parse a directory of PDFs
-const documents = await parseDirectoryOfPDFs('path/to/document_directory');
+const allDocs = await parseDirectoryOfPDFs('path/to/document_directory', {
+  splitStrategy: 'section',
+  includePageNumbers: true,
+  metadata: {
+    batch: 'company-docs',
+    processed: new Date().toISOString()
+  }
+});
 
 // Add all documents to RAG
-for (const doc of documents) {
-  await rag.addDocument({
-    content: doc.content,
-    metadata: doc.metadata
-  });
+for (const [filename, result] of Object.entries(allDocs)) {
+  console.log(`Processing ${filename}: ${result.documents.length} chunks`);
+  
+  for (const doc of result.documents) {
+    await rag.addDocument({
+      content: doc.content,
+      metadata: {
+        ...doc.metadata,
+        filename,
+        originalTitle: result.pdfMetadata.title,
+        pageCount: result.pdfMetadata.numPages
+      }
+    });
+  }
 }
 ```
 
@@ -236,22 +426,41 @@ When parsing documents, you can customize the processing:
 
 ```typescript
 // Parse a PDF with custom options
-const document = await parsePDF('document.pdf', {
-  titleFromFilename: true,  // Use filename as document title
-  extractImages: true,      // Extract and process images
-  ocrEnabled: true,         // Use OCR for scanned documents
-  language: "en",           // Specify document language
-  metadata: {               // Add custom metadata
+const result = await parsePDF('document.pdf', {
+  splitStrategy: 'section',    // Splitting strategy
+  chunkSize: 1000,            // For simple strategy
+  chunkOverlap: 200,          // Overlap between chunks
+  includePageNumbers: true,    // Add page info to metadata
+  metadata: {                 // Custom metadata for all chunks
     author: "Jane Smith",
     department: "Engineering",
-    confidentiality: "Internal"
+    confidentiality: "Internal",
+    version: "2.1"
   }
+});
+
+// Access PDF metadata
+console.log('PDF Title:', result.pdfMetadata.title);
+console.log('PDF Author:', result.pdfMetadata.author);
+console.log('Page Count:', result.pdfMetadata.numPages);
+console.log('Creation Date:', result.pdfMetadata.creationDate);
+console.log('Document ID:', result.documentId);
+
+// Access parsed documents - all chunks share the same documentId
+result.documents.forEach((doc, index) => {
+  console.log(`Chunk ${index}:`);
+  console.log('Content preview:', doc.content.substring(0, 100));
+  console.log('Document ID:', doc.metadata.documentId);  // Same for all chunks
+  console.log('File Name:', doc.metadata.fileName);
+  console.log('Page Number:', doc.metadata.page);
+  console.log('Section Title:', doc.metadata.section_title);
+  console.log('Metadata:', doc.metadata);
 });
 ```
 
 ## Adding Custom Document Types
 
-The RAG system supports custom document types:
+The RAG system supports custom document types beyond PDFs:
 
 ```typescript
 // Add a custom document directly
@@ -261,7 +470,27 @@ await rag.addDocument({
     title: "API Documentation",
     source: "internal-wiki",
     lastUpdated: "2023-05-15",
-    category: "technical"
+    category: "technical",
+    tags: ["api", "documentation", "reference"]
+  }
+});
+
+// Add structured content
+await rag.addDocument({
+  content: `
+    # User Authentication
+    
+    ## Overview
+    Our authentication system uses JWT tokens...
+    
+    ## Implementation
+    To implement authentication in your app...
+  `,
+  metadata: {
+    title: "Authentication Guide",
+    format: "markdown",
+    section: "security",
+    audience: "developers"
   }
 });
 ```
@@ -269,15 +498,27 @@ await rag.addDocument({
 ## Best Practices
 
 ### Choosing RAG Type
-- Use **Vector RAG** for large documents that benefit from chunking
+- Use **Vector RAG** for large documents that benefit from chunking and semantic search
 - Use **Document RAG** for smaller documents or when you need metadata filtering
 
 ### Chunk Configuration (Vector RAG)
-- **Small chunks (500-800)**: Better for precise answers
-- **Large chunks (1000-1500)**: Better for context understanding
+- **Small chunks (500-800)**: Better for precise answers, FAQ-style content
+- **Large chunks (1000-1500)**: Better for context understanding, technical docs
 - **Overlap (100-300)**: Ensures important information isn't lost at boundaries
 
 ### Metadata Strategy
-- Add meaningful metadata for better filtering
-- Include source, category, date, and other relevant fields
-- Use consistent metadata schemas across documents 
+- Add meaningful metadata for better filtering and organization
+- Include source, category, date, version, and other relevant fields
+- Use consistent metadata schemas across documents
+- Consider adding tags for flexible categorization
+
+### Vector Database Selection
+- **Same Database**: Good for getting started, simple deployments
+- **Dedicated PostgreSQL**: Better for production, high-volume scenarios
+- **Future Options**: Qdrant, Pinecone, Milvus for specialized needs
+
+### Performance Optimization
+- Use batch processing for large document collections
+- Consider chunking strategy based on document type
+- Monitor embedding generation costs and performance
+- Implement proper error handling for document processing 

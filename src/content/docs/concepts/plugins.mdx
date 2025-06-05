@@ -13,6 +13,68 @@ Plugins in Astreus consist of:
 - **Execution Context**: Secure environment for running plugin code
 - **Input/Output Schemas**: Type definitions for tool parameters and results
 
+## Built-in Plugin Systems
+
+Astreus provides several built-in plugin systems that are automatically integrated:
+
+### RAG Tools
+
+When you add a RAG instance to an agent, it automatically provides document search and management tools:
+
+```typescript
+import { createAgent, createRAG, RAGType } from '@astreus-ai/astreus';
+
+// Create RAG instance
+const rag = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider
+});
+
+// Agent automatically gets RAG tools when RAG is provided
+const agent = await createAgent({
+  name: 'DocumentAssistant',
+  provider: provider,
+  memory: memory,
+  database: db,
+  rag: rag  // Automatically adds RAG tools
+});
+
+// Available RAG tools (automatically registered):
+// - rag_search: Search through documents semantically
+// - rag_add_document: Add new documents (Vector RAG only)
+// - rag_get_document: Get specific document (Vector RAG only)
+// - rag_delete_document: Remove documents (Vector RAG only)
+// - rag_search_by_metadata: Search by metadata (Document RAG only)
+```
+
+The agent will automatically use these tools when relevant:
+
+```typescript
+// Agent automatically uses rag_search when asked about documents
+const response = await agent.chat("What does the manual say about installation?");
+```
+
+### Official Plugins
+
+Astreus also provides official plugins for common integrations:
+
+- **X Plugin** (`astreus-x-plugin`): Interact with X (formerly Twitter)
+- **Resend Plugin** (`astreus-resend-plugin`): Send emails via Resend
+- **WhatsApp Plugin** (`astreus-whatsapp-plugin`): WhatsApp Business API integration
+
+```typescript
+import { XPlugin } from 'astreus-x-plugin';
+
+const xPlugin = new XPlugin();
+await xPlugin.init();
+
+const agent = await createAgent({
+  // ... configuration
+  plugins: [xPlugin]
+});
+```
+
 ## Creating a Plugin
 
 A plugin is simply a JavaScript object that follows the Plugin interface:

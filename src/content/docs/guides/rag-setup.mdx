@@ -1,0 +1,588 @@
+---
+title: RAG Setup Guide
+description: Complete guide to setting up and using RAG (Retrieval Augmented Generation) with PDF documents
+---
+
+# RAG Setup Guide
+
+This guide shows you how to set up and use the RAG (Retrieval Augmented Generation) system in Astreus, including PDF document processing and integration with agents.
+
+## Quick Start Example
+
+Here's a complete example of setting up RAG with PDF documents:
+
+```typescript
+import { 
+  createRAG, 
+  RAGType,
+  parsePDF, 
+  createProvider, 
+  createDatabase,
+  createAgent,
+  createMemory
+} from '@astreus-ai/astreus';
+
+async function setupRAGSystem() {
+  // 1. Initialize core components
+  const db = await createDatabase({
+    type: 'sqlite',
+    connection: { filename: './my-rag-db.sqlite' }
+  });
+  
+  const provider = createProvider({ 
+    type: 'openai', 
+    model: 'gpt-4o-mini',
+    apiKey: process.env.OPENAI_API_KEY
+  });
+
+  // 2. Parse PDF documents
+  const pdfResult = await parsePDF('./documents/user-manual.pdf', {
+    splitStrategy: 'section',  // Smart section-based splitting
+    includePageNumbers: true,
+    metadata: {
+      source: 'user-manual',
+      category: 'documentation',
+      version: '2.1'
+    }
+  });
+
+  console.log(`Parsed PDF: ${pdfResult.documents.length} sections created`);
+  console.log(`PDF Info: ${pdfResult.pdfMetadata.title} (${pdfResult.pdfMetadata.numPages} pages)`);
+
+  // 3. Create Vector RAG system
+  const rag = await createRAG({
+    type: RAGType.VECTOR,
+    database: db,
+    provider: provider,  // For embedding generation
+    tableName: "knowledge_base",
+    chunkSize: 1000,
+    chunkOverlap: 200,
+    maxResults: 5
+  });
+
+  // 4. Add parsed documents to RAG
+  // All chunks from the same PDF will have the same documentId
+  console.log(`Processing PDF: ${pdfResult.documentId} with ${pdfResult.documents.length} chunks`);
+  
+  for (const doc of pdfResult.documents) {
+    await rag.addDocument({
+      content: doc.content,
+      metadata: {
+        ...doc.metadata,
+        // doc.metadata.documentId is automatically included from PDF parsing
+        pdfTitle: pdfResult.pdfMetadata.title,
+        pdfAuthor: pdfResult.pdfMetadata.author,
+        originalDocumentId: pdfResult.documentId  // Extra reference for clarity
+      }
+    });
+  }
+
+  // 5. Create agent with RAG capabilities
+  const memory = await createMemory({ database: db });
+  
+  const agent = await createAgent({
+    name: 'DocumentAssistant',
+    description: 'AI assistant with access to user manual',
+    provider: provider,
+    memory: memory,
+    database: db,
+    rag: rag,  // RAG tools automatically added!
+    systemPrompt: `You are a helpful assistant with access to user documentation. 
+    Always search the knowledge base using rag_search before answering questions.
+    Provide specific page numbers and sections when available.`
+  });
+
+  return { rag, agent, pdfResult };
+}
+
+// Usage
+(async () => {
+  const { rag, agent } = await setupRAGSystem();
+  
+  // Ask questions - agent will automatically search RAG
+  const response = await agent.chat("How do I reset the device to factory settings?");
+  console.log(response);
+})();
+```
+
+## Step-by-Step Setup
+
+### 1. PDF Document Processing
+
+The RAG system starts with parsing your PDF documents:
+
+```typescript
+import { parsePDF, parseDirectoryOfPDFs } from '@astreus-ai/astreus';
+
+// Parse a single PDF with different strategies
+const result = await parsePDF('./manual.pdf', {
+  splitStrategy: 'section',     // 'simple' | 'paragraph' | 'section'
+  chunkSize: 1000,             // For 'simple' strategy
+  chunkOverlap: 200,           // Overlap between chunks
+  includePageNumbers: true,     // Add page info to metadata
+  metadata: {                   // Custom metadata for all chunks
+    department: 'support',
+    confidential: false
+  }
+});
+
+// Access parsed content
+console.log('Documents created:', result.documents.length);
+console.log('PDF metadata:', result.pdfMetadata);
+console.log('Document ID:', result.documentId);
+
+// Each document chunk has the same documentId:
+result.documents.forEach((doc, index) => {
+  console.log(`Chunk ${index}:`);
+  console.log('Content:', doc.content.substring(0, 100) + '...');
+  console.log('Document ID:', doc.metadata.documentId);  // Same for all chunks
+  console.log('File Name:', doc.metadata.fileName);
+  console.log('Page:', doc.metadata.page);
+  console.log('Metadata:', doc.metadata);
+});
+```
+
+### 2. Splitting Strategies Explained
+
+Choose the right strategy for your documents:
+
+```typescript
+// Simple: Fixed-size chunks (good for uniform content)
+const simpleResult = await parsePDF('./document.pdf', {
+  splitStrategy: 'simple',
+  chunkSize: 800,
+  chunkOverlap: 100
+});
+
+// Paragraph: Split by paragraphs (good for articles, blogs)
+const paragraphResult = await parsePDF('./article.pdf', {
+  splitStrategy: 'paragraph',
+  chunkOverlap: 50
+});
+
+// Section: Smart section detection (best for manuals, docs)
+const sectionResult = await parsePDF('./manual.pdf', {
+  splitStrategy: 'section',
+  includePageNumbers: true
+});
+```
+
+### 3. Processing Multiple Documents
+
+Handle entire directories of PDFs:
+
+```typescript
+// Parse all PDFs in a directory
+const allDocuments = await parseDirectoryOfPDFs('./documents/', {
+  splitStrategy: 'section',
+  includePageNumbers: true,
+  metadata: {
+    batch: 'initial-load',
+    processed: new Date().toISOString()
+  }
+});
+
+// Add all documents to RAG
+for (const [filename, result] of Object.entries(allDocuments)) {
+  console.log(`Processing ${filename}: ${result.documents.length} chunks (Document ID: ${result.documentId})`);
+  
+  for (const doc of result.documents) {
+    await rag.addDocument({
+      content: doc.content,
+      metadata: {
+        ...doc.metadata,
+        // doc.metadata.documentId is automatically included
+        filename: filename,
+        originalTitle: result.pdfMetadata.title,
+        originalDocumentId: result.documentId
+      }
+    });
+  }
+}
+```
+
+### 4. RAG Configuration Options
+
+Configure your RAG system based on your needs:
+
+```typescript
+// Vector RAG for large document collections
+const vectorRAG = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider,           // Required for embeddings
+  
+  // Storage options
+  tableName: "documents",       // Custom table name
+  maxResults: 10,              // Max results per search
+  
+  // Vector-specific options
+  chunkSize: 1000,             // Size of text chunks
+  chunkOverlap: 200,           // Overlap between chunks
+  
+  // Vector database options (optional)
+  vectorDatabase: {
+    type: VectorDatabaseType.POSTGRES,  // Use dedicated PostgreSQL
+    connectionString: process.env.VECTOR_DB_URL,
+    options: {
+      tableName: "vector_embeddings"
+    }
+  }
+});
+
+// Document RAG for smaller collections
+const documentRAG = await createRAG({
+  type: RAGType.DOCUMENT,
+  database: db,
+  provider: provider,
+  
+  tableName: "full_documents",
+  maxResults: 5,
+  storeEmbeddings: true        // Enable semantic search
+});
+```
+
+### 5. Vector Database Options
+
+Choose where to store your vectors:
+
+```typescript
+// Option 1: Same database as main app (default)
+const ragSameDB = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider
+  // vectorDatabase not specified = uses main database
+});
+
+// Option 2: Dedicated PostgreSQL with pgvector
+const ragPostgres = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider,
+  vectorDatabase: {
+    type: VectorDatabaseType.POSTGRES,
+    connectionString: 'postgresql://user:pass@localhost:5432/vectors',
+    options: {
+      tableName: 'document_vectors'
+    }
+  }
+});
+
+// Option 3: Load from environment variables
+const ragFromEnv = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider
+  // Will automatically load VECTOR_DB_* env vars
+});
+```
+
+## Working with RAG Directly
+
+### Searching Documents
+
+```typescript
+// Semantic search
+const results = await rag.search("troubleshooting network issues", 5);
+
+results.forEach(result => {
+  console.log(`Similarity: ${result.similarity?.toFixed(3)}`);
+  console.log(`Content: ${result.content.substring(0, 200)}...`);
+  console.log(`Source: ${result.sourceId}`);
+  console.log(`Document ID: ${result.metadata.documentId}`);
+  console.log(`File: ${result.metadata.fileName}`);
+  console.log(`Page: ${result.metadata.page}`);
+  console.log(`Section: ${result.metadata.section_title || 'N/A'}`);
+  console.log(`Metadata:`, result.metadata);
+  console.log('---');
+});
+
+// Group results by document to see which documents are most relevant
+const groupedByDocument = results.reduce((acc, result) => {
+  const docId = result.metadata.documentId;
+  if (!acc[docId]) {
+    acc[docId] = {
+      fileName: result.metadata.fileName,
+      chunks: []
+    };
+  }
+  acc[docId].chunks.push(result);
+  return acc;
+}, {});
+
+console.log('Results grouped by document:');
+Object.entries(groupedByDocument).forEach(([docId, info]) => {
+  console.log(`${info.fileName}: ${info.chunks.length} relevant chunks`);
+});
+
+// Vector search (if you have embeddings)
+const embedding = await provider.generateEmbedding("network configuration");
+const vectorResults = await rag.searchByVector(embedding, 3, 0.8);
+```
+
+### Managing Documents
+
+```typescript
+// Add a custom document
+const docId = await rag.addDocument({
+  content: "This is important troubleshooting information...",
+  metadata: {
+    title: "Network Troubleshooting",
+    category: "support",
+    priority: "high",
+    lastUpdated: new Date().toISOString()
+  }
+});
+
+// Get a specific document
+const document = await rag.getDocumentById(docId);
+console.log('Retrieved document:', document);
+
+// Delete a document
+await rag.deleteDocument(docId);
+console.log('Document deleted');
+```
+
+## Agent Integration
+
+### Automatic RAG Tools
+
+When you add RAG to an agent, these tools become available automatically:
+
+```typescript
+const agent = await createAgent({
+  // ... other config
+  rag: rag,  // This automatically adds RAG tools
+});
+
+// Available tools:
+// - rag_search: Search documents semantically
+// - rag_add_document: Add new documents (Vector RAG only)
+// - rag_get_document: Get document by ID (Vector RAG only)  
+// - rag_delete_document: Delete documents (Vector RAG only)
+// - rag_search_by_metadata: Search by metadata (Document RAG only)
+```
+
+### Agent Usage Examples
+
+```typescript
+// The agent automatically uses RAG when relevant
+const response1 = await agent.chat("What does the manual say about WiFi setup?");
+// Agent will automatically call rag_search tool with query "WiFi setup"
+
+// Agent can add new information
+const response2 = await agent.chat(`
+  Add this FAQ to the knowledge base:
+  Q: How to contact support?
+  A: Email support@company.com or call 1-800-HELP
+`);
+// Agent will automatically call rag_add_document tool
+
+// Agent can find specific information
+const response3 = await agent.chat("Find all documents about security settings");
+// Agent will search and group results by document
+
+// Agent understands document relationships
+const response4 = await agent.chat("Show me all information from the user manual about networking");
+// Agent can identify chunks from the same document and provide comprehensive answers
+```
+
+### Advanced Agent Interactions
+
+```typescript
+// Agent can perform complex document operations
+const complexResponse = await agent.chat(`
+  Search for information about password policies, 
+  then add a new document with updated password requirements
+`);
+
+// Agent can reference specific documents
+const specificResponse = await agent.chat("What does page 15 of the security manual say?");
+// Agent can use metadata.page and metadata.fileName to find specific content
+
+// Agent can manage document lifecycle
+const managementResponse = await agent.chat("Delete the outdated network configuration document");
+// Agent can identify and delete specific documents
+```
+
+## Best Practices
+
+### Document Preparation
+
+```typescript
+// Good: Meaningful metadata
+await rag.addDocument({
+  content: documentContent,
+  metadata: {
+    title: "User Authentication Guide",
+    section: "Security",
+    version: "2.1",
+    lastUpdated: "2024-01-15",
+    audience: "end-users",
+    tags: ["authentication", "security", "login"]
+  }
+});
+
+// Good: Consistent naming
+const metadata = {
+  source: "user-manual-v2.1.pdf",
+  chapter: "Chapter 3: Advanced Features",
+  page: 45,
+  category: "documentation"
+};
+```
+
+### Chunk Size Guidelines
+
+```typescript
+// For technical documentation
+const technicalRAG = await createRAG({
+  type: RAGType.VECTOR,
+  chunkSize: 1200,      // Larger chunks for context
+  chunkOverlap: 300,    // More overlap for technical terms
+  // ...
+});
+
+// For FAQ or short content
+const faqRAG = await createRAG({
+  type: RAGType.VECTOR,
+  chunkSize: 600,       // Smaller chunks for precise answers
+  chunkOverlap: 100,    // Less overlap needed
+  // ...
+});
+```
+
+### Error Handling
+
+```typescript
+async function robustRAGSetup() {
+  try {
+    const result = await parsePDF('./document.pdf', {
+      splitStrategy: 'section'
+    });
+    
+    for (const doc of result.documents) {
+      try {
+        await rag.addDocument({
+          content: doc.content,
+          metadata: doc.metadata
+        });
+      } catch (docError) {
+        console.error(`Failed to add document chunk:`, docError);
+        // Continue with other documents
+      }
+    }
+  } catch (pdfError) {
+    console.error('PDF parsing failed:', pdfError);
+    // Fallback to manual content addition
+  }
+}
+```
+
+## Environment Configuration
+
+Set up your environment variables:
+
+```bash
+# .env file
+OPENAI_API_KEY=your_openai_key
+
+# Vector database (optional)
+VECTOR_DB_TYPE=postgres
+VECTOR_DB_CONNECTION_STRING=postgresql://user:pass@localhost:5432/vectors
+VECTOR_DB_TABLE_NAME=document_embeddings
+
+# Or for same database
+VECTOR_DB_TYPE=same_as_main
+```
+
+## Complete Example: Document Q&A System
+
+```typescript
+import { 
+  createRAG, 
+  RAGType, 
+  parsePDF, 
+  parseDirectoryOfPDFs,
+  createProvider, 
+  createDatabase,
+  createAgent,
+  createMemory
+} from '@astreus-ai/astreus';
+
+async function createDocumentQASystem() {
+  // Setup
+  const db = await createDatabase();
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  const memory = await createMemory({ database: db });
+
+  // Parse all documentation
+  const docs = await parseDirectoryOfPDFs('./company-docs/', {
+    splitStrategy: 'section',
+    includePageNumbers: true,
+    metadata: {
+      company: 'Acme Corp',
+      confidentiality: 'internal'
+    }
+  });
+
+  // Create RAG system
+  const rag = await createRAG({
+    type: RAGType.VECTOR,
+    database: db,
+    provider: provider,
+    chunkSize: 1000,
+    chunkOverlap: 200
+  });
+
+  // Load all documents
+  for (const [filename, result] of Object.entries(docs)) {
+    for (const doc of result.documents) {
+      await rag.addDocument({
+        content: doc.content,
+        metadata: {
+          ...doc.metadata,
+          filename,
+          title: result.pdfMetadata.title
+        }
+      });
+    }
+  }
+
+  // Create specialized agent
+  const agent = await createAgent({
+    name: 'CompanyDocsAssistant',
+    description: 'Expert on company documentation and policies',
+    provider: provider,
+    memory: memory,
+    database: db,
+    rag: rag,
+    systemPrompt: `You are a company documentation expert. Always search the knowledge base first using rag_search. 
+    Provide specific document names and page numbers when citing information.
+    If information isn't in the docs, clearly state that.`
+  });
+
+  return { rag, agent };
+}
+
+// Usage
+(async () => {
+  const { agent } = await createDocumentQASystem();
+  
+  // Interactive Q&A
+  const questions = [
+    "What is our remote work policy?",
+    "How do I submit expense reports?", 
+    "What are the security guidelines for handling customer data?"
+  ];
+
+  for (const question of questions) {
+    console.log(`\nQ: ${question}`);
+    const answer = await agent.chat(question);
+    console.log(`A: ${answer}`);
+  }
+})();
+```
+
+This guide shows you everything you need to know to get started with RAG in Astreus. The system automatically handles PDF parsing, document chunking, embedding generation, and provides your agents with powerful document search capabilities! 

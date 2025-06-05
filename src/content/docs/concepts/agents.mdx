@@ -72,6 +72,118 @@ When creating an agent, you can customize its behavior with these options:
 | `plugins` | PluginInstance[] | Plugin instances with tool functionality | No |
 | `rag` | RAG | Retrieval system for documents (automatically creates RAG tools) | No |
 
+## Agent with RAG Capabilities
+
+When you provide a RAG instance to an agent, it automatically gains access to document search and management tools:
+
+```typescript
+import { 
+  createAgent, 
+  createRAG,
+  RAGType,
+  parsePDF,
+  createProvider,
+  createMemory,
+  createDatabase
+} from '@astreus-ai/astreus';
+
+(async () => {
+  // Initialize components
+  const db = await createDatabase();
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  const memory = await createMemory({ database: db, tableName: "memories" });
+
+  // Parse a PDF document
+  const pdfResult = await parsePDF('./manual.pdf', {
+    splitStrategy: 'section',
+    includePageNumbers: true
+  });
+
+  // Create RAG system
+  const rag = await createRAG({
+    type: RAGType.VECTOR,
+    database: db,
+    provider: provider,
+    chunkSize: 1000,
+    chunkOverlap: 200
+  });
+
+  // Add parsed document to RAG
+  for (const doc of pdfResult.documents) {
+    await rag.addDocument({
+      content: doc.content,
+      metadata: {
+        ...doc.metadata,
+        documentId: pdfResult.documentId,
+        fileName: pdfResult.pdfMetadata.title
+      }
+    });
+  }
+
+  // Create agent with RAG capabilities
+  const agent = await createAgent({
+    name: 'DocumentAssistant',
+    description: 'AI assistant with access to documentation',
+    provider: provider,
+    memory: memory,
+    database: db,
+    rag: rag,  // This automatically adds RAG tools!
+    systemPrompt: `You are a helpful assistant with access to documentation. 
+When users ask questions, search through the available documents to provide accurate answers.
+Always cite the source document and page number when possible.`
+  });
+
+  // The agent now automatically has these RAG tools available:
+  // - rag_search: Search through documents semantically
+  // - rag_add_document: Add new documents (Vector RAG only)
+  // - rag_get_document: Retrieve specific documents (Vector RAG only)
+  // - rag_delete_document: Remove documents (Vector RAG only)
+  // - rag_search_by_metadata: Search by metadata (Document RAG only)
+
+  // Agent will automatically use RAG when relevant
+  const response = await agent.chat("What does the manual say about installation?");
+  // Agent searches documents and provides contextual answer
+})();
+```
+
+### RAG Tool Availability
+
+The tools available to your agent depend on the RAG type:
+
+**Vector RAG** provides:
+- `rag_search` - Semantic search across document content
+- `rag_add_document` - Add new documents to the knowledge base
+- `rag_get_document` - Retrieve specific documents by ID
+- `rag_delete_document` - Remove documents from the knowledge base
+
+**Document RAG** provides:
+- `rag_search` - Search across document content
+- `rag_search_by_metadata` - Filter documents by metadata
+
+### Agent RAG Usage Examples
+
+```typescript
+// Agent automatically searches when asked about documentation
+const answer1 = await agent.chat("How do I configure the database connection?");
+// Agent uses rag_search tool automatically
+
+// Agent can add new information to knowledge base
+const answer2 = await agent.chat(`
+  Add this FAQ to the knowledge base:
+  Q: How to reset password?
+  A: Click on 'Forgot Password' link and follow email instructions.
+`);
+// Agent uses rag_add_document tool automatically
+
+// Agent can find documents by metadata
+const answer3 = await agent.chat("Show me all documents about security from version 2.0");
+// Agent uses rag_search_by_metadata with appropriate filters
+
+// Agent understands document relationships
+const answer4 = await agent.chat("What does page 15 of the user manual say about networking?");
+// Agent searches for content with specific page metadata
+```
+
 ## Interacting with an Agent
 
 ### Basic Chat

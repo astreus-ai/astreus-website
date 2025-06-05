@@ -4,6 +4,39 @@ title: Plugins
 
 Astreus provides a powerful plugin system that extends agent capabilities with specialized tools for various tasks and integrations. Plugins allow agents to interact with external services, APIs, and data sources.
 
+## Built-in Tools
+
+Astreus automatically provides certain tools when specific components are added to agents:
+
+### RAG Tools
+When you add a RAG (Retrieval Augmented Generation) instance to an agent, it automatically gets document search and management tools:
+
+- **rag_search** - Search through documents semantically
+- **rag_add_document** - Add new documents to knowledge base (Vector RAG only)
+- **rag_get_document** - Retrieve specific documents (Vector RAG only)
+- **rag_delete_document** - Remove documents (Vector RAG only)
+- **rag_search_by_metadata** - Search by document metadata (Document RAG only)
+
+```typescript
+import { createRAG, RAGType } from '@astreus-ai/astreus';
+
+// Create RAG instance
+const rag = await createRAG({
+  type: RAGType.VECTOR,
+  database: db,
+  provider: provider
+});
+
+// Agent automatically gets RAG tools when RAG is provided
+const agent = await createAgent({
+  name: 'DocumentAssistant',
+  provider: provider,
+  memory: memory,
+  database: db,
+  rag: rag  // Automatically adds RAG tools
+});
+```
+
 ## Official Plugins
 
 Astreus offers several official plugins to enhance your agents:
