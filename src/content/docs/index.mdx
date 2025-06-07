@@ -8,18 +8,20 @@ title: Welcome to Astreus
 
 Astreus provides a comprehensive set of tools and abstractions to create AI agents that can:
 - Hold complex, multi-turn conversations with **real-time streaming**
+- **Manage structured chats with metadata and organization**
 - Perform structured tasks and operations
 - Reason over data from multiple sources
 - Integrate with external systems through plugins
-- Maintain memory of past interactions with **session management**
+- Maintain memory of past interactions with **advanced session management**
 - **Access all components through a unified agent interface**
 
 ## Key Features
 
 - **🤖 Agent-Centric Architecture**: Everything accessible through agent methods - no need for separate managers
-- **⚡ Real-Time Streaming**: Built-in streaming chat with `agent.streamChat()` for live responses
+- **⚡ Real-Time Streaming**: Built-in streaming chat with `agent.streamChat()` and `agent.streamChatWithId()` for live responses
+- **💬 Advanced Chat Management**: Create, organize, and manage chats with metadata using `agent.createChat()`, `agent.listChats()`
 - **🧠 Unified Memory Access**: Direct memory management with `agent.getHistory()`, `agent.addToMemory()`
-- **💬 Session Management**: Automatic session tracking with `agent.listSessions()`
+- **📊 Session & Chat Analytics**: Get insights with `agent.getChatStats()` and `agent.searchChats()`
 - **🔌 Integrated Plugin System**: Add tools with `agent.addTool()` and access via `agent.getAvailableTools()`
 - **🗄️ Database Integration**: Direct database access through `agent.config.database`
 - **🎯 Provider Flexibility**: Switch models with `agent.getProvider()` and `agent.getModel()`
@@ -31,23 +33,40 @@ Astreus provides a comprehensive set of tools and abstractions to create AI agen
 
 ## Agent-First Approach
 
-With Astreus 0.1.9+, everything revolves around the **Agent**:
+With Astreus 0.2.1+, everything revolves around the **Agent** with enhanced chat management:
 
 ```typescript
-// Create an agent with all capabilities
+// Create an agent with all capabilities including chat management
 const agent = await createAgent({
   name: 'My Assistant',
   provider: myProvider,
   memory: myMemory,
+  chat: myChatManager, // New: Chat management system
   tools: [customTool1, customTool2]
 });
 
-// Stream responses in real-time
-await agent.streamChat({
+// Create and manage structured chats
+const chat = await agent.createChat({
+  chatId: "consultation-123",
+  title: "Export Consultation",
+  metadata: { type: "business", priority: "high" }
+});
+
+// Stream responses in real-time with chat IDs
+await agent.streamChatWithId({
   message: "Hello!",
-  sessionId: "chat-123",
+  chatId: "consultation-123",
   onChunk: (chunk) => console.log(chunk)
 });
+
+// Advanced chat management
+const chats = await agent.listChats({ status: 'active', limit: 10 });
+const stats = await agent.getChatStats();
+const searchResults = await agent.searchChats({ query: "export" });
+
+// Archive or delete chats
+await agent.archiveChat("old-chat-id");
+await agent.deleteChat("unwanted-chat-id");
 
 // Access everything through the agent
 const sessions = await agent.listSessions();
@@ -58,14 +77,14 @@ const memory = agent.config.memory;
 
 ## Getting Started
 
-Ready to create your first AI agent? Visit our [Quick Start Guide](/docs/guides/quick-start) to set up Astreus and build your first conversational agent with streaming capabilities in minutes.
+Ready to create your first AI agent with advanced chat management? Visit our [Quick Start Guide](/docs/guides/quick-start) to set up Astreus and build your first conversational agent with streaming capabilities and chat organization in minutes.
 
 ## Core Concepts
 
-- [Agents](/docs/concepts/agents) - **The heart of Astreus** - unified interface for all operations
+- [Agents](/docs/concepts/agents) - **The heart of Astreus** - unified interface for all operations including chat management
 - [Providers](/docs/concepts/providers) - Connect to different LLM providers
 - [Memory](/docs/concepts/memory) - Store and retrieve conversation history with session management
-- [Chat](/docs/concepts/chat) - Advanced streaming chat system with real-time responses
+- [Chat](/docs/concepts/chat) - Advanced streaming chat system with real-time responses and metadata management
 - [Tasks](/docs/concepts/tasks) - Break complex operations into manageable sub-tasks
 - [Plugins](/docs/plugins) - Extend agent capabilities with custom tools
 - [RAG](/docs/concepts/rag) - Automatic document search tools with Vector and Document RAG

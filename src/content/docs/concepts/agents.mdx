@@ -2,22 +2,25 @@
 title: Agents
 ---
 
-Agents are the **heart of the Astreus framework**. An agent represents an AI assistant that provides a **unified interface** to all framework capabilities including streaming chat, memory management, tool execution, and more.
+Agents are the **heart of the Astreus framework**. An agent represents an AI assistant that provides a **unified interface** to all framework capabilities including streaming chat, advanced chat management, memory management, tool execution, and more.
 
 ## Agent-Centric Architecture
 
-With Astreus 0.1.9+, everything revolves around the **Agent**. Instead of managing separate components, you access everything through the agent:
+With Astreus 0.2.1+, everything revolves around the **Agent** with enhanced chat management. Instead of managing separate components, you access everything through the agent:
 
 ```typescript
-// ✅ New Agent-Centric Approach
+// ✅ New Agent-Centric Approach with Chat Management
 const agent = await createAgent({
   name: 'MyAgent',
   provider: myProvider,
-  memory: myMemory
+  memory: myMemory,
+  chat: myChatManager // New: Chat management system
 });
 
 // All operations through agent methods
-await agent.streamChat({ message: "Hello!" });
+await agent.streamChatWithId({ message: "Hello!", chatId: "chat-123" });
+const chats = await agent.listChats({ status: 'active' });
+const stats = await agent.getChatStats();
 const history = await agent.getHistory("session-1");
 const sessions = await agent.listSessions();
 const provider = agent.getProvider();
@@ -29,8 +32,10 @@ const database = agent.config.database;
 
 Each Astreus agent provides:
 
-- **🚀 Streaming Chat**: Real-time responses with `agent.streamChat()`
-- **💬 Standard Chat**: Non-streaming responses with `agent.chat()`
+- **🚀 Streaming Chat**: Real-time responses with `agent.streamChat()` and `agent.streamChatWithId()`
+- **💬 Standard Chat**: Non-streaming responses with `agent.chat()` and `agent.chatWithId()`
+- **📊 Chat Management**: Create, organize, and manage chats with metadata
+- **🔍 Chat Analytics**: Search chats, get statistics, and manage chat lifecycle
 - **🧠 Memory Management**: Session-based conversation history
 - **📋 Session Tracking**: List and manage conversation sessions
 - **🔌 Tool Integration**: Add and use custom tools
@@ -39,14 +44,15 @@ Each Astreus agent provides:
 
 ## Creating an Agent
 
-Use the `createAgent` function to create a fully-featured agent:
+Use the `createAgent` function to create a fully-featured agent with chat management:
 
 ```typescript
 import { 
   createAgent, 
   createProvider,
   createMemory,
-  createDatabase
+  createDatabase,
+  createChat
 } from '@astreus-ai/astreus';
 
 async function createMyAgent() {
@@ -60,6 +66,15 @@ async function createMyAgent() {
     maxEntries: 200
   });
 
+  // Create chat manager instance
+  const chatManager = await createChat({
+    database: db,
+    memory: memory,
+    tableName: "chats",
+    maxChats: 100,
+    autoGenerateTitles: true
+  });
+
   // Configure your provider
   const provider = createProvider({
     type: 'openai',
@@ -67,12 +82,14 @@ async function createMyAgent() {
     apiKey: process.env.OPENAI_API_KEY
   });
 
-  // Create an agent with all capabilities
+  // Create an agent with all capabilities including chat management
   const agent = await createAgent({
     name: 'MyAssistant',
-    description: 'A helpful AI assistant with streaming capabilities',
+    description: 'A helpful AI assistant with streaming and chat management capabilities',
     provider: provider,
     memory: memory,
+    database: db,
+    chat: chatManager, // New: Chat management system
     systemPrompt: "You are a helpful AI assistant that provides detailed, accurate responses.",
     tools: [customTool1, customTool2] // Optional tools
   });
@@ -81,15 +98,74 @@ async function createMyAgent() {
 }
 ```
 
-## Streaming Chat
+## Chat Management
 
-The agent provides built-in streaming capabilities for real-time responses:
+Create and manage structured chats with metadata and organization:
 
 ```typescript
-// Real-time streaming chat
-const response = await agent.streamChat({
+// Create a new chat with metadata
+const chat = await agent.createChat({
+  chatId: "consultation-123",
+  userId: "user-456",
+  title: "Export Regulation Consultation",
+  metadata: {
+    type: "business",
+    priority: "high",
+    department: "export",
+    language: "en"
+  }
+});
+
+// Get chat details
+const chatDetails = await agent.getChat("consultation-123");
+console.log('Chat:', chatDetails);
+
+// Update chat metadata
+await agent.updateChat("consultation-123", {
+  title: "Updated Export Consultation",
+  metadata: { ...chatDetails.metadata, status: "in-progress" }
+});
+
+// List chats with filtering
+const activeChats = await agent.listChats({
+  userId: "user-456",
+  status: 'active',
+  limit: 20,
+  offset: 0
+});
+
+// Search chats
+const searchResults = await agent.searchChats({
+  query: "export regulation",
+  userId: "user-456",
+  limit: 10
+});
+
+// Get chat statistics
+const stats = await agent.getChatStats({
+  userId: "user-456"
+});
+console.log(`Total chats: ${stats.totalChats}`);
+console.log(`Active chats: ${stats.activeChats}`);
+console.log(`Total messages: ${stats.totalMessages}`);
+
+// Archive a chat
+await agent.archiveChat("old-chat-id");
+
+// Delete a chat permanently
+await agent.deleteChat("unwanted-chat-id");
+```
+
+## Streaming Chat with Chat IDs
+
+The agent provides enhanced streaming capabilities with chat management:
+
+```typescript
+// Real-time streaming chat with chat ID
+const response = await agent.streamChatWithId({
   message: "Explain quantum computing in simple terms",
-  sessionId: "physics-chat",
+  chatId: "physics-chat-123",
+  userId: "student-456",
   systemPrompt: "You are a physics teacher. Explain concepts clearly.",
   temperature: 0.7,
   maxTokens: 1000,
@@ -102,23 +178,38 @@ const response = await agent.streamChat({
 });
 
 console.log('Full response:', response);
+
+// Legacy session-based streaming (still supported)
+const legacyResponse = await agent.streamChat({
+  message: "Explain quantum computing",
+  sessionId: "physics-session",
+  onChunk: (chunk) => console.log('Chunk:', chunk)
+});
 ```
 
-## Standard Chat
+## Standard Chat with Chat IDs
 
-For non-streaming scenarios, use the standard chat method:
+For non-streaming scenarios, use the enhanced chat methods:
 
 ```typescript
-// Standard chat (no streaming)
-const response = await agent.chat({
+// Standard chat with chat ID (recommended)
+const response = await agent.chatWithId({
   message: "What's the weather like?",
-  sessionId: "weather-chat",
+  chatId: "weather-chat-123",
+  userId: "user-456",
   temperature: 0.5,
   maxTokens: 500,
   metadata: { type: 'weather_query' }
 });
 
-console.log('Response:', response);
+// Legacy session-based chat (still supported)
+const legacyResponse = await agent.chat({
+  message: "What's the weather like?",
+  sessionId: "weather-session",
+  temperature: 0.5,
+  maxTokens: 500,
+  metadata: { type: 'weather_query' }
+});
 ```
 
 ## Memory and Session Management

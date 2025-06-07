@@ -2,7 +2,7 @@
 title: Quick Start Guide
 ---
 
-This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent with **streaming capabilities**.
+This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent with **streaming capabilities** and **advanced chat management**.
 
 ## Installation
 
@@ -38,9 +38,9 @@ DATABASE_PATH=./astreus.db  # Only for SQLite
 LOG_LEVEL=info  # debug, info, warn, error
 ```
 
-## Creating Your First Agent
+## Creating Your First Agent with Chat Management
 
-With Astreus 0.1.9+, everything revolves around the **Agent**. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
+With Astreus 0.2.1+, everything revolves around the **Agent** with enhanced chat management. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
 
 ```typescript
 import { 
@@ -48,6 +48,7 @@ import {
   createProvider,
   createMemory,
   createDatabase,
+  createChat,
   logger
 } from '@astreus-ai/astreus';
 
@@ -62,6 +63,15 @@ async function main() {
       tableName: "conversations"
     });
 
+    // Create chat manager instance
+    const chatManager = await createChat({
+      database: db,
+      memory: memory,
+      tableName: "chats",
+      maxChats: 100,
+      autoGenerateTitles: true
+    });
+
     // Configure your provider
     const provider = createProvider({
       type: 'openai',
@@ -71,37 +81,79 @@ async function main() {
     // Create an agent - everything you need in one place!
     const agent = await createAgent({
       name: 'MyFirstAgent',
-      description: 'A helpful AI assistant with streaming capabilities',
+      description: 'A helpful AI assistant with streaming and chat management capabilities',
       provider: provider,
       memory: memory,
+      chat: chatManager, // New: Chat management system
       systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
     });
 
-    // 🚀 Basic chat (non-streaming)
-    console.log('=== Basic Chat ===');
-    const response = await agent.chat({
+    // 📊 Create a structured chat with metadata
+    console.log('=== Creating Chat ===');
+    const chat = await agent.createChat({
+      chatId: "welcome-chat-123",
+      userId: "user-456",
+      title: "Welcome Conversation",
+      metadata: {
+        type: "onboarding",
+        priority: "normal",
+        language: "en"
+      }
+    });
+    console.log('Chat created:', chat);
+
+    // 🚀 Basic chat with chat ID (recommended)
+    console.log('\n=== Basic Chat with Chat ID ===');
+    const response = await agent.chatWithId({
       message: "Hello! What can you do for me?",
-      sessionId: "session-1"
+      chatId: "welcome-chat-123",
+      userId: "user-456"
     });
     console.log('Agent:', response);
 
-    // ⚡ Streaming chat (real-time responses)
-    console.log('\n=== Streaming Chat ===');
-    const streamResponse = await agent.streamChat({
+    // ⚡ Streaming chat with chat ID (real-time responses)
+    console.log('\n=== Streaming Chat with Chat ID ===');
+    const streamResponse = await agent.streamChatWithId({
       message: "Tell me about the benefits of AI in 3 points",
-      sessionId: "session-1",
+      chatId: "welcome-chat-123",
+      userId: "user-456",
       onChunk: (chunk) => {
         process.stdout.write(chunk); // Print each chunk as it arrives
       }
     });
     console.log('\n✅ Streaming complete!');
 
-    // 📊 Check session history
-    console.log('\n=== Session History ===');
-    const history = await agent.getHistory("session-1");
-    console.log(`Found ${history.length} messages in session`);
+    // 📊 Chat management operations
+    console.log('\n=== Chat Management ===');
+    
+    // List chats
+    const chats = await agent.listChats({
+      userId: "user-456",
+      status: 'active',
+      limit: 10
+    });
+    console.log(`Found ${chats.length} active chats`);
 
-    // 📋 List all sessions
+    // Get chat statistics
+    const stats = await agent.getChatStats({
+      userId: "user-456"
+    });
+    console.log(`Total chats: ${stats.totalChats}, Messages: ${stats.totalMessages}`);
+
+    // Search chats
+    const searchResults = await agent.searchChats({
+      query: "AI benefits",
+      userId: "user-456",
+      limit: 5
+    });
+    console.log(`Found ${searchResults.length} matching chats`);
+
+    // 📊 Check session history (works with chat IDs)
+    console.log('\n=== Session History ===');
+    const history = await agent.getHistory("welcome-chat-123");
+    console.log(`Found ${history.length} messages in chat`);
+
+    // 📋 List all sessions (legacy support)
     console.log('\n=== All Sessions ===');
     const sessions = await agent.listSessions();
     sessions.forEach(session => {
@@ -122,26 +174,28 @@ Run your agent:
 node my-agent.js
 ```
 
-## Real-Time Streaming Example
+## Real-Time Streaming with Chat Management
 
-Here's how to implement real-time streaming in a web application:
+Here's how to implement real-time streaming with chat management in a web application:
 
 ```typescript
-import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase, createChat } from '@astreus-ai/astreus';
 import WebSocket from 'ws';
 
-// WebSocket server for real-time streaming
+// WebSocket server for real-time streaming with chat management
 const wss = new WebSocket.Server({ port: 8080 });
 
 async function setupAgent() {
   const db = await createDatabase();
   const memory = await createMemory({ database: db });
+  const chatManager = await createChat({ database: db, memory: memory });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
   return await createAgent({
-    name: 'StreamingAgent',
+    name: 'StreamingChatAgent',
     provider: provider,
     memory: memory,
+    chat: chatManager,
     systemPrompt: "You are a helpful assistant that provides detailed, informative responses."
   });
 }
@@ -150,26 +204,160 @@ wss.on('connection', async (ws) => {
   const agent = await setupAgent();
   
   ws.on('message', async (data) => {
-    const { message, sessionId } = JSON.parse(data.toString());
+    const { action, message, chatId, userId, ...params } = JSON.parse(data.toString());
     
-    // Stream response to client in real-time
-    await agent.streamChat({
-      message,
-      sessionId,
-      onChunk: (chunk) => {
+    try {
+      if (action === 'create_chat') {
+        // Create a new chat
+        const chat = await agent.createChat({
+          chatId,
+          userId,
+          title: params.title || "New Conversation",
+          metadata: params.metadata || {}
+        });
+        
         ws.send(JSON.stringify({ 
-          type: 'chunk', 
-          content: chunk 
+          type: 'chat_created', 
+          chat 
+        }));
+        return;
+      }
+      
+      if (action === 'list_chats') {
+        // List user's chats
+        const chats = await agent.listChats({ 
+          userId, 
+          status: 'active',
+          limit: 20 
+        });
+        
+        ws.send(JSON.stringify({ 
+          type: 'chats_list', 
+          chats 
+        }));
+        return;
+      }
+      
+      if (action === 'chat_stats') {
+        // Get chat statistics
+        const stats = await agent.getChatStats({ userId });
+        
+        ws.send(JSON.stringify({ 
+          type: 'chat_stats', 
+          stats 
+        }));
+        return;
+      }
+      
+      if (action === 'stream_chat') {
+        // Stream response to client in real-time
+        await agent.streamChatWithId({
+          message,
+          chatId,
+          userId,
+          onChunk: (chunk) => {
+            ws.send(JSON.stringify({ 
+              type: 'chunk', 
+              content: chunk,
+              chatId
+            }));
+          }
+        });
+        
+        // Signal completion
+        ws.send(JSON.stringify({ 
+          type: 'complete',
+          chatId
         }));
       }
-    });
-    
-    // Signal completion
-    ws.send(JSON.stringify({ type: 'complete' }));
+      
+    } catch (error) {
+      ws.send(JSON.stringify({ 
+        type: 'error', 
+        message: error.message 
+      }));
+    }
   });
 });
 
-console.log('WebSocket server running on ws://localhost:8080');
+console.log('WebSocket server with chat management running on ws://localhost:8080');
+```
+
+## Frontend Integration Example
+
+Here's how to connect from a frontend application:
+
+```javascript
+// Frontend WebSocket client
+const ws = new WebSocket('ws://localhost:8080');
+
+// Create a new chat
+function createChat(userId, title, metadata = {}) {
+  const chatId = `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  ws.send(JSON.stringify({
+    action: 'create_chat',
+    chatId,
+    userId,
+    title,
+    metadata
+  }));
+  
+  return chatId;
+}
+
+// List user's chats
+function listChats(userId) {
+  ws.send(JSON.stringify({
+    action: 'list_chats',
+    userId
+  }));
+}
+
+// Send a streaming message
+function sendMessage(message, chatId, userId) {
+  ws.send(JSON.stringify({
+    action: 'stream_chat',
+    message,
+    chatId,
+    userId
+  }));
+}
+
+// Handle incoming messages
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  
+  switch (data.type) {
+    case 'chat_created':
+      console.log('Chat created:', data.chat);
+      break;
+      
+    case 'chats_list':
+      console.log('User chats:', data.chats);
+      break;
+      
+    case 'chunk':
+      // Display chunk in real-time
+      document.getElementById('response').innerHTML += data.content;
+      break;
+      
+    case 'complete':
+      console.log('Response complete for chat:', data.chatId);
+      break;
+      
+    case 'error':
+      console.error('Error:', data.message);
+      break;
+  }
+};
+
+// Example usage
+const userId = 'user-123';
+const chatId = createChat(userId, 'AI Discussion', { topic: 'technology' });
+setTimeout(() => {
+  sendMessage('Hello! Tell me about artificial intelligence.', chatId, userId);
+}, 1000);
 ```
 
 ## Adding Custom Tools
@@ -177,7 +365,7 @@ console.log('WebSocket server running on ws://localhost:8080');
 Enhance your agent with custom capabilities:
 
 ```typescript
-import { createAgent, createProvider, createMemory, createDatabase, Plugin } from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase, createChat, Plugin } from '@astreus-ai/astreus';
 
 // Create a weather tool
 const weatherTool: Plugin = {
@@ -201,6 +389,7 @@ const weatherTool: Plugin = {
 async function main() {
   const db = await createDatabase();
   const memory = await createMemory({ database: db });
+  const chatManager = await createChat({ database: db });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
   // Create agent with tools
@@ -208,6 +397,7 @@ async function main() {
     name: 'WeatherAgent',
     provider: provider,
     memory: memory,
+    chat: chatManager,
     tools: [weatherTool], // Add tools here
     systemPrompt: "You are a helpful assistant that can provide weather information. Use the get_weather tool when asked about weather."
   });

@@ -1,52 +1,73 @@
 ---
 title: Chat
-description: Learn about real-time streaming chat and session management with Astreus's agent-centric approach
+description: Learn about real-time streaming chat, advanced chat management, and session organization with Astreus's agent-centric approach
 ---
 
-The **Chat System** in Astreus 0.1.9+ is **agent-centric** and provides powerful **real-time streaming** capabilities. Instead of managing separate chat managers, everything flows through the agent with built-in session management.
+The **Chat System** in Astreus 0.2.1+ is **agent-centric** and provides powerful **real-time streaming** capabilities with **advanced chat management**. Instead of managing separate chat managers, everything flows through the agent with built-in session management, chat organization, and metadata support.
 
 ## Agent-Centric Chat Architecture
 
-With the new approach, chat functionality is built directly into agents:
+With the enhanced approach, chat functionality is built directly into agents with full chat management:
 
 ```typescript
-// ✅ New Agent-Centric Approach
+// ✅ Enhanced Agent-Centric Approach with Chat Management
 const agent = await createAgent({
   name: 'ChatAgent',
   provider: myProvider,
-  memory: myMemory
+  memory: myMemory,
+  chat: myChatManager // New: Chat management system
 });
 
-// Real-time streaming chat
-await agent.streamChat({
+// Create structured chats with metadata
+const chat = await agent.createChat({
+  chatId: "consultation-123",
+  title: "Export Regulation Consultation",
+  metadata: { type: "business", priority: "high" }
+});
+
+// Real-time streaming chat with chat IDs
+await agent.streamChatWithId({
   message: "Hello!",
-  sessionId: "chat-123",
+  chatId: "consultation-123",
   onChunk: (chunk) => console.log(chunk)
 });
 
-// Standard chat
-const response = await agent.chat({
+// Standard chat with chat IDs
+const response = await agent.chatWithId({
   message: "How are you?",
-  sessionId: "chat-123"
+  chatId: "consultation-123"
 });
 
-// Session management
+// Advanced chat management
+const chats = await agent.listChats({ status: 'active' });
+const stats = await agent.getChatStats();
+const searchResults = await agent.searchChats({ query: "export" });
+
+// Legacy session management (still supported)
 const sessions = await agent.listSessions();
-const history = await agent.getHistory("chat-123");
+const history = await agent.getHistory("session-123");
 ```
 
-## Real-Time Streaming Chat
+## Chat Management
 
-The core feature of the new chat system is **real-time streaming** for live responses:
+Create, organize, and manage structured chats with metadata and lifecycle management:
 
-### Basic Streaming
+### Creating and Managing Chats
 
 ```typescript
-import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase, createChat } from '@astreus-ai/astreus';
 
-async function setupStreamingAgent() {
+async function setupChatAgent() {
   const db = await createDatabase();
   const memory = await createMemory({ database: db });
+  const chatManager = await createChat({
+    database: db,
+    memory: memory,
+    tableName: "chats",
+    maxChats: 100,
+    autoGenerateTitles: true
+  });
+  
   const provider = createProvider({ 
     type: 'openai', 
     model: 'gpt-4o-mini',
@@ -54,19 +75,96 @@ async function setupStreamingAgent() {
   });
 
   return await createAgent({
-    name: 'StreamingAssistant',
+    name: 'ChatManagementAgent',
     provider: provider,
     memory: memory,
-    systemPrompt: "You are a helpful assistant that provides detailed responses."
+    chat: chatManager,
+    systemPrompt: "You are a helpful assistant with advanced chat management."
   });
 }
 
-// Use streaming chat
-const agent = await setupStreamingAgent();
+const agent = await setupChatAgent();
 
-const response = await agent.streamChat({
+// Create a new chat with metadata
+const chat = await agent.createChat({
+  chatId: "support-ticket-456",
+  userId: "user-123",
+  title: "Technical Support Request",
+  metadata: {
+    type: "support",
+    priority: "high",
+    department: "technical",
+    language: "en",
+    tags: ["bug", "urgent"]
+  }
+});
+
+// Get chat details
+const chatDetails = await agent.getChat("support-ticket-456");
+console.log('Chat created:', chatDetails);
+
+// Update chat metadata
+await agent.updateChat("support-ticket-456", {
+  title: "Resolved: Technical Support Request",
+  metadata: { 
+    ...chatDetails.metadata, 
+    status: "resolved",
+    resolvedAt: new Date().toISOString()
+  }
+});
+```
+
+### Chat Organization and Search
+
+```typescript
+// List chats with filtering
+const activeChats = await agent.listChats({
+  userId: "user-123",
+  status: 'active',
+  limit: 20,
+  offset: 0
+});
+
+console.log(`Found ${activeChats.length} active chats`);
+
+// Search chats by content
+const searchResults = await agent.searchChats({
+  query: "technical support",
+  userId: "user-123",
+  limit: 10
+});
+
+console.log(`Found ${searchResults.length} matching chats`);
+
+// Get comprehensive chat statistics
+const stats = await agent.getChatStats({
+  userId: "user-123"
+});
+
+console.log(`Total chats: ${stats.totalChats}`);
+console.log(`Active chats: ${stats.activeChats}`);
+console.log(`Archived chats: ${stats.archivedChats}`);
+console.log(`Total messages: ${stats.totalMessages}`);
+
+// Archive old chats
+await agent.archiveChat("old-chat-id");
+
+// Delete unwanted chats permanently
+await agent.deleteChat("spam-chat-id");
+```
+
+## Real-Time Streaming Chat
+
+The enhanced chat system provides **real-time streaming** with both chat IDs and legacy session support:
+
+### Streaming with Chat IDs (Recommended)
+
+```typescript
+// Real-time streaming with chat management
+const response = await agent.streamChatWithId({
   message: "Explain machine learning in simple terms",
-  sessionId: "ml-discussion",
+  chatId: "ml-tutorial-789",
+  userId: "student-456",
   temperature: 0.7,
   maxTokens: 1000,
   metadata: { topic: 'education', level: 'beginner' },
@@ -82,48 +180,88 @@ const response = await agent.streamChat({
 console.log('\nFull response:', response);
 ```
 
-### WebSocket Integration
+### Legacy Session-Based Streaming (Still Supported)
 
-Here's how to integrate streaming with WebSocket for real-time frontend updates:
+```typescript
+// Legacy streaming (for backward compatibility)
+const legacyResponse = await agent.streamChat({
+  message: "Explain machine learning",
+  sessionId: "ml-session",
+  onChunk: (chunk) => console.log(chunk)
+});
+```
+
+### WebSocket Integration with Chat Management
+
+Here's how to integrate streaming with WebSocket for real-time frontend updates with chat management:
 
 ```typescript
 import WebSocket from 'ws';
-import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase, createChat } from '@astreus-ai/astreus';
 
-// WebSocket server for real-time chat
+// WebSocket server for real-time chat with management
 const wss = new WebSocket.Server({ port: 8080 });
 
-async function createChatAgent() {
+async function createAdvancedChatAgent() {
   const db = await createDatabase();
   const memory = await createMemory({ database: db });
+  const chatManager = await createChat({ database: db, memory: memory });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
   return await createAgent({
-    name: 'WebSocketAgent',
+    name: 'WebSocketChatAgent',
     provider: provider,
     memory: memory,
-    systemPrompt: "You are a helpful assistant for real-time chat."
+    chat: chatManager,
+    systemPrompt: "You are a helpful assistant for real-time chat with advanced management."
   });
 }
 
 wss.on('connection', async (ws) => {
-  const agent = await createChatAgent();
+  const agent = await createAdvancedChatAgent();
   
   ws.on('message', async (data) => {
     try {
-      const { message, sessionId, userId } = JSON.parse(data.toString());
+      const { message, chatId, userId, action } = JSON.parse(data.toString());
+      
+      if (action === 'create_chat') {
+        // Create a new chat
+        const chat = await agent.createChat({
+          chatId,
+          userId,
+          title: "New Conversation",
+          metadata: { createdVia: "websocket" }
+        });
+        
+        ws.send(JSON.stringify({ 
+          type: 'chat_created', 
+          chat 
+        }));
+        return;
+      }
+      
+      if (action === 'list_chats') {
+        // List user's chats
+        const chats = await agent.listChats({ userId, limit: 20 });
+        ws.send(JSON.stringify({ 
+          type: 'chats_list', 
+          chats 
+        }));
+        return;
+      }
       
       // Stream response to client in real-time
-      await agent.streamChat({
+      await agent.streamChatWithId({
         message,
-        sessionId: sessionId || `session_${userId}_${Date.now()}`,
-        metadata: { userId, timestamp: new Date() },
+        chatId,
+        userId,
+        metadata: { timestamp: new Date() },
         onChunk: (chunk) => {
           // Send each chunk immediately
           ws.send(JSON.stringify({ 
             type: 'chunk', 
             content: chunk,
-            sessionId 
+            chatId 
           }));
         }
       });
@@ -131,7 +269,7 @@ wss.on('connection', async (ws) => {
       // Signal completion
       ws.send(JSON.stringify({ 
         type: 'complete',
-        sessionId 
+        chatId 
       }));
       
     } catch (error) {
@@ -143,18 +281,21 @@ wss.on('connection', async (ws) => {
   });
 });
 
-console.log('WebSocket chat server running on ws://localhost:8080');
+console.log('Advanced WebSocket chat server running on ws://localhost:8080');
 ```
 
 ## Standard Chat (Non-Streaming)
 
-For scenarios where streaming isn't needed:
+For scenarios where streaming isn't needed, use the enhanced chat methods:
+
+### Chat with Chat IDs (Recommended)
 
 ```typescript
-// Standard chat without streaming
-const response = await agent.chat({
+// Standard chat with chat management
+const response = await agent.chatWithId({
   message: "What's the capital of France?",
-  sessionId: "geography-quiz",
+  chatId: "geography-quiz-123",
+  userId: "student-456",
   temperature: 0.3,
   maxTokens: 100,
   metadata: { category: 'geography', difficulty: 'easy' }
@@ -163,14 +304,27 @@ const response = await agent.chat({
 console.log('Response:', response);
 ```
 
+### Legacy Session-Based Chat (Still Supported)
+
+```typescript
+// Legacy chat (for backward compatibility)
+const legacyResponse = await agent.chat({
+  message: "What's the capital of France?",
+  sessionId: "geography-session",
+  temperature: 0.3,
+  maxTokens: 100,
+  metadata: { category: 'geography', difficulty: 'easy' }
+});
+```
+
 ## Session Management
 
-Agents provide built-in session management without needing separate chat managers:
+Agents provide built-in session management alongside the new chat management:
 
 ### Session Operations
 
 ```typescript
-// List all sessions for the agent
+// List all sessions for the agent (legacy support)
 const sessions = await agent.listSessions(20);
 sessions.forEach(session => {
   console.log(`Session: ${session.sessionId}`);
@@ -180,19 +334,19 @@ sessions.forEach(session => {
   console.log(`Metadata:`, session.metadata);
 });
 
-// Get conversation history
-const history = await agent.getHistory("session-123", 50);
+// Get conversation history (works with both chat IDs and session IDs)
+const history = await agent.getHistory("chat-123", 50);
 console.log(`Found ${history.length} messages`);
 
 // Add custom memory entries
 await agent.addToMemory({
-  sessionId: "session-123",
+  sessionId: "chat-123", // Can use chat ID as session ID
   role: 'system',
   content: "User prefers technical explanations",
   metadata: { preference: 'technical', timestamp: new Date() }
 });
 
-// Clear a session
+// Clear a session/chat
 await agent.clearHistory("old-session");
 ```
 
