@@ -137,4 +137,111 @@ await memory.add({
 // Retrieve individual session histories
 const travelSession = await memory.getBySession("travel_planning");
 const quizSession = await memory.getBySession("geography_quiz");
+```
+
+## Custom Table Names
+
+You can customize the table name used for memory storage:
+
+```typescript
+// Use a custom table name for memory
+const memory = await createMemory({
+  database: db,
+  tableName: "my_custom_memories",  // Custom table name
+  maxEntries: 100
+});
+
+// This is useful for:
+// - Avoiding conflicts in shared databases
+// - Organizing data with prefixes (e.g., "app_memories")
+// - Multi-tenancy scenarios
+// - Legacy system integration
+```
+
+## Integration with Chat Management
+
+Memory works seamlessly with the chat management system:
+
+```typescript
+import { createMemory, createChat, createDatabase } from '@astreus-ai/astreus';
+
+const db = await createDatabase();
+
+// Create memory instance
+const memory = await createMemory({
+  database: db,
+  tableName: "conversations",
+  maxEntries: 1000
+});
+
+// Create chat management (uses the same memory)
+const chat = await createChat({
+  database: db,
+  memory: memory,  // Share the same memory instance
+  tableName: "chat_metadata"
+});
+
+// Chat IDs are compatible with session IDs
+const newChat = await chat.createChat({
+  agentId: 'my-agent',
+  userId: 'user123'
+});
+
+// Add message via chat system
+await chat.addMessage({
+  chatId: newChat.id,
+  agentId: 'my-agent',
+  userId: 'user123',
+  role: 'user',
+  content: 'Hello!'
+});
+
+// Retrieve via memory system (same data)
+const messages = await memory.getBySession(newChat.id);
+```
+
+## Best Practices
+
+### 1. Choose Appropriate Table Names
+```typescript
+// Good: Descriptive and organized
+tableName: "customer_support_memories"
+tableName: "app_conversations"
+
+// Avoid: Generic names in shared environments
+tableName: "memories"
+```
+
+### 2. Set Reasonable Limits
+```typescript
+// For chat applications
+maxEntries: 100  // Keep recent context
+
+// For long-term knowledge retention
+maxEntries: 1000  // Store more history
+```
+
+### 3. Use Embeddings for Search
+```typescript
+// Enable embeddings for applications that need search
+const memory = await createMemory({
+  database: db,
+  tableName: "searchable_conversations",
+  enableEmbeddings: true,
+  maxEntries: 500
+});
+```
+
+### 4. Organize with Metadata
+```typescript
+await memory.add({
+  role: "user",
+  content: "Question about exports",
+  sessionId: "session123",
+  metadata: {
+    category: "business",
+    priority: "high",
+    department: "exports"
+  }
+});
 ``` 

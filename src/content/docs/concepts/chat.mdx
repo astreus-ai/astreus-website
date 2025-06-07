@@ -1,0 +1,366 @@
+---
+title: Chat
+description: Learn how to organize and manage chat sessions with Astreus's advanced chat system
+---
+
+The **Chat System** in Astreus provides a powerful way to organize, search, and manage conversation sessions. It works seamlessly with the existing memory system while adding metadata, organization, and advanced features.
+
+## Overview
+
+The chat system extends the basic memory functionality by adding:
+- **Chat Metadata**: Store titles, status, and custom metadata for each conversation
+- **Auto-generated Titles**: Automatically create meaningful titles from first user messages
+- **Search Capabilities**: Search through chat titles and content
+- **Status Management**: Track chat states (active, archived, deleted)
+- **Statistics**: Get insights about chat usage and patterns
+- **Memory Integration**: Chat IDs are fully compatible with session IDs in memory
+
+## Basic Setup
+
+```typescript
+import { createDatabase, createMemory, createChat } from '@astreus-ai/astreus';
+
+// Create database and memory
+const database = await createDatabase({
+  type: 'sqlite',
+  connection: { filename: './my-app.db' }
+});
+
+const memory = await createMemory({
+  database,
+  tableName: 'memories',
+  maxEntries: 1000
+});
+
+// Create chat instance
+const chat = await createChat({
+  database,
+  memory,
+  tableName: 'chats',
+  maxChats: 100,
+  autoGenerateTitles: true
+});
+```
+
+## Configuration Options
+
+### ChatConfig
+
+```typescript
+interface ChatConfig {
+  /** Required: Database instance for storing chat data */
+  database: DatabaseInstance;
+  /** Required: Memory instance for storing messages */
+  memory: MemoryInstance;
+  /** Optional: Table name for storing chat metadata, defaults to "chats" */
+  tableName?: string;
+  /** Optional: Maximum number of chats to retrieve at once, defaults to 50 */
+  maxChats?: number;
+  /** Optional: Auto-generate titles for chats, defaults to true */
+  autoGenerateTitles?: boolean;
+}
+```
+
+## Creating and Managing Chats
+
+### Creating a New Chat
+
+```typescript
+// Create a chat with a specific title
+const newChat = await chat.createChat({
+  agentId: 'my-agent',
+  userId: 'user123',
+  title: 'Export Regulations Discussion'
+});
+
+// Create a chat without a title (will be auto-generated)
+const autoTitleChat = await chat.createChat({
+  agentId: 'my-agent',
+  userId: 'user123'
+});
+```
+
+### Getting Chat Information
+
+```typescript
+// Get chat metadata
+const chatInfo = await chat.getChat(chatId);
+console.log(chatInfo.title, chatInfo.messageCount, chatInfo.status);
+
+// Get chat messages (integrates with memory system)
+const messages = await chat.getMessages(chatId, 50);
+```
+
+### Updating Chat Metadata
+
+```typescript
+// Update chat title
+await chat.updateChat(chatId, {
+  title: 'New Chat Title'
+});
+
+// Update chat status and metadata
+await chat.updateChat(chatId, {
+  status: 'archived',
+  metadata: {
+    category: 'support',
+    priority: 'high'
+  }
+});
+```
+
+## Adding Messages
+
+The chat system seamlessly integrates with the memory system for message storage:
+
+```typescript
+// Add a user message
+await chat.addMessage({
+  chatId: newChat.id,
+  agentId: 'my-agent',
+  userId: 'user123',
+  role: 'user',
+  content: 'What are the export regulations for electronics?'
+});
+
+// Add an assistant response
+await chat.addMessage({
+  chatId: newChat.id,
+  agentId: 'my-agent',
+  userId: 'user123',
+  role: 'assistant',
+  content: 'For electronics exports, you need to comply with...',
+  metadata: {
+    confidence: 0.95,
+    sources: ['regulation-db', 'customs-guide']
+  }
+});
+```
+
+## Listing and Searching Chats
+
+### List User's Chats
+
+```typescript
+// Get all active chats for a user
+const userChats = await chat.listChats({
+  userId: 'user123',
+  status: 'active',
+  limit: 20
+});
+
+// Get chats for a specific agent
+const agentChats = await chat.listChats({
+  agentId: 'my-agent',
+  status: 'active'
+});
+
+// Get archived chats with pagination
+const archivedChats = await chat.listChats({
+  userId: 'user123',
+  status: 'archived',
+  limit: 10,
+  offset: 20
+});
+```
+
+### Search Through Chats
+
+```typescript
+// Search by content or title
+const searchResults = await chat.searchChats({
+  query: 'electronics export',
+  userId: 'user123',
+  limit: 10
+});
+
+// Search within specific agent's chats
+const agentSearchResults = await chat.searchChats({
+  query: 'customs documentation',
+  agentId: 'regulation-agent',
+  limit: 5
+});
+```
+
+## Chat Status Management
+
+### Archive and Delete Chats
+
+```typescript
+// Archive a chat (keeps data but marks as archived)
+await chat.archiveChat(chatId);
+
+// Delete a chat completely (removes all data)
+await chat.deleteChat(chatId);
+```
+
+### Status Types
+
+- **`active`**: Currently active chats (default)
+- **`archived`**: Archived chats (hidden from main list but searchable)
+- **`deleted`**: Deleted chats (removed from system)
+
+## Message Management
+
+### Clear Chat Messages
+
+```typescript
+// Clear all messages from a chat
+await chat.clearMessages(chatId);
+
+// Delete a specific message
+await chat.deleteMessage(messageId);
+```
+
+## Analytics and Statistics
+
+### Get Chat Statistics
+
+```typescript
+// Get overall statistics
+const stats = await chat.getChatStats();
+console.log(stats.totalChats, stats.activeChats, stats.totalMessages);
+
+// Get statistics for a specific user
+const userStats = await chat.getChatStats({
+  userId: 'user123'
+});
+
+// Get statistics for a specific agent
+const agentStats = await chat.getChatStats({
+  agentId: 'my-agent'
+});
+```
+
+### Statistics Response
+
+```typescript
+interface ChatStats {
+  totalChats: number;
+  activeChats: number;
+  archivedChats: number;
+  totalMessages: number;
+}
+```
+
+## Auto-generated Titles
+
+When `autoGenerateTitles` is enabled (default), the system automatically generates meaningful titles:
+
+```typescript
+// First user message in a chat
+await chat.addMessage({
+  chatId: newChat.id,
+  agentId: 'my-agent',
+  userId: 'user123',
+  role: 'user',
+  content: 'I need help with customs documentation for textile exports to Canada'
+});
+
+// Title will be auto-generated: "I need help with customs documentation for..."
+const updatedChat = await chat.getChat(newChat.id);
+console.log(updatedChat.title); // "I need help with customs documentation for..."
+```
+
+## Integration with Memory System
+
+The chat system is fully compatible with the existing memory system:
+
+```typescript
+// Chat IDs are the same as session IDs
+const chatId = newChat.id;
+const sessionId = chatId; // They're the same!
+
+// You can use memory methods directly
+const memories = await memory.getBySession(sessionId);
+
+// Or use chat methods (which delegate to memory)
+const messages = await chat.getMessages(chatId);
+```
+
+## Custom Table Names
+
+You can customize the table name for chat metadata:
+
+```typescript
+const chat = await createChat({
+  database,
+  memory,
+  tableName: 'my_custom_chats', // Custom table name
+  maxChats: 100
+});
+```
+
+## Best Practices
+
+### 1. Use Meaningful Agent IDs
+```typescript
+// Good: Descriptive agent IDs
+agentId: 'customer-support-agent'
+agentId: 'regulation-expert'
+
+// Avoid: Generic IDs
+agentId: 'agent1'
+```
+
+### 2. Add Metadata for Organization
+```typescript
+await chat.updateChat(chatId, {
+  metadata: {
+    category: 'support',
+    department: 'exports',
+    priority: 'high',
+    tags: ['urgent', 'customs']
+  }
+});
+```
+
+### 3. Regular Cleanup
+```typescript
+// Archive old chats periodically
+const oldChats = await chat.listChats({
+  // Add date filtering logic
+});
+
+for (const oldChat of oldChats) {
+  await chat.archiveChat(oldChat.id);
+}
+```
+
+### 4. Use Search for User Experience
+```typescript
+// Implement search in your UI
+const searchResults = await chat.searchChats({
+  query: userSearchTerm,
+  userId: currentUserId,
+  limit: 20
+});
+```
+
+## Error Handling
+
+```typescript
+try {
+  const newChat = await chat.createChat({
+    agentId: 'my-agent',
+    userId: 'user123'
+  });
+} catch (error) {
+  console.error('Failed to create chat:', error);
+  // Handle error appropriately
+}
+```
+
+## TypeScript Types
+
+```typescript
+import type {
+  ChatConfig,
+  ChatInstance,
+  ChatMetadata,
+  ChatSummary,
+  ChatMessage
+} from '@astreus-ai/astreus';
+```
+
+The chat system provides a robust foundation for building sophisticated conversational applications with proper organization, search capabilities, and analytics. 

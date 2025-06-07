@@ -239,12 +239,154 @@ async function main() {
 main();
 ```
 
+## Adding Chat Management
+
+For applications that need to organize conversations, you can use the chat management system:
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase,
+  createChat,
+  logger
+} from '@astreus-ai/astreus';
+
+async function main() {
+  try {
+    // Initialize components
+    const db = await createDatabase();
+    const memory = await createMemory({ 
+      database: db, 
+      tableName: "conversations" 
+    });
+    
+    // Create chat management system
+    const chat = await createChat({
+      database: db,
+      memory: memory,
+      tableName: "chats",
+      autoGenerateTitles: true
+    });
+    
+    const provider = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' });
+
+    // Create an agent
+    const agent = await createAgent({
+      name: 'ChatAgent',
+      description: 'An assistant with chat management',
+      provider: provider,
+      memory: memory,
+      database: db,
+      systemPrompt: "You are a helpful assistant."
+    });
+
+    // Create a new chat session
+    const newChat = await chat.createChat({
+      agentId: 'ChatAgent',
+      userId: 'user123',
+      title: 'Getting Started with Astreus'
+    });
+
+    console.log('Created chat:', newChat.id);
+
+    // Add messages to the chat
+    await chat.addMessage({
+      chatId: newChat.id,
+      agentId: 'ChatAgent',
+      userId: 'user123',
+      role: 'user',
+      content: 'Hello! Can you help me understand Astreus?'
+    });
+
+    // Use the agent to respond (using the same session ID)
+    const response = await agent.chat(
+      "Hello! Can you help me understand Astreus?", 
+      newChat.id, // Use chat ID as session ID
+      'user123'
+    );
+
+    // Add the agent's response to chat
+    await chat.addMessage({
+      chatId: newChat.id,
+      agentId: 'ChatAgent',
+      userId: 'user123',
+      role: 'assistant',
+      content: response
+    });
+
+    // List user's chats
+    const userChats = await chat.listChats({
+      userId: 'user123',
+      status: 'active'
+    });
+
+    console.log('User has', userChats.length, 'active chats');
+
+    // Search through chats
+    const searchResults = await chat.searchChats({
+      query: 'Astreus',
+      userId: 'user123'
+    });
+
+    console.log('Found', searchResults.length, 'chats about Astreus');
+    
+  } catch (error) {
+    logger.error('Error:', error);
+  }
+}
+
+main();
+```
+
+## Custom Table Names
+
+You can customize table names to avoid conflicts or organize your data:
+
+```typescript
+import { createDatabase, createMemory, createChat } from '@astreus-ai/astreus';
+
+async function main() {
+  // Create database with custom table names
+  const database = await createDatabase({
+    type: 'sqlite',
+    connection: { filename: './my-app.db' },
+    tableNames: {
+      agents: 'my_agents',
+      users: 'my_users',
+      tasks: 'my_tasks'
+    }
+  });
+
+  // Create memory with custom table name
+  const memory = await createMemory({
+    database,
+    tableName: 'my_conversations',
+    maxEntries: 1000
+  });
+
+  // Create chat with custom table name
+  const chat = await createChat({
+    database,
+    memory,
+    tableName: 'my_chats',
+    maxChats: 100
+  });
+
+  console.log('Custom table names:', database.getTableNames());
+}
+
+main();
+```
+
 ## Next Steps
 
 Now that you've created your first agent, you can:
 
 1. Explore the [Agents](/docs/concepts/agents) documentation to learn about advanced configuration
 2. Add [Memory](/docs/concepts/memory) capabilities with vector search
-3. Create a [RAG](/docs/concepts/rag) system to give your agent knowledge from documents
-4. Build custom [Plugins](/docs/concepts/plugins) to extend your agent's capabilities
-5. Use the [Tasks](/docs/concepts/tasks) system to handle complex workflows 
+3. Set up [Chat Management](/docs/concepts/chat) to organize conversations
+4. Create a [RAG](/docs/concepts/rag) system to give your agent knowledge from documents
+5. Build custom [Plugins](/docs/concepts/plugins) to extend your agent's capabilities
+6. Use the [Tasks](/docs/concepts/tasks) system to handle complex workflows 
