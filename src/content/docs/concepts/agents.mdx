@@ -2,21 +2,44 @@
 title: Agents
 ---
 
-Agents are the central component of the Astreus framework. An agent represents an AI assistant capable of holding conversations, performing tasks, and using tools to accomplish goals.
+Agents are the **heart of the Astreus framework**. An agent represents an AI assistant that provides a **unified interface** to all framework capabilities including streaming chat, memory management, tool execution, and more.
 
-## Agent Architecture
+## Agent-Centric Architecture
 
-Each Astreus agent consists of:
+With Astreus 0.1.9+, everything revolves around the **Agent**. Instead of managing separate components, you access everything through the agent:
 
-- **Provider**: Connection to the underlying LLM (OpenAI, Ollama, etc.)
-- **Memory**: Storage system for conversation history
-- **Tools**: Optional capabilities that extend what the agent can do
-- **Tasks**: System for breaking complex requests into manageable sub-tasks
-- **Database**: Persistent storage for agent state and data
+```typescript
+// ✅ New Agent-Centric Approach
+const agent = await createAgent({
+  name: 'MyAgent',
+  provider: myProvider,
+  memory: myMemory
+});
+
+// All operations through agent methods
+await agent.streamChat({ message: "Hello!" });
+const history = await agent.getHistory("session-1");
+const sessions = await agent.listSessions();
+const provider = agent.getProvider();
+const memory = agent.config.memory;
+const database = agent.config.database;
+```
+
+## Core Agent Capabilities
+
+Each Astreus agent provides:
+
+- **🚀 Streaming Chat**: Real-time responses with `agent.streamChat()`
+- **💬 Standard Chat**: Non-streaming responses with `agent.chat()`
+- **🧠 Memory Management**: Session-based conversation history
+- **📋 Session Tracking**: List and manage conversation sessions
+- **🔌 Tool Integration**: Add and use custom tools
+- **🗄️ Database Access**: Direct access to underlying storage
+- **🎯 Provider Flexibility**: Switch models and providers dynamically
 
 ## Creating an Agent
 
-To create an agent, use the `createAgent` function:
+Use the `createAgent` function to create a fully-featured agent:
 
 ```typescript
 import { 
@@ -26,77 +49,217 @@ import {
   createDatabase
 } from '@astreus-ai/astreus';
 
-(async () => {
+async function createMyAgent() {
   // Initialize the database
   const db = await createDatabase();
   
   // Create memory instance
   const memory = await createMemory({
     database: db,
-    tableName: "memories",
-    maxEntries: 100
+    tableName: "conversations",
+    maxEntries: 200
   });
 
   // Configure your provider
   const provider = createProvider({
     type: 'openai',
-    model: 'gpt-4o-mini'
+    model: 'gpt-4o-mini',
+    apiKey: process.env.OPENAI_API_KEY
   });
 
-  // Create an agent instance
+  // Create an agent with all capabilities
   const agent = await createAgent({
     name: 'MyAssistant',
-    description: 'A helpful AI assistant',
+    description: 'A helpful AI assistant with streaming capabilities',
     provider: provider,
     memory: memory,
-    database: db,
-    systemPrompt: "You are a helpful AI assistant."
+    systemPrompt: "You are a helpful AI assistant that provides detailed, accurate responses.",
+    tools: [customTool1, customTool2] // Optional tools
   });
-})();
+
+  return agent;
+}
+```
+
+## Streaming Chat
+
+The agent provides built-in streaming capabilities for real-time responses:
+
+```typescript
+// Real-time streaming chat
+const response = await agent.streamChat({
+  message: "Explain quantum computing in simple terms",
+  sessionId: "physics-chat",
+  systemPrompt: "You are a physics teacher. Explain concepts clearly.",
+  temperature: 0.7,
+  maxTokens: 1000,
+  metadata: { topic: 'physics', level: 'beginner' },
+  onChunk: (chunk) => {
+    // Send chunk to frontend in real-time
+    console.log('Chunk:', chunk);
+    websocket.send(JSON.stringify({ type: 'chunk', content: chunk }));
+  }
+});
+
+console.log('Full response:', response);
+```
+
+## Standard Chat
+
+For non-streaming scenarios, use the standard chat method:
+
+```typescript
+// Standard chat (no streaming)
+const response = await agent.chat({
+  message: "What's the weather like?",
+  sessionId: "weather-chat",
+  temperature: 0.5,
+  maxTokens: 500,
+  metadata: { type: 'weather_query' }
+});
+
+console.log('Response:', response);
+```
+
+## Memory and Session Management
+
+Agents provide direct access to conversation history and session management:
+
+```typescript
+// Get conversation history
+const history = await agent.getHistory("session-123", 10);
+console.log(`Found ${history.length} messages`);
+
+// Add custom memory entries
+await agent.addToMemory({
+  sessionId: "session-123",
+  role: 'system',
+  content: "User prefers technical explanations",
+  metadata: { preference: 'technical' }
+});
+
+// List all sessions
+const sessions = await agent.listSessions(20);
+sessions.forEach(session => {
+  console.log(`Session: ${session.sessionId}`);
+  console.log(`Messages: ${session.messageCount}`);
+  console.log(`Last activity: ${session.lastActivity}`);
+});
+
+// Clear a session
+await agent.clearHistory("old-session");
+```
+
+## Tool Integration
+
+Add and manage tools directly through the agent:
+
+```typescript
+// Define a custom tool
+const weatherTool = {
+  name: "get_weather",
+  description: "Get current weather for a city",
+  parameters: {
+    city: { type: "string", description: "City name" }
+  },
+  execute: async (params) => {
+    // Call weather API
+    return { success: true, output: `Weather in ${params.city}: Sunny, 22°C` };
+  }
+};
+
+// Add tool to agent
+agent.addTool(weatherTool);
+
+// Check available tools
+const tools = agent.getAvailableTools();
+console.log('Available tools:', tools);
+
+// Tools are automatically used during chat
+const response = await agent.streamChat({
+  message: "What's the weather in London?",
+  sessionId: "weather-session",
+  onChunk: (chunk) => console.log(chunk)
+});
+```
+
+## Provider and Model Access
+
+Access and manage the underlying provider and model:
+
+```typescript
+// Get provider
+const provider = agent.getProvider();
+if (provider) {
+  console.log('Available models:', provider.listModels());
+  console.log('Provider type:', provider.type);
+}
+
+// Get current model
+const model = agent.getModel();
+console.log('Current model:', model.name);
+
+// Switch models dynamically
+const gpt4 = provider?.getModel('gpt-4');
+if (gpt4) {
+  agent.config.model = gpt4;
+  console.log('Switched to GPT-4');
+}
+```
+
+## Database and Memory Access
+
+Access underlying storage systems for advanced operations:
+
+```typescript
+// Direct database access
+const database = agent.config.database;
+const customQuery = await database.knex('memories')
+  .where('agentId', agent.id)
+  .andWhere('sessionId', 'like', '%important%')
+  .orderBy('timestamp', 'desc');
+
+// Direct memory access
+const memory = agent.config.memory;
+
+// Search by text
+const textResults = await memory.searchByText("machine learning", 5);
+
+// Search by embedding (if enabled)
+const embedding = [0.1, 0.2, 0.3, 0.4, 0.5]; // 1536-dimensional vector for OpenAI
+const similarResults = await memory.searchByEmbedding(embedding, 5, 0.8);
+
+// Get all memories for this agent
+const allMemories = await memory.getByAgent(agent.id, 100);
 ```
 
 ## Agent Configuration Options
 
-When creating an agent, you can customize its behavior with these options:
-
 | Option | Type | Description | Required |
 |--------|------|-------------|----------|
-| `name` | string | Name of the agent | No (defaults to "Assistant") |
-| `description` | string | Description of the agent | No |
-| `provider` | Provider | LLM provider instance | Yes |
-| `memory` | Memory | Memory instance for conversation history | Yes |
-| `database` | Database | Database for persistence | No (created if not provided) |
-| `systemPrompt` | string | Instructions that define agent behavior | No |
+| `name` | string | Agent name | No (defaults to "Assistant") |
+| `description` | string | Agent description | No |
+| `provider` | ProviderInstance | LLM provider | Yes (or model) |
+| `model` | ProviderModel | Specific model instance | Yes (or provider) |
+| `memory` | MemoryInstance | Memory for conversations | Yes |
+| `database` | DatabaseInstance | Database for persistence | No |
+| `systemPrompt` | string | Default system instructions | No |
 | `tools` | Plugin[] | Array of tools/plugins | No |
-| `plugins` | PluginInstance[] | Plugin instances with tool functionality | No |
-| `rag` | RAG | Retrieval system for documents (automatically creates RAG tools) | No |
+| `plugins` | PluginInstance[] | Plugin instances | No |
+| `rag` | RAGInstance | RAG system (auto-creates tools) | No |
+| `chat` | ChatInstance | Chat manager instance | No |
 
 ## Agent with RAG Capabilities
 
-When you provide a RAG instance to an agent, it automatically gains access to document search and management tools:
+When you provide a RAG instance, the agent automatically gains document search tools:
 
 ```typescript
-import { 
-  createAgent, 
-  createRAG,
-  RAGType,
-  parsePDF,
-  createProvider,
-  createMemory,
-  createDatabase
-} from '@astreus-ai/astreus';
+import { createAgent, createRAG, RAGType, parsePDF } from '@astreus-ai/astreus';
 
-(async () => {
-  // Initialize components
+async function createRAGAgent() {
   const db = await createDatabase();
+  const memory = await createMemory({ database: db });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
-  const memory = await createMemory({ database: db, tableName: "memories" });
-
-  // Parse a PDF document
-  const pdfResult = await parsePDF('./manual.pdf', {
-    splitStrategy: 'section',
-    includePageNumbers: true
-  });
 
   // Create RAG system
   const rag = await createRAG({
@@ -107,247 +270,158 @@ import {
     chunkOverlap: 200
   });
 
-  // Add parsed document to RAG
+  // Add documents
+  const pdfResult = await parsePDF('./manual.pdf');
   for (const doc of pdfResult.documents) {
     await rag.addDocument({
       content: doc.content,
-      metadata: {
-        ...doc.metadata,
-        documentId: pdfResult.documentId,
-        fileName: pdfResult.pdfMetadata.title
-      }
+      metadata: { source: 'manual', page: doc.metadata.page }
     });
   }
 
-  // Create agent with RAG capabilities
+  // Create agent with RAG
   const agent = await createAgent({
     name: 'DocumentAssistant',
-    description: 'AI assistant with access to documentation',
     provider: provider,
     memory: memory,
-    database: db,
-    rag: rag,  // This automatically adds RAG tools!
+    rag: rag, // Automatically adds RAG tools
     systemPrompt: `You are a helpful assistant with access to documentation. 
-When users ask questions, search through the available documents to provide accurate answers.
-Always cite the source document and page number when possible.`
+Use the rag_search tool to find relevant information when answering questions.`
   });
 
-  // The agent now automatically has these RAG tools available:
-  // - rag_search: Search through documents semantically
-  // - rag_add_document: Add new documents (Vector RAG only)
-  // - rag_get_document: Retrieve specific documents (Vector RAG only)
-  // - rag_delete_document: Remove documents (Vector RAG only)
-  // - rag_search_by_metadata: Search by metadata (Document RAG only)
+  // Agent now has RAG tools available
+  console.log('RAG tools:', agent.getAvailableTools().filter(t => t.startsWith('rag_')));
 
-  // To use the agent, create a chat manager
-  const chatManager = await createChat({
-    database: db,
-    memory: memory
-  });
+  return agent;
+}
 
-  // Agent will automatically use RAG when relevant
-  const response = await chatManager.createChatWithMessage({
-    agentId: agent.id,
-    userId: "user-123",
-    title: "Documentation Query",
-    message: "What does the manual say about installation?",
-    provider: provider,
-    systemPrompt: agent.systemPrompt,
-    tools: agent.getAvailableTools().map(toolName => 
-      Array.from(agent.tools.values()).find(tool => tool.name === toolName)
-    ).filter(Boolean)
-  });
-  // Agent searches documents and provides contextual answer
-})();
+// Use the RAG agent
+const ragAgent = await createRAGAgent();
+
+// Agent automatically searches documents when relevant
+const response = await ragAgent.streamChat({
+  message: "How do I configure the database?",
+  sessionId: "docs-session",
+  onChunk: (chunk) => console.log(chunk)
+});
 ```
 
-### RAG Tool Availability
+## Advanced Agent Patterns
 
-The tools available to your agent depend on the RAG type:
+### Multi-Model Agent
 
-**Vector RAG** provides:
-- `rag_search` - Semantic search across document content
-- `rag_add_document` - Add new documents to the knowledge base
-- `rag_get_document` - Retrieve specific documents by ID
-- `rag_delete_document` - Remove documents from the knowledge base
-
-**Document RAG** provides:
-- `rag_search` - Search across document content
-- `rag_search_by_metadata` - Filter documents by metadata
-
-### Agent RAG Usage Examples
+Switch between models based on task complexity:
 
 ```typescript
-// Create chat manager for conversations
-const chatManager = await createChat({
-  database: db,
-  memory: memory
-});
+class SmartAgent {
+  private agent: AgentInstance;
+  private provider: ProviderInstance;
 
-// Agent automatically searches when asked about documentation
-const answer1 = await chatManager.createChatWithMessage({
-  agentId: agent.id,
-  userId: "user-123",
-  title: "Database Configuration",
-  message: "How do I configure the database connection?",
-  provider: provider,
-  systemPrompt: agent.systemPrompt,
-  tools: agent.getAvailableTools().map(toolName => 
-    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
-  ).filter(Boolean)
-});
-// Agent uses rag_search tool automatically
+  constructor(agent: AgentInstance) {
+    this.agent = agent;
+    this.provider = agent.getProvider()!;
+  }
 
-// Agent can add new information to knowledge base
-const answer2 = await chatManager.chat({
-  chatId: answer1.chatId,
-  agentId: agent.id,
-  userId: "user-123",
-  message: `Add this FAQ to the knowledge base:
-  Q: How to reset password?
-  A: Click on 'Forgot Password' link and follow email instructions.`,
-  provider: provider,
-  tools: agent.getAvailableTools().map(toolName => 
-    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
-  ).filter(Boolean)
-});
-// Agent uses rag_add_document tool automatically
+  async smartChat(message: string, sessionId: string) {
+    // Use fast model for simple queries
+    if (message.length < 50) {
+      const fastModel = this.provider.getModel('gpt-4o-mini');
+      this.agent.config.model = fastModel;
+    } else {
+      // Use powerful model for complex queries
+      const powerfulModel = this.provider.getModel('gpt-4');
+      this.agent.config.model = powerfulModel;
+    }
 
-// Agent can find documents by metadata
-const answer3 = await chatManager.chat({
-  chatId: answer1.chatId,
-  agentId: agent.id,
-  userId: "user-123",
-  message: "Show me all documents about security from version 2.0",
-  provider: provider,
-  tools: agent.getAvailableTools().map(toolName => 
-    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
-  ).filter(Boolean)
-});
-// Agent uses rag_search_by_metadata with appropriate filters
+    return await this.agent.streamChat({
+      message,
+      sessionId,
+      onChunk: (chunk) => this.handleChunk(chunk)
+    });
+  }
 
-// Agent understands document relationships
-const answer4 = await chatManager.chat({
-  chatId: answer1.chatId,
-  agentId: agent.id,
-  userId: "user-123",
-  message: "What does page 15 of the user manual say about networking?",
-  provider: provider,
-  tools: agent.getAvailableTools().map(toolName => 
-    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
-  ).filter(Boolean)
-});
-// Agent searches for content with specific page metadata
+  private handleChunk(chunk: string) {
+    // Custom chunk processing
+    console.log('Processing chunk:', chunk);
+  }
+}
 ```
 
-## Agent Integration with Chat and Task Systems
-
-Agents in Astreus are designed to work seamlessly with the Chat and Task management systems. While agents focus on core functionality like model management and tool integration, conversations and task orchestration are handled by dedicated managers.
-
-### Chat Integration
-
-For conversation management, use the Chat system alongside your agent:
+### Agent with Custom Memory Strategy
 
 ```typescript
-import { createAgent, createChat, createMemory, createDatabase, createProvider } from '@astreus-ai/astreus';
+class MemoryAwareAgent {
+  private agent: AgentInstance;
 
-// Create agent
-const agent = await createAgent({
-  name: 'Assistant',
-  model: myModel,
-  memory: myMemory,
-  systemPrompt: "You are a helpful AI assistant."
-});
+  constructor(agent: AgentInstance) {
+    this.agent = agent;
+  }
 
-// Create chat manager
+  async chatWithContext(message: string, sessionId: string) {
+    // Get relevant context from memory
+    const memory = this.agent.config.memory;
+    const relevantMemories = await memory.searchByText(message, 3);
+    
+    // Build context-aware system prompt
+    const context = relevantMemories
+      .map(m => `Previous: ${m.content}`)
+      .join('\n');
+    
+    const systemPrompt = `You are a helpful assistant. Consider this context:
+${context}
+
+Respond to the user's current message while being aware of the conversation history.`;
+
+    return await this.agent.streamChat({
+      message,
+      sessionId,
+      systemPrompt,
+      onChunk: (chunk) => console.log(chunk)
+    });
+  }
+}
+```
+
+## Best Practices
+
+1. **Use Streaming**: Implement `streamChat()` for better user experience
+2. **Session Management**: Use consistent session IDs for conversation continuity
+3. **Memory Optimization**: Regularly clean old sessions with `clearHistory()`
+4. **Tool Organization**: Group related tools and use clear descriptions
+5. **Error Handling**: Wrap agent calls in try-catch blocks
+6. **Model Selection**: Choose appropriate models for different use cases
+7. **System Prompts**: Use specific, clear instructions for better responses
+
+## Migration from Previous Versions
+
+If you're upgrading from earlier Astreus versions:
+
+```typescript
+// ❌ Old approach (pre-0.1.9)
 const chatManager = await createChat({
-  database: myDatabase,
+  provider: myProvider,
   memory: myMemory
 });
-
-// Start a conversation
-const response = await chatManager.createChatWithMessage({
-  agentId: agent.id,
-  userId: "user-123",
-  title: "General Chat",
-  message: "Hello! How are you?",
-  model: agent.config.model,
-  systemPrompt: agent.config.systemPrompt,
-  tools: agent.getAvailableTools().map(toolName => 
-    // Get actual tool objects from agent
-    Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
-  ).filter(Boolean)
+const response = await chatManager.chat({
+  chatId,
+  agentId,
+  message,
+  provider,
+  systemPrompt
 });
 
-// Continue conversation
-const response2 = await chatManager.chat({
-  chatId: "existing-chat-id",
-  agentId: agent.id,
-  message: "What's the weather like?",
-  model: agent.config.model,
-  tools: Array.from((agent as any).tools.values())
+// ✅ New agent-centric approach (0.1.9+)
+const agent = await createAgent({
+  name: 'MyAgent',
+  provider: myProvider,
+  memory: myMemory
+});
+const response = await agent.streamChat({
+  message,
+  sessionId,
+  systemPrompt,
+  onChunk: (chunk) => console.log(chunk)
 });
 ```
 
-### Task Integration
-
-For complex task orchestration, use the Task system with your agent:
-
-```typescript
-import { createTaskManager } from '@astreus-ai/astreus';
-
-// Create task manager
-const taskManager = createTaskManager({
-  agentId: agent.id,
-  memory: myMemory,
-  database: myDatabase
-});
-
-// Create and run tasks
-await taskManager.createTask({
-  name: "Data Analysis",
-  description: "Analyze the uploaded dataset",
-  input: { datasetPath: "/path/to/data.csv" }
-});
-
-const results = await taskManager.run();
-```
-
-### Agent as Tool Provider
-
-The primary role of an agent is to provide tools and model access to the Chat and Task systems:
-
-```typescript
-// Agent provides tools to chat system
-const availableTools = agent.getAvailableTools();
-const toolObjects = availableTools.map(toolName => 
-  // Access agent's internal tools
-  Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
-).filter(Boolean);
-
-// Use in chat
-await chatManager.chat({
-  chatId: "chat-123",
-  agentId: agent.id,
-  message: "Calculate 15 * 23",
-  model: agent.config.model,
-  tools: toolObjects  // Agent's tools are used by chat system
-});
-```
-
-## Adding Tools at Runtime
-
-You can add new capabilities to an agent after creation:
-
-```typescript
-import { CalculatorPlugin } from './plugins/calculator';
-
-// Create a new plugin
-const calculator = new CalculatorPlugin();
-
-// Add it to the agent
-agent.addTool(calculator);
-
-// Now the agent can use the calculator
-const response = await agent.chat("What is 234 * 789?");
-``` 
+The agent-centric approach simplifies development and provides more powerful capabilities while maintaining backward compatibility where possible. 

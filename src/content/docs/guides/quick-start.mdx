@@ -2,7 +2,7 @@
 title: Quick Start Guide
 ---
 
-This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent.
+This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent with **streaming capabilities**.
 
 ## Installation
 
@@ -38,9 +38,9 @@ DATABASE_PATH=./astreus.db  # Only for SQLite
 LOG_LEVEL=info  # debug, info, warn, error
 ```
 
-## Creating a Simple Agent
+## Creating Your First Agent
 
-Create a file named `simple-agent.js` (or `.ts` if using TypeScript):
+With Astreus 0.1.9+, everything revolves around the **Agent**. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
 
 ```typescript
 import { 
@@ -48,7 +48,6 @@ import {
   createProvider,
   createMemory,
   createDatabase,
-  createChat,
   logger
 } from '@astreus-ai/astreus';
 
@@ -65,52 +64,49 @@ async function main() {
 
     // Configure your provider
     const provider = createProvider({
-      type: 'openai',  // Use 'ollama' for local models
-      model: 'gpt-3.5-turbo'  // More affordable option to start with
+      type: 'openai',
+      model: 'gpt-4o-mini'  // Fast and affordable option
     });
 
-    // Create an agent instance
+    // Create an agent - everything you need in one place!
     const agent = await createAgent({
       name: 'MyFirstAgent',
-      description: 'A helpful AI assistant',
+      description: 'A helpful AI assistant with streaming capabilities',
       provider: provider,
       memory: memory,
-      database: db,
       systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
     });
 
-    // Create chat manager for conversations
-    const chatManager = await createChat({
-      database: db,
-      memory: memory
-    });
-
-    // Start a conversation with your agent
-    const response = await chatManager.createChatWithMessage({
-      agentId: agent.id,
-      userId: "user-123",
-      title: "First Conversation",
+    // 🚀 Basic chat (non-streaming)
+    console.log('=== Basic Chat ===');
+    const response = await agent.chat({
       message: "Hello! What can you do for me?",
-      provider: provider,
-      systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
+      sessionId: "session-1"
     });
-    logger.info('Agent response:', response);
-    
-    // Continue the conversation
-    const chats = await chatManager.listChats({ userId: "user-123" });
-    const chatId = chats[0]?.id;
-    
-    if (chatId) {
-      const followup = await chatManager.chat({
-        chatId,
-        agentId: agent.id,
-        userId: "user-123",
-        message: "Tell me more about the Astreus framework.",
-        provider: provider,
-        systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
-      });
-      logger.info('Agent response:', followup);
-    }
+    console.log('Agent:', response);
+
+    // ⚡ Streaming chat (real-time responses)
+    console.log('\n=== Streaming Chat ===');
+    const streamResponse = await agent.streamChat({
+      message: "Tell me about the benefits of AI in 3 points",
+      sessionId: "session-1",
+      onChunk: (chunk) => {
+        process.stdout.write(chunk); // Print each chunk as it arrives
+      }
+    });
+    console.log('\n✅ Streaming complete!');
+
+    // 📊 Check session history
+    console.log('\n=== Session History ===');
+    const history = await agent.getHistory("session-1");
+    console.log(`Found ${history.length} messages in session`);
+
+    // 📋 List all sessions
+    console.log('\n=== All Sessions ===');
+    const sessions = await agent.listSessions();
+    sessions.forEach(session => {
+      console.log(`Session: ${session.sessionId} (${session.messageCount} messages)`);
+    });
     
   } catch (error) {
     logger.error('Error:', error);
@@ -123,337 +119,234 @@ main();
 Run your agent:
 
 ```bash
-node simple-agent.js
+node my-agent.js
 ```
 
-## Adding a Custom Tool
+## Real-Time Streaming Example
 
-Let's enhance our agent with a custom calculator tool:
+Here's how to implement real-time streaming in a web application:
 
 ```typescript
-import { 
-  createAgent, 
-  createProvider,
-  createMemory,
-  createDatabase,
-  createChat,
-  logger,
-  Plugin
-} from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+import WebSocket from 'ws';
 
-// Create a calculator plugin
-const calculatorPlugin: Plugin = {
-  name: "calculator",
-  description: "Performs basic mathematical calculations",
+// WebSocket server for real-time streaming
+const wss = new WebSocket.Server({ port: 8080 });
+
+async function setupAgent() {
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+
+  return await createAgent({
+    name: 'StreamingAgent',
+    provider: provider,
+    memory: memory,
+    systemPrompt: "You are a helpful assistant that provides detailed, informative responses."
+  });
+}
+
+wss.on('connection', async (ws) => {
+  const agent = await setupAgent();
+  
+  ws.on('message', async (data) => {
+    const { message, sessionId } = JSON.parse(data.toString());
+    
+    // Stream response to client in real-time
+    await agent.streamChat({
+      message,
+      sessionId,
+      onChunk: (chunk) => {
+        ws.send(JSON.stringify({ 
+          type: 'chunk', 
+          content: chunk 
+        }));
+      }
+    });
+    
+    // Signal completion
+    ws.send(JSON.stringify({ type: 'complete' }));
+  });
+});
+
+console.log('WebSocket server running on ws://localhost:8080');
+```
+
+## Adding Custom Tools
+
+Enhance your agent with custom capabilities:
+
+```typescript
+import { createAgent, createProvider, createMemory, createDatabase, Plugin } from '@astreus-ai/astreus';
+
+// Create a weather tool
+const weatherTool: Plugin = {
+  name: "get_weather",
+  description: "Get current weather information for a city",
   parameters: {
-    expression: {
+    city: {
       type: "string",
-      description: "The mathematical expression to evaluate (e.g., '2 + 2', '5 * 10')"
+      description: "The city name to get weather for"
     }
   },
   execute: async (params) => {
-    try {
-      // NEVER use eval in production - this is just for demonstration
-      // Use a proper math expression parser in real applications
-      const result = Function(`'use strict'; return (${params.expression})`)();
-      return {
-        success: true,
-        output: `The result of ${params.expression} is ${result}`
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: `Error calculating result: ${error.message}`
-      };
-    }
+    // In a real app, you'd call a weather API
+    return {
+      success: true,
+      output: `The weather in ${params.city} is sunny with 22°C`
+    };
   }
 };
 
 async function main() {
-  try {
-    // Initialize components
-    const db = await createDatabase();
-    const memory = await createMemory({ database: db, tableName: "conversations" });
-    const provider = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' });
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
-    // Create an agent with the calculator plugin
-    const agent = await createAgent({
-      name: 'CalculatorAgent',
-      description: 'An assistant that can perform calculations',
-      provider: provider,
-      memory: memory,
-      database: db,
-      systemPrompt: "You are a helpful assistant that can perform calculations. Use the calculator tool when asked to compute mathematical expressions.",
-      plugins: [calculatorPlugin]  // Add the plugin here
-    });
+  // Create agent with tools
+  const agent = await createAgent({
+    name: 'WeatherAgent',
+    provider: provider,
+    memory: memory,
+    tools: [weatherTool], // Add tools here
+    systemPrompt: "You are a helpful assistant that can provide weather information. Use the get_weather tool when asked about weather."
+  });
 
-    // Create chat manager
-    const chatManager = await createChat({
-      database: db,
-      memory: memory
-    });
-
-    // Test the calculator capability
-    const response = await chatManager.createChatWithMessage({
-      agentId: agent.id,
-      userId: "user-123",
-      title: "Calculator Test",
-      message: "What is 123 multiplied by 456?",
-      provider: provider,
-      systemPrompt: "You are a helpful assistant that can perform calculations. Use the calculator tool when asked to compute mathematical expressions.",
-      tools: [calculatorPlugin]
-    });
-    logger.info('Agent response:', response);
-    
-  } catch (error) {
-    logger.error('Error:', error);
-  }
-}
-
-main();
-```
-
-## Adding RAG (Document Search) Capabilities
-
-Let's create an agent that can search through documents:
-
-```typescript
-import { 
-  createAgent, 
-  createProvider,
-  createMemory,
-  createDatabase,
-  createRAG,
-  createChat,
-  RAGType,
-  logger
-} from '@astreus-ai/astreus';
-
-async function main() {
-  try {
-    // Initialize components
-    const db = await createDatabase();
-    const memory = await createMemory({ database: db, tableName: "conversations" });
-    const provider = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' });
-
-    // Create a RAG system
-    const rag = await createRAG({
-      type: RAGType.DOCUMENT,
-      database: db,
-      tableName: "knowledge_base"
-    });
-
-    // Add some sample documents
-    await rag.addDocument({
-      content: "The Astreus framework is an AI agent platform that supports RAG, memory, tasks, and plugins. It works with OpenAI and Ollama models.",
-      metadata: { category: "framework", topic: "overview" }
-    });
-
-    await rag.addDocument({
-      content: "To create an agent, use createAgent() with a provider, memory, and database. You can also add tools, plugins, and RAG for enhanced capabilities.",
-      metadata: { category: "tutorial", topic: "getting-started" }
-    });
-
-    // Create an agent with RAG - it automatically gets RAG search tools!
-    const agent = await createAgent({
-      name: 'DocumentAgent',
-      description: 'An assistant that can search through documents',
-      provider: provider,
-      memory: memory,
-      database: db,
-      rag: rag,  // This automatically adds rag_search and rag_search_by_metadata tools
-      systemPrompt: "You are a helpful assistant. When asked questions, use the rag_search tool to find relevant information from the knowledge base before answering."
-    });
-
-    // Create chat manager
-    const chatManager = await createChat({
-      database: db,
-      memory: memory
-    });
-
-    // Test the RAG capabilities
-    const response = await chatManager.createChatWithMessage({
-      agentId: agent.id,
-      userId: "user-123",
-      title: "RAG Test",
-      message: "How do I create an agent in Astreus?",
-      provider: provider,
-      systemPrompt: "You are a helpful assistant. When asked questions, use the rag_search tool to find relevant information from the knowledge base before answering.",
-      tools: agent.getAvailableTools().map(toolName => 
-        Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
-      ).filter(Boolean)
-    });
-    logger.info('Agent response:', response);
-    
-    // Test metadata search
-    const chats = await chatManager.listChats({ userId: "user-123" });
-    const chatId = chats[0]?.id;
-    
-    if (chatId) {
-      const categoryResponse = await chatManager.chat({
-        chatId,
-        agentId: agent.id,
-        userId: "user-123",
-        message: "Show me all framework-related documents",
-        provider: provider,
-        systemPrompt: "You are a helpful assistant. When asked questions, use the rag_search tool to find relevant information from the knowledge base before answering.",
-        tools: agent.getAvailableTools().map(toolName => 
-          Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
-        ).filter(Boolean)
-      });
-      logger.info('Category search response:', categoryResponse);
+  // Add more tools dynamically
+  const calculatorTool: Plugin = {
+    name: "calculator",
+    description: "Perform mathematical calculations",
+    parameters: {
+      expression: {
+        type: "string",
+        description: "Mathematical expression to evaluate"
+      }
+    },
+    execute: async (params) => {
+      try {
+        // Use a proper math parser in production
+        const result = Function(`'use strict'; return (${params.expression})`)();
+        return { success: true, output: `Result: ${result}` };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
     }
-    
-  } catch (error) {
-    logger.error('Error:', error);
-  }
+  };
+
+  // Add tool to existing agent
+  agent.addTool(calculatorTool);
+
+  // Test the tools
+  console.log('Available tools:', agent.getAvailableTools());
+
+  // Chat with tool usage
+  const response = await agent.streamChat({
+    message: "What's the weather in London and what's 15 * 24?",
+    sessionId: "tools-session",
+    onChunk: (chunk) => process.stdout.write(chunk)
+  });
 }
 
 main();
 ```
 
-## Adding Chat Management
+## Memory and Session Management
 
-For applications that need to organize conversations, you can use the chat management system:
+Access and manage conversation history:
 
 ```typescript
-import { 
-  createAgent, 
-  createProvider,
-  createMemory,
-  createDatabase,
-  createChat,
-  logger
-} from '@astreus-ai/astreus';
+async function memoryExample() {
+  const agent = await setupAgent(); // Your agent setup
 
-async function main() {
-  try {
-    // Initialize components
-    const db = await createDatabase();
-    const memory = await createMemory({ 
-      database: db, 
-      tableName: "conversations" 
-    });
-    
-    // Create chat management system
-    const chat = await createChat({
-      database: db,
-      memory,
-      tableName: "chats",
-      autoGenerateTitles: true
-    });
-    
-    const provider = createProvider({ type: 'openai', model: 'gpt-3.5-turbo' });
+  // Add custom memory entries
+  await agent.addToMemory({
+    sessionId: "custom-session",
+    role: 'system',
+    content: "User prefers detailed explanations",
+    metadata: { preference: 'detailed' }
+  });
 
-    // Create an agent
-    const agent = await createAgent({
-      name: 'ChatAgent',
-      description: 'An assistant with chat management',
-      provider: provider,
-      memory: memory,
-      database: db,
-      systemPrompt: "You are a helpful assistant."
-    });
+  // Get conversation history
+  const history = await agent.getHistory("custom-session", 10);
+  console.log('Recent messages:', history);
 
-    // Create a new chat session
-    const newChat = await chat.createChat({
-      agentId: 'ChatAgent',
-      userId: 'user123',
-      title: 'Getting Started with Astreus'
-    });
+  // Clear a session
+  await agent.clearHistory("old-session");
 
-    console.log('Created chat:', newChat.id);
+  // List all sessions with metadata
+  const sessions = await agent.listSessions(20);
+  sessions.forEach(session => {
+    console.log(`Session: ${session.sessionId}`);
+    console.log(`Last message: ${session.lastMessage}`);
+    console.log(`Messages: ${session.messageCount}`);
+    console.log(`Last activity: ${session.lastActivity}`);
+  });
 
-    // Add messages to the chat
-    await chat.addMessage({
-      chatId: newChat.id,
-      agentId: 'ChatAgent',
-      userId: 'user123',
-      role: 'user',
-      content: 'Hello! Can you help me understand Astreus?'
-    });
-
-    // Use the chat system to handle the conversation
-    const response = await chat.chat({
-      chatId: newChat.id,
-      agentId: agent.id,
-      userId: 'user123',
-      message: "Hello! Can you help me understand Astreus?",
-      provider: provider,
-      systemPrompt: "You are a helpful assistant."
-    });
-
-    // List user's chats
-    const userChats = await chat.listChats({
-      userId: 'user123',
-      status: 'active'
-    });
-
-    console.log('User has', userChats.length, 'active chats');
-
-    // Search through chats
-    const searchResults = await chat.searchChats({
-      query: 'Astreus',
-      userId: 'user123'
-    });
-
-    console.log('Found', searchResults.length, 'chats about Astreus');
-    
-  } catch (error) {
-    logger.error('Error:', error);
-  }
+  // Access memory directly for advanced operations
+  const memory = agent.config.memory;
+  const searchResults = await memory.searchByText("weather", 5);
+  console.log('Weather-related messages:', searchResults);
 }
-
-main();
 ```
 
-## Custom Table Names
+## Advanced Configuration
 
-You can customize table names to avoid conflicts or organize your data:
+Access all components through the agent:
 
 ```typescript
-import { createDatabase, createMemory, createChat } from '@astreus-ai/astreus';
+async function advancedExample() {
+  const agent = await setupAgent();
 
-async function main() {
-  // Create database with custom table names
-  const database = await createDatabase({
-    type: 'sqlite',
-    connection: { filename: './my-app.db' },
-    tableNames: {
-      agents: 'my_agents',
-      users: 'my_users',
-      tasks: 'my_tasks'
-    }
-  });
+  // Access provider
+  const provider = agent.getProvider();
+  if (provider) {
+    console.log('Available models:', provider.listModels());
+    console.log('Current model:', agent.getModel().name);
+  }
 
-  // Create memory with custom table name
-  const memory = await createMemory({
-    database,
-    tableName: 'my_conversations',
-    maxEntries: 1000
-  });
+  // Access database directly
+  const db = agent.config.database;
+  const customQuery = await db.knex('memories')
+    .where('agentId', agent.id)
+    .count('* as total');
+  console.log('Total memories:', customQuery[0].total);
 
-  // Create chat with custom table name
-  const chat = await createChat({
-    database,
-    memory,
-    tableName: 'my_chats',
-    maxChats: 100
-  });
+  // Access memory for advanced operations
+  const memory = agent.config.memory;
+  const agentMemories = await memory.getByAgent(agent.id, 50);
+  console.log(`Agent has ${agentMemories.length} memories`);
 
-  console.log('Custom table names:', database.getTableNames());
+  // Switch models dynamically
+  const newModel = provider?.getModel('gpt-4');
+  if (newModel) {
+    agent.config.model = newModel;
+    console.log('Switched to GPT-4');
+  }
 }
-
-main();
 ```
 
 ## Next Steps
 
-Now that you've created your first agent, you can:
+Now that you have a working agent with streaming capabilities:
 
-1. Explore the [Agents](/docs/concepts/agents) documentation to learn about advanced configuration
-2. Add [Memory](/docs/concepts/memory) capabilities with vector search
-3. Set up [Chat Management](/docs/concepts/chat) to organize conversations
-4. Create a [RAG](/docs/concepts/rag) system to give your agent knowledge from documents
-5. Build custom [Plugins](/docs/concepts/plugins) to extend your agent's capabilities
-6. Use the [Tasks](/docs/concepts/tasks) system to handle complex workflows 
+1. **Explore Concepts**: Learn about [Agents](/docs/concepts/agents), [Memory](/docs/concepts/memory), and [Chat](/docs/concepts/chat)
+2. **Add Plugins**: Check out [Custom Plugins](/docs/guides/custom-plugins) to extend functionality
+3. **Setup RAG**: Follow the [RAG Setup Guide](/docs/guides/rag-setup) for document search capabilities
+4. **Production Deployment**: Configure PostgreSQL and proper error handling for production use
+
+## Troubleshooting
+
+**Streaming not working?**
+- Ensure you're using OpenAI provider with a valid API key
+- Check that `onChunk` callback is properly defined
+- Verify your model supports streaming (most OpenAI models do)
+
+**Memory issues?**
+- Check database connection and table creation
+- Verify session IDs are consistent
+- Use `agent.getHistory()` to debug conversation flow
+
+**Tool not being called?**
+- Ensure tool description clearly explains when to use it
+- Check parameter definitions match expected input
+- Use detailed system prompts that mention available tools 

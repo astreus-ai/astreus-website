@@ -2,246 +2,461 @@
 title: Memory
 ---
 
-Memory enables agents to store and recall conversation history, allowing for contextual understanding and continuity in interactions.
+Memory in Astreus 0.1.9+ is **agent-centric** and provides powerful conversation history management with **session-based organization**. Instead of managing memory separately, you access it directly through agents with built-in session tracking.
 
-## Memory Architecture
+## Agent-Centric Memory Architecture
 
-Astreus Memory system consists of:
+With the new approach, memory is accessed through agents and automatically manages:
 
-- **Conversation History**: Stores all messages exchanged with the agent
-- **Embedding Storage**: Optional vector representations for semantic search
-- **Session Management**: Organizes conversations into separate sessions
-- **Metadata Support**: Allows attaching additional context to messages
-- **Persistence Layer**: Saves history to a database for long-term storage
+- **Session-Based History**: Organized conversations by session ID
+- **Automatic Message Storage**: Messages saved during `agent.chat()` and `agent.streamChat()`
+- **Direct Memory Access**: Full memory operations through `agent.config.memory`
+- **Session Management**: Built-in session listing and management
+- **Metadata Support**: Rich metadata for each message and session
+- **Semantic Search**: Optional vector embeddings for content search
 
-## Creating Memory
+## Memory Through Agents
 
-To create a memory instance, use the `createMemory` function:
+Access memory operations directly through your agent:
 
 ```typescript
-import { createMemory, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
 
-// Initialize the database first
-const db = await createDatabase();
+async function setupAgentWithMemory() {
+  const db = await createDatabase();
+  
+  // Create memory with advanced features
+  const memory = await createMemory({
+    database: db,
+    tableName: "conversations",
+    maxEntries: 200,
+    enableEmbeddings: true  // Enable semantic search
+  });
 
-// Create a basic memory instance
-const memory = await createMemory({
-  database: db,
-  tableName: "agent_memories",
-  maxEntries: 50  // Limit the size of conversation history
+  const provider = createProvider({ 
+    type: 'openai', 
+    model: 'gpt-4o-mini' 
+  });
+
+  // Create agent with memory
+  const agent = await createAgent({
+    name: 'MemoryAgent',
+    provider: provider,
+    memory: memory,
+    systemPrompt: "You are a helpful assistant with perfect memory."
+  });
+
+  return agent;
+}
+
+// Use agent memory operations
+const agent = await setupAgentWithMemory();
+
+// Automatic memory storage during chat
+await agent.streamChat({
+  message: "Remember that I like coffee",
+  sessionId: "preferences",
+  metadata: { category: 'personal_preferences' },
+  onChunk: (chunk) => console.log(chunk)
 });
 
-// Create memory with embeddings enabled for semantic search
-const vectorMemory = await createMemory({
-  database: db,
-  tableName: "vector_memories",
-  maxEntries: 100,
-  enableEmbeddings: true  // Enables semantic search capabilities
-});
+// Direct memory access
+const history = await agent.getHistory("preferences");
+console.log(`Found ${history.length} messages`);
 ```
 
-## Memory Configuration Options
+## Session Management
 
-| Option | Type | Description | Required |
-|--------|------|-------------|----------|
-| `database` | Database | Database instance for persistence | Yes |
-| `tableName` | string | Name of the database table | Yes |
-| `maxEntries` | number | Maximum number of messages to store per session | No (default: 100) |
-| `enableEmbeddings` | boolean | Enable vector embeddings for semantic search | No (default: false) |
-| `embeddingProvider` | Provider | Provider for generating embeddings | No (uses agent's provider if not specified) |
-| `embeddingDimension` | number | Dimension of embedding vectors | No (provider default) |
+Agents provide built-in session management for organizing conversations:
 
-## Storing and Retrieving Messages
-
-Memory instances provide methods to add and retrieve messages:
+### Session Operations
 
 ```typescript
-// Add a message to memory
-await memory.add({
-  role: "user",  // Can be 'user', 'assistant', 'system', etc.
-  content: "What's the weather like in Paris?",
-  sessionId: "session123",  // Optional, defaults to 'default'
-  userId: "user456",        // Optional user identifier
-  metadata: {               // Optional additional data
-    timestamp: Date.now(),
-    source: "web_interface"
+// List all sessions with metadata
+const sessions = await agent.listSessions(20);
+sessions.forEach(session => {
+  console.log(`Session: ${session.sessionId}`);
+  console.log(`Messages: ${session.messageCount}`);
+  console.log(`Last message: ${session.lastMessage}`);
+  console.log(`Last activity: ${session.lastActivity}`);
+  console.log(`Metadata:`, session.metadata);
+});
+
+// Get specific session history
+const history = await agent.getHistory("session-123", 50);
+history.forEach(msg => {
+  console.log(`${msg.role}: ${msg.content}`);
+  console.log(`Metadata:`, msg.metadata);
+});
+
+// Clear a session
+await agent.clearHistory("old-session");
+```
+
+### Manual Memory Management
+
+Add custom entries to memory for context or system messages:
+
+```typescript
+// Add system context
+await agent.addToMemory({
+  sessionId: "user-preferences",
+  role: 'system',
+  content: "User prefers detailed technical explanations",
+  metadata: { 
+    type: 'preference',
+    category: 'communication_style',
+    timestamp: new Date()
   }
 });
 
-// Retrieve messages for a session
-const sessionHistory = await memory.getBySession("session123");
-
-// Get the most recent messages
-const recentMessages = await memory.getBySession("session123", { limit: 10 });
-```
-
-## Semantic Search with Embeddings
-
-If embeddings are enabled, you can search for semantically similar content:
-
-```typescript
-// Search for messages that are semantically similar to a query
-const results = await memory.searchSimilar(
-  "travel recommendations",  // Search query
-  {
-    sessionId: "session123",  // Optional: limit search to a specific session
-    limit: 5,                 // Return top 5 most similar results
-    threshold: 0.75           // Minimum similarity score (0-1)
+// Add user context
+await agent.addToMemory({
+  sessionId: "project-discussion",
+  role: 'user',
+  content: "Working on a React application with TypeScript",
+  metadata: { 
+    project: 'web_app',
+    technologies: ['react', 'typescript'],
+    context: 'project_setup'
   }
-);
+});
 
-// Results contains messages most similar to the query
-results.forEach(result => {
-  console.log(`Score: ${result.score}, Content: ${result.entry.content}`);
+// Add assistant notes
+await agent.addToMemory({
+  sessionId: "troubleshooting",
+  role: 'assistant',
+  content: "Issue resolved by updating dependencies",
+  metadata: { 
+    resolution: 'dependency_update',
+    issue_type: 'build_error',
+    resolved: true
+  }
 });
 ```
 
-## Managing Memory
+## Direct Memory Access
 
-You can manage memory through various utility methods:
+For advanced operations, access the memory instance directly:
 
 ```typescript
-// Count messages in a session
-const messageCount = await memory.count("session123");
+// Get memory instance from agent
+const memory = agent.config.memory;
 
-// Delete specific messages
-await memory.delete(["message_id_1", "message_id_2"]);
+// Advanced memory operations
+const agentMemories = await memory.getByAgent(agent.id, 100);
+console.log(`Agent has ${agentMemories.length} total memories`);
 
-// Clear entire session history
-await memory.clear("session123");
+// Search by text content
+const searchResults = await memory.searchByText("machine learning", 5);
+searchResults.forEach(result => {
+  console.log(`Found: ${result.content}`);
+  console.log(`Session: ${result.sessionId}`);
+});
 
-// Get summary statistics
-const stats = await memory.getStats();
-console.log(`Total sessions: ${stats.sessionCount}`);
-console.log(`Total messages: ${stats.messageCount}`);
+// Search by embedding (if enabled)
+if (memory.config.enableEmbeddings) {
+  const embedding = [0.1, 0.2, 0.3, 0.4, 0.5]; // 1536-dimensional vector for OpenAI
+  const similarResults = await memory.searchByEmbedding(embedding, 5, 0.8);
+  
+  similarResults.forEach(result => {
+    console.log(`Similarity: ${result.similarity}`);
+    console.log(`Content: ${result.content}`);
+  });
+}
+
+// Get specific memory entry
+const entry = await memory.getById("memory-id-123");
+if (entry) {
+  console.log('Found entry:', entry.content);
+}
+
+// Delete specific entries
+await memory.delete("memory-id-to-delete");
 ```
 
-## Working with Multiple Sessions
+## Memory Configuration
 
-Memory can manage multiple separate conversations:
-
-```typescript
-// Add messages to different sessions
-await memory.add({
-  role: "user",
-  content: "Tell me about France",
-  sessionId: "travel_planning"
-});
-
-await memory.add({
-  role: "user",
-  content: "What's the capital of Germany?",
-  sessionId: "geography_quiz"
-});
-
-// Retrieve individual session histories
-const travelSession = await memory.getBySession("travel_planning");
-const quizSession = await memory.getBySession("geography_quiz");
-``` 
-
-## Custom Table Names
-
-You can customize the table name used for memory storage:
+Configure memory when creating agents:
 
 ```typescript
-// Use a custom table name for memory
-const memory = await createMemory({
+// Basic memory configuration
+const basicMemory = await createMemory({
   database: db,
-  tableName: "my_custom_memories",  // Custom table name
+  tableName: "basic_conversations",
   maxEntries: 100
 });
 
-// This is useful for:
-// - Avoiding conflicts in shared databases
-// - Organizing data with prefixes (e.g., "app_memories")
-// - Multi-tenancy scenarios
-// - Legacy system integration
+// Advanced memory with embeddings
+const advancedMemory = await createMemory({
+  database: db,
+  tableName: "advanced_conversations",
+  maxEntries: 500,
+  enableEmbeddings: true
+});
+
+// Create agents with different memory configurations
+const basicAgent = await createAgent({
+  name: 'BasicAgent',
+  provider: provider,
+  memory: basicMemory
+});
+
+const advancedAgent = await createAgent({
+  name: 'AdvancedAgent',
+  provider: provider,
+  memory: advancedMemory
+});
 ```
 
-## Integration with Chat Management
+### Memory Configuration Options
 
-Memory works seamlessly with the chat management system:
+| Option | Type | Description | Default |
+|--------|------|-------------|---------|
+| `database` | DatabaseInstance | Database for persistence | Required |
+| `tableName` | string | Table name for memory storage | "memories" |
+| `maxEntries` | number | Max entries per session | 100 |
+| `enableEmbeddings` | boolean | Enable semantic search | false |
+
+## Semantic Search with Embeddings
+
+When embeddings are enabled, perform semantic searches across conversations:
 
 ```typescript
-import { createMemory, createChat, createDatabase } from '@astreus-ai/astreus';
-
-const db = await createDatabase();
-
-// Create memory instance
-const memory = await createMemory({
+// Enable embeddings in memory
+const vectorMemory = await createMemory({
   database: db,
-  tableName: "conversations",
-  maxEntries: 1000
+  tableName: "vector_conversations",
+  maxEntries: 300,
+  enableEmbeddings: true
 });
 
-// Create chat management (uses the same memory)
-const chat = await createChat({
-  database: db,
-  memory: memory,  // Share the same memory instance
-  tableName: "chat_metadata"
+const agent = await createAgent({
+  name: 'VectorAgent',
+  provider: provider,
+  memory: vectorMemory
 });
 
-// Chat IDs are compatible with session IDs
-const newChat = await chat.createChat({
-  agentId: 'my-agent',
-  userId: 'user123'
+// Chat with automatic embedding storage
+await agent.streamChat({
+  message: "I'm interested in machine learning algorithms",
+  sessionId: "ml-discussion",
+  onChunk: (chunk) => console.log(chunk)
 });
 
-// Add message via chat system
-await chat.addMessage({
-  chatId: newChat.id,
-  agentId: 'my-agent',
-  userId: 'user123',
-  role: 'user',
-  content: 'Hello!'
+await agent.streamChat({
+  message: "Tell me about neural networks",
+  sessionId: "ml-discussion",
+  onChunk: (chunk) => console.log(chunk)
 });
 
-// Retrieve via memory system (same data)
-const messages = await memory.getBySession(newChat.id);
+// Search for semantically similar content
+const memory = agent.config.memory;
+const mlResults = await memory.searchByText("artificial intelligence", 5);
+
+mlResults.forEach(result => {
+  console.log(`Related content: ${result.content}`);
+  console.log(`From session: ${result.sessionId}`);
+});
+```
+
+## Context-Aware Conversations
+
+Use memory to build context-aware responses:
+
+```typescript
+class ContextualAgent {
+  private agent: AgentInstance;
+
+  constructor(agent: AgentInstance) {
+    this.agent = agent;
+  }
+
+  async contextualChat(message: string, sessionId: string) {
+    // Get recent conversation context
+    const recentHistory = await this.agent.getHistory(sessionId, 5);
+    
+    // Search for relevant past conversations
+    const memory = this.agent.config.memory;
+    const relevantMemories = await memory.searchByText(message, 3);
+    
+    // Build context-aware system prompt
+    const context = [
+      ...recentHistory.map(h => `${h.role}: ${h.content}`),
+      ...relevantMemories.map(m => `Related: ${m.content}`)
+    ].join('\n');
+
+    const contextPrompt = `Previous context:\n${context}\n\nCurrent message: ${message}`;
+
+    return await this.agent.streamChat({
+      message: contextPrompt,
+      sessionId,
+      systemPrompt: `You are a helpful assistant. Use the provided context to give more relevant and personalized responses.`,
+      onChunk: (chunk) => console.log(chunk)
+    });
+  }
+
+  async addUserPreference(sessionId: string, preference: string, category: string) {
+    await this.agent.addToMemory({
+      sessionId,
+      role: 'system',
+      content: `User preference: ${preference}`,
+      metadata: { 
+        type: 'preference',
+        category,
+        timestamp: new Date()
+      }
+    });
+  }
+
+  async getUserPreferences(sessionId: string) {
+    const memory = this.agent.config.memory;
+    const preferences = await memory.searchByText("User preference", 10);
+    
+    return preferences
+      .filter(p => p.sessionId === sessionId)
+      .map(p => ({
+        preference: p.content.replace('User preference: ', ''),
+        category: p.metadata?.category,
+        timestamp: p.metadata?.timestamp
+      }));
+  }
+}
+```
+
+## Multi-Session Memory Management
+
+Manage memory across multiple sessions:
+
+```typescript
+class MultiSessionMemoryManager {
+  private agent: AgentInstance;
+
+  constructor(agent: AgentInstance) {
+    this.agent = agent;
+  }
+
+  async getSessionSummary() {
+    const sessions = await this.agent.listSessions();
+    
+    return sessions.map(session => ({
+      sessionId: session.sessionId,
+      messageCount: session.messageCount,
+      lastActivity: session.lastActivity,
+      lastMessage: session.lastMessage?.substring(0, 100) + '...',
+      metadata: session.metadata
+    }));
+  }
+
+  async findSessionsByTopic(topic: string) {
+    const memory = this.agent.config.memory;
+    const topicResults = await memory.searchByText(topic, 20);
+    
+    // Group by session
+    const sessionMap = new Map();
+    topicResults.forEach(result => {
+      if (!sessionMap.has(result.sessionId)) {
+        sessionMap.set(result.sessionId, []);
+      }
+      sessionMap.get(result.sessionId).push(result);
+    });
+
+    return Array.from(sessionMap.entries()).map(([sessionId, messages]) => ({
+      sessionId,
+      relevantMessages: messages.length,
+      preview: messages[0]?.content.substring(0, 100) + '...'
+    }));
+  }
+
+  async cleanupOldSessions(daysOld: number = 30) {
+    const sessions = await this.agent.listSessions();
+    const cutoffDate = new Date(Date.now() - (daysOld * 24 * 60 * 60 * 1000));
+    
+    const oldSessions = sessions.filter(s => s.lastActivity < cutoffDate);
+    
+    for (const session of oldSessions) {
+      await this.agent.clearHistory(session.sessionId);
+      console.log(`Cleaned up session: ${session.sessionId}`);
+    }
+    
+    return oldSessions.length;
+  }
+
+  async exportSessionData(sessionId: string) {
+    const history = await this.agent.getHistory(sessionId);
+    const sessions = await this.agent.listSessions();
+    const sessionInfo = sessions.find(s => s.sessionId === sessionId);
+    
+    return {
+      sessionInfo,
+      messages: history,
+      exportDate: new Date(),
+      messageCount: history.length
+    };
+  }
+}
+```
+
+## Database Integration
+
+Memory integrates seamlessly with the database system:
+
+```typescript
+// Access database directly through agent
+const database = agent.config.database;
+
+// Custom queries on memory data
+const customQuery = await database.knex('memories')
+  .where('agentId', agent.id)
+  .andWhere('role', 'user')
+  .andWhere('timestamp', '>', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+  .orderBy('timestamp', 'desc');
+
+console.log(`User messages in last 7 days: ${customQuery.length}`);
+
+// Memory statistics
+const stats = await database.knex('memories')
+  .where('agentId', agent.id)
+  .groupBy('sessionId')
+  .select('sessionId')
+  .count('* as messageCount');
+
+console.log('Session statistics:', stats);
 ```
 
 ## Best Practices
 
-### 1. Choose Appropriate Table Names
+1. **Session Organization**: Use meaningful session IDs for better organization
+2. **Metadata Usage**: Store relevant metadata for filtering and search
+3. **Memory Cleanup**: Regularly clean old sessions to manage storage
+4. **Context Building**: Use memory search to build relevant context
+5. **Embedding Strategy**: Enable embeddings for semantic search capabilities
+6. **Error Handling**: Handle memory operations with proper error handling
+7. **Performance**: Limit history retrieval for better performance
+
+## Migration from Direct Memory Usage
+
+If you're migrating from direct memory management:
+
 ```typescript
-// Good: Descriptive and organized
-tableName: "customer_support_memories"
-tableName: "app_conversations"
-
-// Avoid: Generic names in shared environments
-tableName: "memories"
-```
-
-### 2. Set Reasonable Limits
-```typescript
-// For chat applications
-maxEntries: 100  // Keep recent context
-
-// For long-term knowledge retention
-maxEntries: 1000  // Store more history
-```
-
-### 3. Use Embeddings for Search
-```typescript
-// Enable embeddings for applications that need search
-const memory = await createMemory({
-  database: db,
-  tableName: "searchable_conversations",
-  enableEmbeddings: true,
-  maxEntries: 500
-});
-```
-
-### 4. Organize with Metadata
-```typescript
+// ❌ Old Direct Memory Approach
+const memory = await createMemory({ database, tableName: "memories" });
 await memory.add({
-  role: "user",
-  content: "Question about exports",
-  sessionId: "session123",
-  metadata: {
-    category: "business",
-    priority: "high",
-    department: "exports"
-  }
+  agentId: "agent-123",
+  sessionId: "session-456",
+  role: 'user',
+  content: "Hello"
 });
-``` 
+const history = await memory.getBySession("session-456");
+
+// ✅ New Agent-Centric Approach
+const agent = await createAgent({ provider, memory });
+await agent.streamChat({
+  message: "Hello",
+  sessionId: "session-456",
+  onChunk: (chunk) => console.log(chunk)
+});
+const history = await agent.getHistory("session-456");
+```
+
+The agent-centric memory system provides a more intuitive and powerful way to manage conversation history with built-in session management and advanced search capabilities. 

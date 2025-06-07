@@ -7,39 +7,65 @@ title: Welcome to Astreus
 ## What is Astreus?
 
 Astreus provides a comprehensive set of tools and abstractions to create AI agents that can:
-- Hold complex, multi-turn conversations
+- Hold complex, multi-turn conversations with **real-time streaming**
 - Perform structured tasks and operations
 - Reason over data from multiple sources
 - Integrate with external systems through plugins
-- Maintain memory of past interactions
-- Manage chat sessions with metadata and organization
+- Maintain memory of past interactions with **session management**
+- **Access all components through a unified agent interface**
 
 ## Key Features
 
-- **Unified Agent API**: Create and manage AI agents with a consistent interface
-- **Multi-Provider Support**: Works with OpenAI and Ollama models out of the box
-- **Memory Management**: Built-in conversation history with vector search capabilities
-- **Chat**: Advanced chat system with metadata, search, and organization
-- **Task Orchestration**: Break complex requests into manageable sub-tasks
-- **Plugin System**: Extend agent capabilities with custom tools
-- **Persistence Layer**: Automatic storage using SQLite or PostgreSQL
-- **Custom Table Names**: Configurable table names for all system components
-- **RAG Support**: Built-in Retrieval Augmented Generation with automatic tool creation
-- **Embeddings Support**: Semantic search across conversations and documents
-- **Type Safety**: Fully typed with TypeScript
-- **Advanced Logging**: Structured logging system for improved debugging and monitoring
-- **Flexible Configuration**: Enhanced parameter validation and smart defaults
+- **🤖 Agent-Centric Architecture**: Everything accessible through agent methods - no need for separate managers
+- **⚡ Real-Time Streaming**: Built-in streaming chat with `agent.streamChat()` for live responses
+- **🧠 Unified Memory Access**: Direct memory management with `agent.getHistory()`, `agent.addToMemory()`
+- **💬 Session Management**: Automatic session tracking with `agent.listSessions()`
+- **🔌 Integrated Plugin System**: Add tools with `agent.addTool()` and access via `agent.getAvailableTools()`
+- **🗄️ Database Integration**: Direct database access through `agent.config.database`
+- **🎯 Provider Flexibility**: Switch models with `agent.getProvider()` and `agent.getModel()`
+- **📊 Multi-Provider Support**: Works with OpenAI, Ollama, and other LLM providers
+- **🔍 RAG Support**: Built-in Retrieval Augmented Generation with automatic tool creation
+- **🎨 Type Safety**: Fully typed with TypeScript for better development experience
+- **📝 Advanced Logging**: Structured logging system for improved debugging and monitoring
+- **⚙️ Flexible Configuration**: Enhanced parameter validation and smart defaults
+
+## Agent-First Approach
+
+With Astreus 0.1.9+, everything revolves around the **Agent**:
+
+```typescript
+// Create an agent with all capabilities
+const agent = await createAgent({
+  name: 'My Assistant',
+  provider: myProvider,
+  memory: myMemory,
+  tools: [customTool1, customTool2]
+});
+
+// Stream responses in real-time
+await agent.streamChat({
+  message: "Hello!",
+  sessionId: "chat-123",
+  onChunk: (chunk) => console.log(chunk)
+});
+
+// Access everything through the agent
+const sessions = await agent.listSessions();
+const history = await agent.getHistory("chat-123");
+const provider = agent.getProvider();
+const memory = agent.config.memory;
+```
 
 ## Getting Started
 
-Ready to create your first AI agent? Visit our [Quick Start Guide](/docs/guides/quick-start) to set up Astreus and build your first conversational agent in minutes.
+Ready to create your first AI agent? Visit our [Quick Start Guide](/docs/guides/quick-start) to set up Astreus and build your first conversational agent with streaming capabilities in minutes.
 
 ## Core Concepts
 
-- [Agents](/docs/concepts/agents) - Create and manage conversational AI agents
+- [Agents](/docs/concepts/agents) - **The heart of Astreus** - unified interface for all operations
 - [Providers](/docs/concepts/providers) - Connect to different LLM providers
-- [Memory](/docs/concepts/memory) - Store and retrieve conversation history
-- [Chat](/docs/concepts/chat) - Organize and manage chat sessions
+- [Memory](/docs/concepts/memory) - Store and retrieve conversation history with session management
+- [Chat](/docs/concepts/chat) - Advanced streaming chat system with real-time responses
 - [Tasks](/docs/concepts/tasks) - Break complex operations into manageable sub-tasks
 - [Plugins](/docs/plugins) - Extend agent capabilities with custom tools
 - [RAG](/docs/concepts/rag) - Automatic document search tools with Vector and Document RAG
@@ -47,4 +73,6 @@ Ready to create your first AI agent? Visit our [Quick Start Guide](/docs/guides/
 ## Official Plugins
 
 - [X Plugin](/docs/plugins/x-plugin) - Interact with the X (formerly Twitter) platform
+- [WhatsApp Plugin](/docs/plugins/whatsapp-plugin) - Send messages via WhatsApp
+- [Resend Plugin](/docs/plugins/resend-plugin) - Send emails through Resend
 - [Creating Custom Plugins](/docs/guides/custom-plugins) - Learn how to build your own plugins
