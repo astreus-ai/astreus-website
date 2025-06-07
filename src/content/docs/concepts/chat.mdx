@@ -109,9 +109,11 @@ await chat.updateChat(chatId, {
 });
 ```
 
-## Adding Messages
+## Adding Messages and Agent Integration
 
-The chat system seamlessly integrates with the memory system for message storage:
+The chat system seamlessly integrates with the memory system for message storage and works with agents for AI responses:
+
+### Manual Message Addition
 
 ```typescript
 // Add a user message
@@ -135,6 +137,58 @@ await chat.addMessage({
     sources: ['regulation-db', 'customs-guide']
   }
 });
+```
+
+### AI-Powered Conversations
+
+For AI-generated responses, use the chat system's built-in AI capabilities:
+
+```typescript
+import { createAgent, createChat } from '@astreus-ai/astreus';
+
+// Create an agent
+const agent = await createAgent({
+  name: 'RegulationExpert',
+  model: myModel,
+  memory: myMemory,
+  systemPrompt: 'You are an expert in export regulations.'
+});
+
+// Create chat manager
+const chatManager = await createChat({
+  database: myDatabase,
+  memory: myMemory
+});
+
+// Start a conversation with AI response
+const response = await chatManager.createChatWithMessage({
+  agentId: agent.id,
+  userId: 'user123',
+  title: 'Export Regulations Query',
+  message: 'What are the export regulations for electronics?',
+  model: agent.config.model,
+  systemPrompt: agent.config.systemPrompt,
+  tools: agent.getAvailableTools().map(toolName => 
+    Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+  ).filter(Boolean)
+});
+
+// Continue the conversation
+const chats = await chatManager.listChats({ userId: 'user123' });
+const chatId = chats[0]?.id;
+
+if (chatId) {
+  const followUp = await chatManager.chat({
+    chatId,
+    agentId: agent.id,
+    userId: 'user123',
+    message: 'What about textiles?',
+    model: agent.config.model,
+    tools: agent.getAvailableTools().map(toolName => 
+      Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+    ).filter(Boolean)
+  });
+}
 ```
 
 ## Listing and Searching Chats
@@ -264,7 +318,7 @@ console.log(updatedChat.title); // "I need help with customs documentation for..
 
 ## Integration with Memory System
 
-The chat system is fully compatible with the existing memory system:
+The chat system is fully compatible with the existing memory system and works seamlessly with agents:
 
 ```typescript
 // Chat IDs are the same as session IDs
@@ -276,6 +330,42 @@ const memories = await memory.getBySession(sessionId);
 
 // Or use chat methods (which delegate to memory)
 const messages = await chat.getMessages(chatId);
+
+// Chat system handles both metadata and messages
+// - Chat metadata stored in chat table
+// - Messages stored in memory system using chatId as sessionId
+// - Full compatibility between chat and memory systems
+```
+
+## Agent Integration Patterns
+
+The chat system is designed to work with agents for AI-powered conversations:
+
+```typescript
+// Pattern 1: Create chat with first message
+const response = await chatManager.createChatWithMessage({
+  agentId: agent.id,
+  userId: 'user123',
+  message: 'Hello!',
+  model: agent.config.model,
+  systemPrompt: agent.config.systemPrompt
+});
+
+// Pattern 2: Continue existing chat
+const response2 = await chatManager.chat({
+  chatId: existingChatId,
+  agentId: agent.id,
+  message: 'Follow up question',
+  model: agent.config.model
+});
+
+// Pattern 3: Manual message management
+await chatManager.addMessage({
+  chatId: chatId,
+  agentId: agent.id,
+  role: 'user',
+  content: 'Manual message'
+});
 ```
 
 ## Custom Table Names
@@ -303,7 +393,31 @@ agentId: 'regulation-expert'
 agentId: 'agent1'
 ```
 
-### 2. Add Metadata for Organization
+### 2. Leverage Agent Integration
+```typescript
+// Use createChatWithMessage for new conversations
+const response = await chatManager.createChatWithMessage({
+  agentId: agent.id,
+  userId: userId,
+  title: 'Customer Support',
+  message: userMessage,
+  model: agent.config.model,
+  systemPrompt: agent.config.systemPrompt,
+  tools: agent.getAvailableTools().map(toolName => 
+    Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+  ).filter(Boolean)
+});
+
+// Use chat() method for continuing conversations
+const followUp = await chatManager.chat({
+  chatId: existingChatId,
+  agentId: agent.id,
+  message: followUpMessage,
+  model: agent.config.model
+});
+```
+
+### 3. Add Metadata for Organization
 ```typescript
 await chat.updateChat(chatId, {
   metadata: {
@@ -315,7 +429,7 @@ await chat.updateChat(chatId, {
 });
 ```
 
-### 3. Regular Cleanup
+### 4. Regular Cleanup
 ```typescript
 // Archive old chats periodically
 const oldChats = await chat.listChats({
@@ -327,7 +441,7 @@ for (const oldChat of oldChats) {
 }
 ```
 
-### 4. Use Search for User Experience
+### 5. Use Search for User Experience
 ```typescript
 // Implement search in your UI
 const searchResults = await chat.searchChats({
@@ -335,6 +449,18 @@ const searchResults = await chat.searchChats({
   userId: currentUserId,
   limit: 20
 });
+```
+
+### 6. Separate Concerns
+```typescript
+// Chat system handles: metadata, organization, search
+// Memory system handles: message storage, retrieval
+// Agent system handles: AI responses, tools, model management
+
+// Use each system for its strengths
+const chatManager = await createChat({ database, memory });  // Organization
+const agent = await createAgent({ model, memory });         // AI capabilities
+const taskManager = createTaskManager({ agentId, memory }); // Complex workflows
 ```
 
 ## Error Handling

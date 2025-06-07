@@ -15,16 +15,23 @@ The Task system consists of:
 
 ## Creating Tasks
 
-Tasks are created through the agent instance:
+Tasks are created through the TaskManager:
 
 ```typescript
-import { createAgent } from '@astreus-ai/astreus';
+import { createAgent, createTaskManager } from '@astreus-ai/astreus';
 
-// After creating an agent
+// Create an agent
 const agent = await createAgent({ /* configuration */ });
 
+// Create a task manager
+const taskManager = createTaskManager({
+  agentId: agent.id,
+  memory: agent.config.memory,
+  database: agent.config.database
+});
+
 // Create a research task
-const researchTask = agent.createTask({
+const researchTask = await taskManager.createTask({
   name: "Research Trip",
   description: "Find information about tourist attractions in Tokyo",
   input: {
@@ -50,11 +57,11 @@ console.log(`Task created with ID: ${researchTask.id}`);
 
 ## Running Tasks
 
-Execute tasks using the agent's `runTasks` method:
+Execute tasks using the TaskManager's `run` method:
 
 ```typescript
 // Run a single task
-const results = await agent.runTasks([researchTask.id]);
+const results = await taskManager.run([researchTask.id]);
 
 // Get the result of the task
 const taskResult = results.get(researchTask.id);
@@ -72,7 +79,7 @@ Tasks can depend on other tasks, creating workflows:
 
 ```typescript
 // Create an initial research task
-const researchTask = agent.createTask({
+const researchTask = await taskManager.createTask({
   name: "Research Options",
   description: "Find top restaurants in Paris",
   input: { 
@@ -82,7 +89,7 @@ const researchTask = agent.createTask({
 });
 
 // Create a dependent task that uses the output of the research task
-const planningTask = agent.createTask({
+const planningTask = await taskManager.createTask({
   name: "Create Dinner Plan",
   description: "Create a dinner plan based on research results",
   dependsOn: [researchTask.id],  // This task depends on researchTask
@@ -93,14 +100,14 @@ const planningTask = agent.createTask({
 });
 
 // Create a third task that depends on planning
-const reservationTask = agent.createTask({
+const reservationTask = await taskManager.createTask({
   name: "Make Reservation",
   description: "Make restaurant reservation based on dinner plan",
   dependsOn: [planningTask.id]
 });
 
 // Run all tasks in the correct order
-const results = await agent.runTasks([
+const results = await taskManager.run([
   researchTask.id, 
   planningTask.id,
   reservationTask.id
@@ -118,7 +125,7 @@ Task results are structured to provide detailed information:
 
 ```typescript
 // Get results of all tasks
-const results = await agent.runTasks([taskA.id, taskB.id]);
+const results = await taskManager.run([taskA.id, taskB.id]);
 
 // Access individual task results
 const resultA = results.get(taskA.id);
@@ -139,14 +146,17 @@ console.log(`Duration: ${resultA.duration}ms`);
 You can retrieve and manage tasks:
 
 ```typescript
-// Get all tasks associated with the agent
-const allTasks = agent.getTasks();
+// Get all tasks from the task manager
+const allTasks = taskManager.getTasks();
+
+// Get tasks for a specific agent
+const agentTasks = taskManager.getTasksByAgent(agent.id);
 
 // Get tasks for a specific session
-const sessionTasks = agent.getSessionTasks("session123");
+const sessionTasks = taskManager.getTasksBySession("session123");
 
 // Get a specific task by ID
-const task = agent.getTasks().get("task-uuid");
+const task = taskManager.getTasks().find(t => t.id === "task-uuid");
 ```
 
 ## Error Handling and Retries
@@ -155,7 +165,7 @@ Tasks include error handling and retry mechanisms:
 
 ```typescript
 // Create a task with custom retry settings
-const dataProcessingTask = agent.createTask({
+const dataProcessingTask = await taskManager.createTask({
   name: "Process Data",
   description: "Process and analyze the data set",
   input: { dataFile: "sales_2023.csv" },
@@ -165,7 +175,7 @@ const dataProcessingTask = agent.createTask({
 
 // Run task with error handling
 try {
-  const results = await agent.runTasks([dataProcessingTask.id]);
+  const results = await taskManager.run([dataProcessingTask.id]);
   const taskResult = results.get(dataProcessingTask.id);
   
   if (taskResult.success) {

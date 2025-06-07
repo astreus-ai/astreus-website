@@ -48,6 +48,7 @@ import {
   createProvider,
   createMemory,
   createDatabase,
+  createChat,
   logger
 } from '@astreus-ai/astreus';
 
@@ -78,13 +79,38 @@ async function main() {
       systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
     });
 
-    // Chat with your agent
-    const response = await agent.chat("Hello! What can you do for me?");
+    // Create chat manager for conversations
+    const chatManager = await createChat({
+      database: db,
+      memory: memory
+    });
+
+    // Start a conversation with your agent
+    const response = await chatManager.createChatWithMessage({
+      agentId: agent.id,
+      userId: "user-123",
+      title: "First Conversation",
+      message: "Hello! What can you do for me?",
+      model: agent.config.model,
+      systemPrompt: agent.config.systemPrompt
+    });
     logger.info('Agent response:', response);
     
     // Continue the conversation
-    const followup = await agent.chat("Tell me more about the Astreus framework.");
-    logger.info('Agent response:', followup);
+    const chats = await chatManager.listChats({ userId: "user-123" });
+    const chatId = chats[0]?.id;
+    
+    if (chatId) {
+      const followup = await chatManager.chat({
+        chatId,
+        agentId: agent.id,
+        userId: "user-123",
+        message: "Tell me more about the Astreus framework.",
+        model: agent.config.model,
+        systemPrompt: agent.config.systemPrompt
+      });
+      logger.info('Agent response:', followup);
+    }
     
   } catch (error) {
     logger.error('Error:', error);
@@ -110,6 +136,7 @@ import {
   createProvider,
   createMemory,
   createDatabase,
+  createChat,
   logger,
   Plugin
 } from '@astreus-ai/astreus';
@@ -160,8 +187,22 @@ async function main() {
       plugins: [calculatorPlugin]  // Add the plugin here
     });
 
+    // Create chat manager
+    const chatManager = await createChat({
+      database: db,
+      memory: memory
+    });
+
     // Test the calculator capability
-    const response = await agent.chat("What is 123 multiplied by 456?");
+    const response = await chatManager.createChatWithMessage({
+      agentId: agent.id,
+      userId: "user-123",
+      title: "Calculator Test",
+      message: "What is 123 multiplied by 456?",
+      model: agent.config.model,
+      systemPrompt: agent.config.systemPrompt,
+      tools: [calculatorPlugin]
+    });
     logger.info('Agent response:', response);
     
   } catch (error) {
@@ -183,6 +224,7 @@ import {
   createMemory,
   createDatabase,
   createRAG,
+  createChat,
   RAGType,
   logger
 } from '@astreus-ai/astreus';
@@ -223,13 +265,43 @@ async function main() {
       systemPrompt: "You are a helpful assistant. When asked questions, use the rag_search tool to find relevant information from the knowledge base before answering."
     });
 
+    // Create chat manager
+    const chatManager = await createChat({
+      database: db,
+      memory: memory
+    });
+
     // Test the RAG capabilities
-    const response = await agent.chat("How do I create an agent in Astreus?");
+    const response = await chatManager.createChatWithMessage({
+      agentId: agent.id,
+      userId: "user-123",
+      title: "RAG Test",
+      message: "How do I create an agent in Astreus?",
+      model: agent.config.model,
+      systemPrompt: agent.config.systemPrompt,
+      tools: agent.getAvailableTools().map(toolName => 
+        Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+      ).filter(Boolean)
+    });
     logger.info('Agent response:', response);
     
     // Test metadata search
-    const categoryResponse = await agent.chat("Show me all framework-related documents");
-    logger.info('Category search response:', categoryResponse);
+    const chats = await chatManager.listChats({ userId: "user-123" });
+    const chatId = chats[0]?.id;
+    
+    if (chatId) {
+      const categoryResponse = await chatManager.chat({
+        chatId,
+        agentId: agent.id,
+        userId: "user-123",
+        message: "Show me all framework-related documents",
+        model: agent.config.model,
+        tools: agent.getAvailableTools().map(toolName => 
+          Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+        ).filter(Boolean)
+      });
+      logger.info('Category search response:', categoryResponse);
+    }
     
   } catch (error) {
     logger.error('Error:', error);
@@ -300,20 +372,14 @@ async function main() {
       content: 'Hello! Can you help me understand Astreus?'
     });
 
-    // Use the agent to respond (using the same session ID)
-    const response = await agent.chat(
-      "Hello! Can you help me understand Astreus?", 
-      newChat.id, // Use chat ID as session ID
-      'user123'
-    );
-
-    // Add the agent's response to chat
-    await chat.addMessage({
+    // Use the chat system to handle the conversation
+    const response = await chat.chat({
       chatId: newChat.id,
-      agentId: 'ChatAgent',
+      agentId: agent.id,
       userId: 'user123',
-      role: 'assistant',
-      content: response
+      message: "Hello! Can you help me understand Astreus?",
+      model: agent.config.model,
+      systemPrompt: agent.config.systemPrompt
     });
 
     // List user's chats

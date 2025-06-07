@@ -184,68 +184,99 @@ const answer4 = await agent.chat("What does page 15 of the user manual say about
 // Agent searches for content with specific page metadata
 ```
 
-## Interacting with an Agent
+## Agent Integration with Chat and Task Systems
 
-### Basic Chat
+Agents in Astreus are designed to work seamlessly with the Chat and Task management systems. While agents focus on core functionality like model management and tool integration, conversations and task orchestration are handled by dedicated managers.
 
-The simplest way to interact with an agent is through the `chat` method:
+### Chat Integration
 
-```typescript
-// Send a message to the agent
-const response = await agent.chat("Tell me about TypeScript");
-console.log(response);
-```
-
-### Session Management
-
-You can maintain multiple conversations with the same agent by specifying a session ID:
+For conversation management, use the Chat system alongside your agent:
 
 ```typescript
-// First conversation
-const responseA = await agent.chat("Tell me about TypeScript", "sessionA");
+import { createAgent, createChat, createMemory, createDatabase } from '@astreus-ai/astreus';
 
-// Second conversation (separate from the first)
-const responseB = await agent.chat("What's the weather like?", "sessionB");
-
-// Continue first conversation
-const responseA2 = await agent.chat("How does it compare to JavaScript?", "sessionA");
-```
-
-### Advanced Options
-
-The `chat` method accepts additional options to control behavior:
-
-```typescript
-const response = await agent.chat(
-  "Create a data analysis plan", 
-  "session123",
-  "user456",  // Optional user ID
-  {
-    metadata: { context: "data-science", priority: "high" },
-    temperature: 0.7,  // Control randomness (0.0-1.0)
-    maxTokens: 500,    // Limit response length
-    useTaskSystem: true  // Enable/disable task system
-  }
-);
-```
-
-## Working with History
-
-You can retrieve and manage conversation history:
-
-```typescript
-// Get all history for a session
-const history = await agent.getHistory("session123");
-
-// Get filtered history
-const recentHistory = await agent.getFilteredHistory("session123", {
-  roles: ["user", "assistant"],  // Filter by message role
-  limit: 10,  // Get only the most recent messages
-  fromDate: new Date("2023-01-01")  // Get messages from this date
+// Create agent
+const agent = await createAgent({
+  name: 'Assistant',
+  model: myModel,
+  memory: myMemory,
+  systemPrompt: "You are a helpful AI assistant."
 });
 
-// Clear history for a session
-await agent.clearHistory("session123");
+// Create chat manager
+const chatManager = await createChat({
+  database: myDatabase,
+  memory: myMemory
+});
+
+// Start a conversation
+const response = await chatManager.createChatWithMessage({
+  agentId: agent.id,
+  userId: "user-123",
+  title: "General Chat",
+  message: "Hello! How are you?",
+  model: agent.config.model,
+  systemPrompt: agent.config.systemPrompt,
+  tools: agent.getAvailableTools().map(toolName => 
+    // Get actual tool objects from agent
+    Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+  ).filter(Boolean)
+});
+
+// Continue conversation
+const response2 = await chatManager.chat({
+  chatId: "existing-chat-id",
+  agentId: agent.id,
+  message: "What's the weather like?",
+  model: agent.config.model,
+  tools: Array.from((agent as any).tools.values())
+});
+```
+
+### Task Integration
+
+For complex task orchestration, use the Task system with your agent:
+
+```typescript
+import { createTaskManager } from '@astreus-ai/astreus';
+
+// Create task manager
+const taskManager = createTaskManager({
+  agentId: agent.id,
+  memory: myMemory,
+  database: myDatabase
+});
+
+// Create and run tasks
+await taskManager.createTask({
+  name: "Data Analysis",
+  description: "Analyze the uploaded dataset",
+  input: { datasetPath: "/path/to/data.csv" }
+});
+
+const results = await taskManager.run();
+```
+
+### Agent as Tool Provider
+
+The primary role of an agent is to provide tools and model access to the Chat and Task systems:
+
+```typescript
+// Agent provides tools to chat system
+const availableTools = agent.getAvailableTools();
+const toolObjects = availableTools.map(toolName => 
+  // Access agent's internal tools
+  Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+).filter(Boolean);
+
+// Use in chat
+await chatManager.chat({
+  chatId: "chat-123",
+  agentId: agent.id,
+  message: "Calculate 15 * 23",
+  model: agent.config.model,
+  tools: toolObjects  // Agent's tools are used by chat system
+});
 ```
 
 ## Adding Tools at Runtime
