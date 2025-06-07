@@ -144,12 +144,18 @@ await chat.addMessage({
 For AI-generated responses, use the chat system's built-in AI capabilities:
 
 ```typescript
-import { createAgent, createChat } from '@astreus-ai/astreus';
+import { createAgent, createChat, createProvider } from '@astreus-ai/astreus';
+
+// Create a provider
+const provider = createProvider({
+  type: 'openai',
+  model: 'gpt-4o-mini'
+});
 
 // Create an agent
 const agent = await createAgent({
   name: 'RegulationExpert',
-  model: myModel,
+  provider: provider,
   memory: myMemory,
   systemPrompt: 'You are an expert in export regulations.'
 });
@@ -166,10 +172,10 @@ const response = await chatManager.createChatWithMessage({
   userId: 'user123',
   title: 'Export Regulations Query',
   message: 'What are the export regulations for electronics?',
-  model: agent.config.model,
-  systemPrompt: agent.config.systemPrompt,
+  provider: provider,
+  systemPrompt: 'You are an expert in export regulations.',
   tools: agent.getAvailableTools().map(toolName => 
-    Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
   ).filter(Boolean)
 });
 
@@ -183,9 +189,9 @@ if (chatId) {
     agentId: agent.id,
     userId: 'user123',
     message: 'What about textiles?',
-    model: agent.config.model,
+    provider: provider,
     tools: agent.getAvailableTools().map(toolName => 
-      Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
+      Array.from(agent.tools.values()).find(tool => tool.name === toolName)
     ).filter(Boolean)
   });
 }

@@ -63,8 +63,7 @@ When creating an agent, you can customize its behavior with these options:
 |--------|------|-------------|----------|
 | `name` | string | Name of the agent | No (defaults to "Assistant") |
 | `description` | string | Description of the agent | No |
-| `provider` | Provider | LLM provider instance | Yes (if model not provided) |
-| `model` | ProviderModel | Specific model to use | Yes (if provider not provided) |
+| `provider` | Provider | LLM provider instance | Yes |
 | `memory` | Memory | Memory instance for conversation history | Yes |
 | `database` | Database | Database for persistence | No (created if not provided) |
 | `systemPrompt` | string | Instructions that define agent behavior | No |
@@ -140,8 +139,24 @@ Always cite the source document and page number when possible.`
   // - rag_delete_document: Remove documents (Vector RAG only)
   // - rag_search_by_metadata: Search by metadata (Document RAG only)
 
+  // To use the agent, create a chat manager
+  const chatManager = await createChat({
+    database: db,
+    memory: memory
+  });
+
   // Agent will automatically use RAG when relevant
-  const response = await agent.chat("What does the manual say about installation?");
+  const response = await chatManager.createChatWithMessage({
+    agentId: agent.id,
+    userId: "user-123",
+    title: "Documentation Query",
+    message: "What does the manual say about installation?",
+    provider: provider,
+    systemPrompt: agent.systemPrompt,
+    tools: agent.getAvailableTools().map(toolName => 
+      Array.from(agent.tools.values()).find(tool => tool.name === toolName)
+    ).filter(Boolean)
+  });
   // Agent searches documents and provides contextual answer
 })();
 ```
@@ -163,24 +178,65 @@ The tools available to your agent depend on the RAG type:
 ### Agent RAG Usage Examples
 
 ```typescript
+// Create chat manager for conversations
+const chatManager = await createChat({
+  database: db,
+  memory: memory
+});
+
 // Agent automatically searches when asked about documentation
-const answer1 = await agent.chat("How do I configure the database connection?");
+const answer1 = await chatManager.createChatWithMessage({
+  agentId: agent.id,
+  userId: "user-123",
+  title: "Database Configuration",
+  message: "How do I configure the database connection?",
+  provider: provider,
+  systemPrompt: agent.systemPrompt,
+  tools: agent.getAvailableTools().map(toolName => 
+    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
+  ).filter(Boolean)
+});
 // Agent uses rag_search tool automatically
 
 // Agent can add new information to knowledge base
-const answer2 = await agent.chat(`
-  Add this FAQ to the knowledge base:
+const answer2 = await chatManager.chat({
+  chatId: answer1.chatId,
+  agentId: agent.id,
+  userId: "user-123",
+  message: `Add this FAQ to the knowledge base:
   Q: How to reset password?
-  A: Click on 'Forgot Password' link and follow email instructions.
-`);
+  A: Click on 'Forgot Password' link and follow email instructions.`,
+  provider: provider,
+  tools: agent.getAvailableTools().map(toolName => 
+    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
+  ).filter(Boolean)
+});
 // Agent uses rag_add_document tool automatically
 
 // Agent can find documents by metadata
-const answer3 = await agent.chat("Show me all documents about security from version 2.0");
+const answer3 = await chatManager.chat({
+  chatId: answer1.chatId,
+  agentId: agent.id,
+  userId: "user-123",
+  message: "Show me all documents about security from version 2.0",
+  provider: provider,
+  tools: agent.getAvailableTools().map(toolName => 
+    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
+  ).filter(Boolean)
+});
 // Agent uses rag_search_by_metadata with appropriate filters
 
 // Agent understands document relationships
-const answer4 = await agent.chat("What does page 15 of the user manual say about networking?");
+const answer4 = await chatManager.chat({
+  chatId: answer1.chatId,
+  agentId: agent.id,
+  userId: "user-123",
+  message: "What does page 15 of the user manual say about networking?",
+  provider: provider,
+  tools: agent.getAvailableTools().map(toolName => 
+    Array.from(agent.tools.values()).find(tool => tool.name === toolName)
+  ).filter(Boolean)
+});
 // Agent searches for content with specific page metadata
 ```
 
@@ -193,7 +249,7 @@ Agents in Astreus are designed to work seamlessly with the Chat and Task managem
 For conversation management, use the Chat system alongside your agent:
 
 ```typescript
-import { createAgent, createChat, createMemory, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createChat, createMemory, createDatabase, createProvider } from '@astreus-ai/astreus';
 
 // Create agent
 const agent = await createAgent({

@@ -91,8 +91,8 @@ async function main() {
       userId: "user-123",
       title: "First Conversation",
       message: "Hello! What can you do for me?",
-      model: agent.config.model,
-      systemPrompt: agent.config.systemPrompt
+      provider: provider,
+      systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
     });
     logger.info('Agent response:', response);
     
@@ -106,8 +106,8 @@ async function main() {
         agentId: agent.id,
         userId: "user-123",
         message: "Tell me more about the Astreus framework.",
-        model: agent.config.model,
-        systemPrompt: agent.config.systemPrompt
+        provider: provider,
+        systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
       });
       logger.info('Agent response:', followup);
     }
@@ -199,8 +199,8 @@ async function main() {
       userId: "user-123",
       title: "Calculator Test",
       message: "What is 123 multiplied by 456?",
-      model: agent.config.model,
-      systemPrompt: agent.config.systemPrompt,
+      provider: provider,
+      systemPrompt: "You are a helpful assistant that can perform calculations. Use the calculator tool when asked to compute mathematical expressions.",
       tools: [calculatorPlugin]
     });
     logger.info('Agent response:', response);
@@ -277,8 +277,8 @@ async function main() {
       userId: "user-123",
       title: "RAG Test",
       message: "How do I create an agent in Astreus?",
-      model: agent.config.model,
-      systemPrompt: agent.config.systemPrompt,
+      provider: provider,
+      systemPrompt: "You are a helpful assistant. When asked questions, use the rag_search tool to find relevant information from the knowledge base before answering.",
       tools: agent.getAvailableTools().map(toolName => 
         Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
       ).filter(Boolean)
@@ -295,7 +295,8 @@ async function main() {
         agentId: agent.id,
         userId: "user-123",
         message: "Show me all framework-related documents",
-        model: agent.config.model,
+        provider: provider,
+        systemPrompt: "You are a helpful assistant. When asked questions, use the rag_search tool to find relevant information from the knowledge base before answering.",
         tools: agent.getAvailableTools().map(toolName => 
           Array.from((agent as any).tools.values()).find((tool: any) => tool.name === toolName)
         ).filter(Boolean)
@@ -337,7 +338,7 @@ async function main() {
     // Create chat management system
     const chat = await createChat({
       database: db,
-      memory: memory,
+      memory,
       tableName: "chats",
       autoGenerateTitles: true
     });
@@ -378,8 +379,8 @@ async function main() {
       agentId: agent.id,
       userId: 'user123',
       message: "Hello! Can you help me understand Astreus?",
-      model: agent.config.model,
-      systemPrompt: agent.config.systemPrompt
+      provider: provider,
+      systemPrompt: "You are a helpful assistant."
     });
 
     // List user's chats
