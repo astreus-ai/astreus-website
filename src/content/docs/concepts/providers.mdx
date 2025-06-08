@@ -21,8 +21,8 @@ import { createProvider } from '@astreus-ai/astreus';
 // For OpenAI
 const openaiProvider = createProvider({
   type: 'openai',
-  model: 'gpt-4o-mini'
-  // API key taken from OPENAI_API_KEY environment variable
+  model: 'gpt-4o-mini',
+  apiKey: process.env.OPENAI_API_KEY // Optional, defaults to OPENAI_API_KEY env var
 });
 
 // For Ollama (local models)
@@ -44,6 +44,7 @@ const ollamaProvider = createProvider({
 | `apiKey` | string | OpenAI API key | No (defaults to OPENAI_API_KEY env var) |
 | `baseUrl` | string | Custom API endpoint | No |
 | `organizationId` | string | Organization ID for OpenAI | No |
+| `embeddingModel` | string | Embedding model for RAG | No (defaults to 'text-embedding-3-small') |
 
 ### Ollama Provider Options
 
@@ -68,18 +69,51 @@ const availableModels = provider.listModels();
 const gpt4 = provider.getModel('gpt-4o');
 ```
 
-## Generating Text Completions
+## Using Providers with Agents
 
-You can use the provider directly for completions:
+Providers are typically used when creating agents:
 
 ```typescript
+import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+
+async function createAgentWithProvider() {
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db });
+  
+  // Create provider
+  const provider = createProvider({
+    type: 'openai',
+    model: 'gpt-4o-mini',
+    apiKey: process.env.OPENAI_API_KEY
+  });
+
+  // Create agent with provider
+  const agent = await createAgent({
+    name: 'MyAgent',
+    provider: provider,
+    memory: memory,
+    systemPrompt: "You are a helpful AI assistant."
+  });
+
+  return agent;
+}
+```
+
+## Generating Text Completions
+
+You can use the provider directly for completions through the model:
+
+```typescript
+// Get a model from the provider
+const model = provider.getModel('gpt-4o-mini');
+
 // Generate a completion
 const messages = [
   { role: 'system', content: 'You are a helpful assistant.' },
   { role: 'user', content: 'What is the capital of France?' }
 ];
 
-const completion = await provider.generateCompletion(messages);
+const completion = await model.complete(messages);
 console.log(completion); // "The capital of France is Paris."
 ```
 
@@ -88,9 +122,141 @@ console.log(completion); // "The capital of France is Paris."
 Providers can also generate embeddings (vector representations of text) for semantic search:
 
 ```typescript
-// Generate embeddings for text content
+// Generate embeddings for text content (OpenAI only)
 const text = "This is a sample text for embedding generation";
 const embedding = await provider.generateEmbedding(text);
 
 // The embedding is a vector (number array) that can be used for semantic search
-``` 
+console.log(`Generated embedding with ${embedding.length} dimensions`);
+```
+
+## Provider Methods
+
+### Core Methods
+
+All providers implement these core methods:
+
+```typescript
+// List available models
+const models = provider.listModels();
+console.log('Available models:', models);
+
+// Get default model name
+const defaultModelName = provider.getDefaultModel();
+console.log('Default model:', defaultModelName);
+
+// Get a specific model instance
+const specificModel = provider.getModel('gpt-4o');
+
+// Get provider type
+console.log('Provider type:', provider.type);
+```
+
+### OpenAI-Specific Methods
+
+OpenAI providers have additional methods:
+
+```typescript
+// Get embedding model name
+const embeddingModel = provider.getEmbeddingModel();
+console.log('Embedding model:', embeddingModel);
+
+// Generate embeddings
+const embedding = await provider.generateEmbedding("Sample text");
+console.log('Embedding dimensions:', embedding?.length);
+```
+
+## Environment Variables
+
+Providers can be configured using environment variables:
+
+```bash
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_BASE_URL=https://api.openai.com/v1  # Optional custom endpoint
+OPENAI_ORGANIZATION_ID=your_org_id  # Optional
+
+# Ollama Configuration
+OLLAMA_BASE_URL=http://localhost:11434  # Default Ollama endpoint
+```
+
+## Best Practices
+
+1. **Environment Variables**: Store API keys in environment variables, not in code
+2. **Model Selection**: Choose appropriate models for your use case (gpt-4o-mini for speed, gpt-4o for quality)
+3. **Error Handling**: Wrap provider operations in try-catch blocks
+4. **Rate Limiting**: Be aware of provider rate limits and implement appropriate handling
+5. **Cost Management**: Monitor usage and costs, especially with premium models
+
+## Example: Multi-Provider Setup
+
+You can create multiple providers for different use cases:
+
+```typescript
+import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+
+async function createMultiProviderSystem() {
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db });
+
+  // Fast provider for simple tasks
+  const fastProvider = createProvider({
+    type: 'openai',
+    model: 'gpt-4o-mini'
+  });
+
+  // Powerful provider for complex tasks
+  const powerfulProvider = createProvider({
+    type: 'openai',
+    model: 'gpt-4o'
+  });
+
+  // Local provider for privacy-sensitive tasks
+  const localProvider = createProvider({
+    type: 'ollama',
+    model: 'llama3',
+    baseUrl: 'http://localhost:11434'
+  });
+
+  // Create agents with different providers
+  const fastAgent = await createAgent({
+    name: 'FastAgent',
+    provider: fastProvider,
+    memory: memory,
+    systemPrompt: "You provide quick, concise responses."
+  });
+
+  const powerfulAgent = await createAgent({
+    name: 'PowerfulAgent',
+    provider: powerfulProvider,
+    memory: memory,
+    systemPrompt: "You provide detailed, comprehensive responses."
+  });
+
+  const localAgent = await createAgent({
+    name: 'LocalAgent',
+    provider: localProvider,
+    memory: memory,
+    systemPrompt: "You are a privacy-focused assistant running locally."
+  });
+
+  return { fastAgent, powerfulAgent, localAgent };
+}
+```
+
+## Troubleshooting
+
+**Provider not working?**
+- Check API keys are correctly set in environment variables
+- Verify network connectivity to provider endpoints
+- Ensure model names are correct and available
+
+**Ollama connection issues?**
+- Make sure Ollama is running locally
+- Check the base URL is correct
+- Verify the model is downloaded and available
+
+**OpenAI API errors?**
+- Check API key validity and permissions
+- Monitor rate limits and usage quotas
+- Verify model availability in your region 

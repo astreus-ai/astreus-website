@@ -40,7 +40,7 @@ LOG_LEVEL=info  # debug, info, warn, error
 
 ## Creating Your First Agent with Chat Management
 
-With Astreus 0.2.1+, everything revolves around the **Agent** with enhanced chat management. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
+With Astreus, everything revolves around the **Agent** with enhanced chat management. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
 
 ```typescript
 import { 
@@ -84,7 +84,7 @@ async function main() {
       description: 'A helpful AI assistant with streaming and chat management capabilities',
       provider: provider,
       memory: memory,
-      chat: chatManager, // New: Chat management system
+      chat: chatManager, // Chat management system
       systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
     });
 
@@ -389,7 +389,7 @@ const weatherTool: Plugin = {
 async function main() {
   const db = await createDatabase();
   const memory = await createMemory({ database: db });
-  const chatManager = await createChat({ database: db });
+  const chatManager = await createChat({ database: db, memory: memory });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
   // Create agent with tools

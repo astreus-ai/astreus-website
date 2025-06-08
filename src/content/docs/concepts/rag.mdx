@@ -1,524 +1,485 @@
 ---
-title: RAG
+title: RAG (Retrieval Augmented Generation)
 ---
 
-RAG (Retrieval Augmented Generation) enables agents to access, search, and reason over document content, providing more accurate and contextual responses.
-
-## RAG Architecture
-
-The RAG system in Astreus consists of:
-
-- **Document Parsing**: Extracting text and metadata from documents (especially PDFs)
-- **Chunking**: Breaking documents into manageable pieces (Vector RAG)
-- **Embedding Generation**: Creating vector representations of text chunks
-- **Vector Storage**: Storing embeddings for semantic search
-- **Retrieval**: Finding relevant content based on semantic similarity
-- **Context Augmentation**: Adding retrieved content to agent prompts
+RAG (Retrieval Augmented Generation) enables agents to search and retrieve relevant information from documents to provide more accurate and contextual responses.
 
 ## RAG Types
 
 Astreus supports two types of RAG systems:
 
-### Vector RAG
-- **Best for**: Large document collections, semantic search, chunked content
-- **Features**: Document chunking, vector embeddings, similarity search
-- **Tools**: Full CRUD operations (add, get, delete documents)
-- **Storage**: Supports same database or dedicated vector databases (PostgreSQL with pgvector)
+- **Vector RAG**: Uses vector embeddings for semantic search
+- **Document RAG**: Uses keyword-based search with full-text indexing
 
-### Document RAG  
-- **Best for**: Smaller document sets, metadata-based filtering, whole documents
-- **Features**: Document storage, metadata search, content search
-- **Tools**: Search and metadata filtering
+## Creating RAG Systems
 
-## PDF Processing Workflow
-
-The typical RAG workflow starts with PDF documents:
+Use the RAG factory function to create RAG instances:
 
 ```typescript
-import { 
-  createRAG, 
-  RAGType,
-  parsePDF, 
-  createProvider, 
-  createDatabase 
-} from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase, createRAG } from '@astreus-ai/astreus';
 
-(async () => {
-  // 1. Parse PDF with smart splitting
-  const pdfResult = await parsePDF('manual.pdf', {
-    splitStrategy: 'section',    // Smart section detection
-    includePageNumbers: true,
-    metadata: {
-      source: 'user-manual',
-      version: '2.1'
-    }
-  });
-
-  // 2. Initialize components
+async function setupAgentWithRAG() {
   const db = await createDatabase();
+  const memory = await createMemory({ database: db });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
-  
-  // 3. Create Vector RAG system
-  const rag = await createRAG({
-    type: RAGType.VECTOR,
+
+  // Create Vector RAG for semantic search
+  const vectorRAG = await createRAG({
+    type: 'vector',
     database: db,
-    provider: provider,        // Required for embeddings
+    provider: provider,
+    tableName: 'vector_documents',
     chunkSize: 1000,
     chunkOverlap: 200
   });
-  
-  // 4. Add parsed documents to RAG
-  for (const doc of pdfResult.documents) {
-    await rag.addDocument({
-      content: doc.content,
-      metadata: {
-        ...doc.metadata,
-        pdfTitle: pdfResult.pdfMetadata.title,
-        pageCount: pdfResult.pdfMetadata.numPages
-      }
-    });
-  }
-})();
-```
 
-## PDF Splitting Strategies
-
-Choose the right strategy for your documents:
-
-### Section Strategy (Recommended)
-```typescript
-const result = await parsePDF('manual.pdf', {
-  splitStrategy: 'section',     // Detects headers and sections
-  includePageNumbers: true      // Adds page info to metadata
-});
-```
-- **Best for**: Technical manuals, structured documents
-- **Features**: Intelligent section detection, preserves document structure
-
-### Paragraph Strategy
-```typescript
-const result = await parsePDF('article.pdf', {
-  splitStrategy: 'paragraph',   // Splits by paragraphs
-  chunkOverlap: 50             // Small overlap for paragraphs
-});
-```
-- **Best for**: Articles, blogs, narrative content
-- **Features**: Natural paragraph boundaries
-
-### Simple Strategy
-```typescript
-const result = await parsePDF('document.pdf', {
-  splitStrategy: 'simple',      // Fixed-size chunks
-  chunkSize: 800,              // Characters per chunk
-  chunkOverlap: 100            // Overlap between chunks
-});
-```
-- **Best for**: Uniform content, when other strategies fail
-- **Features**: Predictable chunk sizes
-
-## Vector Database Options
-
-### Same Database (Default)
-```typescript
-const rag = await createRAG({
-  type: RAGType.VECTOR,
-  database: db,
-  provider: provider
-  // Uses main database for vectors
-});
-```
-- **Pros**: Simple setup, single database
-- **Cons**: May impact main database performance
-
-### Dedicated PostgreSQL with pgvector
-```typescript
-const rag = await createRAG({
-  type: RAGType.VECTOR,
-  database: db,
-  provider: provider,
-  vectorDatabase: {
-    type: VectorDatabaseType.POSTGRES,
-    connectionString: 'postgresql://user:pass@localhost:5432/vectors',
-    options: {
-      tableName: 'document_vectors'
-    }
-  }
-});
-```
-- **Pros**: Optimized for vector operations, better performance
-- **Cons**: Requires separate PostgreSQL setup
-
-### Environment Configuration
-```typescript
-// Automatically loads from environment variables
-const rag = await createRAG({
-  type: RAGType.VECTOR,
-  database: db,
-  provider: provider
-  // Reads VECTOR_DB_* environment variables
-});
-```
-
-Set these environment variables:
-```bash
-VECTOR_DB_TYPE=postgres
-VECTOR_DB_CONNECTION_STRING=postgresql://user:pass@localhost:5432/vectors
-VECTOR_DB_TABLE_NAME=embeddings
-```
-
-## Setting Up RAG
-
-### Vector RAG Setup
-
-```typescript
-import { 
-  createRAG, 
-  RAGType,
-  parsePDF, 
-  parseDirectoryOfPDFs,
-  createProvider, 
-  createDatabase 
-} from '@astreus-ai/astreus';
-
-(async () => {
-  // Initialize components
-  const db = await createDatabase();
-  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
-  
-  // Parse multiple PDFs
-  const allDocs = await parseDirectoryOfPDFs('./documents/', {
-    splitStrategy: 'section',
-    includePageNumbers: true,
-    metadata: {
-      batch: 'initial-load'
-    }
-  });
-  
-  // Create a Vector RAG system
-  const rag = await createRAG({
-    type: RAGType.VECTOR,
+  // Create Document RAG for keyword search
+  const documentRAG = await createRAG({
+    type: 'document',
     database: db,
-    provider: provider,
-    tableName: "vector_embeddings",
-    chunkSize: 1000,        // Size of text chunks
-    chunkOverlap: 200,      // Overlap between chunks
-    maxResults: 5           // Max results per search
+    tableName: 'text_documents',
+    chunkSize: 500
   });
-  
-  // Add all documents to the RAG system
-  for (const [filename, result] of Object.entries(allDocs)) {
-    for (const doc of result.documents) {
-      await rag.addDocument({
-        content: doc.content,
-        metadata: {
-          ...doc.metadata,
-          filename,
-          originalTitle: result.pdfMetadata.title
-        }
-      });
-    }
-  }
-})();
-```
 
-### Document RAG Setup
-
-```typescript
-import { 
-  createRAG, 
-  RAGType,
-  createDatabase 
-} from '@astreus-ai/astreus';
-
-(async () => {
-  // Initialize components
-  const db = await createDatabase();
-  
-  // Create a Document RAG system
-  const rag = await createRAG({
-    type: RAGType.DOCUMENT,
-    database: db,
-    tableName: "documents",
-    storeEmbeddings: true    // Enable semantic search
-  });
-  
-  // Add documents to the RAG system
-  await rag.addDocument({
-    content: "Your document content here...",
-    metadata: { category: 'support', priority: 'high' }
-  });
-})();
-```
-
-## RAG Configuration Options
-
-| Option | Type | Description | Required | RAG Type |
-|--------|------|-------------|----------|----------|
-| `type` | RAGType | Vector or Document RAG | Yes | Both |
-| `database` | Database | Database for storing data | Yes | Both |
-| `provider` | Provider | Provider for embeddings | Recommended | Both |
-| `tableName` | string | Table name for storage | No | Both |
-| `maxResults` | number | Max results per query | No | Both |
-| `chunkSize` | number | Size of document chunks | No | Vector |
-| `chunkOverlap` | number | Overlap between chunks | No | Vector |
-| `vectorDatabase` | VectorDatabaseConfig | Vector DB config | No | Vector |
-| `storeEmbeddings` | boolean | Enable embeddings | No | Document |
-
-## Using RAG with Agents
-
-Integrate RAG with an agent to automatically provide document search capabilities:
-
-```typescript
-import { 
-  createAgent, 
-  createProvider,
-  createMemory,
-  createDatabase,
-  createRAG,
-  RAGType,
-  parsePDF
-} from '@astreus-ai/astreus';
-
-(async () => {
-  // Initialize components
-  const db = await createDatabase();
-  const memory = await createMemory({ database: db, tableName: "memories" });
-  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
-  
-  // Parse documents and create RAG
-  const pdfResult = await parsePDF('product_manual.pdf', {
-    splitStrategy: 'section',
-    includePageNumbers: true
-  });
-  
-  const rag = await createRAG({
-    type: RAGType.VECTOR,
-    database: db,
-    provider: provider,
-    chunkSize: 1000,
-    chunkOverlap: 200
-  });
-  
-  // Add document to RAG
-  for (const doc of pdfResult.documents) {
-    await rag.addDocument({
-      content: doc.content,
-      metadata: {
-        ...doc.metadata,
-        source: 'product_manual',
-        title: pdfResult.pdfMetadata.title
-      }
-    });
-  }
-  
-  // Create agent with RAG - tools are automatically added!
   const agent = await createAgent({
-    name: 'ProductAssistant',
-    description: 'A product support assistant',
+    name: 'RAGAgent',
     provider: provider,
     memory: memory,
-    database: db,
-    rag: rag,  // RAG tools are automatically created
-    systemPrompt: "You are a helpful product support assistant. Use the rag_search tool to find relevant information from the product documentation before answering questions."
+    systemPrompt: "You are a helpful assistant with access to document search capabilities."
   });
-  
-  // The agent now has access to RAG tools automatically!
-  const response = await agent.chat("How do I reset my device to factory settings?");
-  console.log(response);
-})();
-```
 
-## Automatic RAG Tools
-
-When you add a RAG instance to an agent, the following tools are automatically available:
-
-### All RAG Types
-- **`rag_search`**: Search through documents using semantic similarity
-
-### Vector RAG Only
-- **`rag_add_document`**: Add new documents to the RAG system
-- **`rag_get_document`**: Retrieve a specific document by ID
-- **`rag_delete_document`**: Delete a document from the system
-
-### Document RAG Only  
-- **`rag_search_by_metadata`**: Search documents by metadata properties
-
-## Tool Usage Examples
-
-The agent can now use these tools automatically:
-
-```typescript
-// The agent will automatically use rag_search when relevant
-const response = await agent.chat("What does the manual say about troubleshooting?");
-
-// For Vector RAG, the agent can also manage documents
-const addResponse = await agent.chat("Add this new FAQ content to our knowledge base: 'Q: How to contact support? A: Email us at support@company.com'");
-
-// For Document RAG, metadata search is available
-const metadataResponse = await agent.chat("Find all high-priority support documents");
-```
-
-## Querying RAG Directly
-
-You can also query the RAG system directly without an agent:
-
-```typescript
-// Search for relevant content
-const results = await rag.search("How to configure network settings", 5);
-
-// Results contain matching document chunks
-results.forEach(result => {
-  console.log(`Content: ${result.content}`);
-  console.log(`Similarity: ${result.similarity}`);
-  console.log(`Source: ${result.sourceId}`);
-  console.log(`Metadata:`, result.metadata);
-});
-
-// Vector search with custom embedding
-const embedding = await provider.generateEmbedding("network configuration");
-const vectorResults = await rag.searchByVector(embedding, 3, 0.8);
-```
-
-## Processing Multiple Documents
-
-You can parse multiple documents and directories:
-
-```typescript
-import { parsePDF, parseDirectoryOfPDFs } from '@astreus-ai/astreus';
-
-// Parse a single PDF
-const singleDoc = await parsePDF('path/to/document1.pdf', {
-  splitStrategy: 'section',
-  includePageNumbers: true
-});
-
-// Parse a directory of PDFs
-const allDocs = await parseDirectoryOfPDFs('path/to/document_directory', {
-  splitStrategy: 'section',
-  includePageNumbers: true,
-  metadata: {
-    batch: 'company-docs',
-    processed: new Date().toISOString()
-  }
-});
-
-// Add all documents to RAG
-for (const [filename, result] of Object.entries(allDocs)) {
-  console.log(`Processing ${filename}: ${result.documents.length} chunks`);
-  
-  for (const doc of result.documents) {
-    await rag.addDocument({
-      content: doc.content,
-      metadata: {
-        ...doc.metadata,
-        filename,
-        originalTitle: result.pdfMetadata.title,
-        pageCount: result.pdfMetadata.numPages
-      }
-    });
-  }
+  return { agent, vectorRAG, documentRAG };
 }
 ```
 
-## Document Processing Options
+## Vector RAG Configuration
 
-When parsing documents, you can customize the processing:
+Vector RAG uses embeddings for semantic similarity search:
 
 ```typescript
-// Parse a PDF with custom options
-const result = await parsePDF('document.pdf', {
-  splitStrategy: 'section',    // Splitting strategy
-  chunkSize: 1000,            // For simple strategy
-  chunkOverlap: 200,          // Overlap between chunks
-  includePageNumbers: true,    // Add page info to metadata
-  metadata: {                 // Custom metadata for all chunks
-    author: "Jane Smith",
-    department: "Engineering",
-    confidentiality: "Internal",
-    version: "2.1"
-  }
+// Vector RAG with external vector database
+const vectorRAG = await createRAG({
+  type: 'vector',
+  database: mainDatabase,
+  vectorDatabase: vectorDatabase, // Optional: separate vector database
+  provider: provider,
+  tableName: 'knowledge_base',
+  chunkSize: 1000,
+  chunkOverlap: 200,
+  embeddingModel: 'text-embedding-3-small'
 });
 
-// Access PDF metadata
-console.log('PDF Title:', result.pdfMetadata.title);
-console.log('PDF Author:', result.pdfMetadata.author);
-console.log('Page Count:', result.pdfMetadata.numPages);
-console.log('Creation Date:', result.pdfMetadata.creationDate);
-console.log('Document ID:', result.documentId);
-
-// Access parsed documents - all chunks share the same documentId
-result.documents.forEach((doc, index) => {
-  console.log(`Chunk ${index}:`);
-  console.log('Content preview:', doc.content.substring(0, 100));
-  console.log('Document ID:', doc.metadata.documentId);  // Same for all chunks
-  console.log('File Name:', doc.metadata.fileName);
-  console.log('Page Number:', doc.metadata.page);
-  console.log('Section Title:', doc.metadata.section_title);
-  console.log('Metadata:', doc.metadata);
+// Vector RAG with same database for vectors
+const singleDbVectorRAG = await createRAG({
+  type: 'vector',
+  database: database, // Same database for both documents and vectors
+  provider: provider,
+  tableName: 'documents',
+  chunkSize: 800,
+  chunkOverlap: 150
 });
 ```
 
-## Adding Custom Document Types
+### Vector RAG Options
 
-The RAG system supports custom document types beyond PDFs:
+| Option | Type | Description | Default |
+|--------|------|-------------|---------|
+| `type` | string | Must be 'vector' | Required |
+| `database` | DatabaseInstance | Main database for metadata | Required |
+| `vectorDatabase` | DatabaseInstance | Optional separate vector database | Same as database |
+| `provider` | ProviderInstance | Provider for embeddings | Required |
+| `tableName` | string | Table name for documents | 'rag_documents' |
+| `chunkSize` | number | Size of text chunks | 1000 |
+| `chunkOverlap` | number | Overlap between chunks | 200 |
+| `embeddingModel` | string | Embedding model name | 'text-embedding-3-small' |
+
+## Document RAG Configuration
+
+Document RAG uses full-text search for keyword matching:
 
 ```typescript
-// Add a custom document directly
-await rag.addDocument({
-  content: "Full text content of the document...",
+const documentRAG = await createRAG({
+  type: 'document',
+  database: database,
+  tableName: 'documents',
+  chunkSize: 500,
+  searchFields: ['title', 'content', 'tags']
+});
+```
+
+### Document RAG Options
+
+| Option | Type | Description | Default |
+|--------|------|-------------|---------|
+| `type` | string | Must be 'document' | Required |
+| `database` | DatabaseInstance | Database for storage | Required |
+| `tableName` | string | Table name for documents | 'rag_documents' |
+| `chunkSize` | number | Size of text chunks | 1000 |
+| `searchFields` | string[] | Fields to search in | ['content'] |
+
+## Adding Documents
+
+Add documents to your RAG system for search:
+
+```typescript
+// Add a single document
+const docId = await vectorRAG.addDocument({
+  title: "Machine Learning Guide",
+  content: "Machine learning is a subset of artificial intelligence...",
   metadata: {
-    title: "API Documentation",
-    source: "internal-wiki",
-    lastUpdated: "2023-05-15",
-    category: "technical",
-    tags: ["api", "documentation", "reference"]
+    author: "John Doe",
+    category: "AI",
+    tags: ["ml", "ai", "guide"],
+    publishDate: "2024-01-15"
   }
 });
 
-// Add structured content
-await rag.addDocument({
-  content: `
-    # User Authentication
-    
-    ## Overview
-    Our authentication system uses JWT tokens...
-    
-    ## Implementation
-    To implement authentication in your app...
-  `,
-  metadata: {
-    title: "Authentication Guide",
-    format: "markdown",
-    section: "security",
-    audience: "developers"
+console.log(`Document added with ID: ${docId}`);
+
+// Add multiple documents
+const documents = [
+  {
+    title: "Deep Learning Basics",
+    content: "Deep learning uses neural networks with multiple layers...",
+    metadata: { category: "AI", difficulty: "beginner" }
+  },
+  {
+    title: "Natural Language Processing",
+    content: "NLP enables computers to understand human language...",
+    metadata: { category: "AI", difficulty: "intermediate" }
   }
+];
+
+for (const doc of documents) {
+  await vectorRAG.addDocument(doc);
+}
+```
+
+## Searching Documents
+
+Perform searches to retrieve relevant information:
+
+```typescript
+// Vector search (semantic similarity)
+const vectorResults = await vectorRAG.search({
+  query: "How do neural networks learn?",
+  limit: 5,
+  threshold: 0.7 // Minimum similarity score
+});
+
+console.log(`Found ${vectorResults.length} relevant documents`);
+vectorResults.forEach(result => {
+  console.log(`Score: ${result.score}`);
+  console.log(`Title: ${result.metadata.title}`);
+  console.log(`Content: ${result.content.substring(0, 200)}...`);
+});
+
+// Document search (keyword matching)
+const documentResults = await documentRAG.search({
+  query: "machine learning algorithms",
+  limit: 3
+});
+
+documentResults.forEach(result => {
+  console.log(`Title: ${result.metadata.title}`);
+  console.log(`Relevance: ${result.score}`);
+});
+```
+
+## RAG Tools for Agents
+
+RAG systems automatically create search tools that agents can use:
+
+```typescript
+// Get RAG tools
+const vectorTool = vectorRAG.getTool();
+const documentTool = documentRAG.getTool();
+
+// Add tools to agent
+agent.addTool(vectorTool);
+agent.addTool(documentTool);
+
+// Agent can now use RAG in conversations
+const response = await agent.streamChat({
+  message: "What are the latest developments in machine learning?",
+  sessionId: "research-session",
+  onChunk: (chunk) => console.log(chunk)
+});
+
+// The agent will automatically search documents and include relevant information
+```
+
+## Advanced RAG Usage
+
+### Custom Search with Metadata Filtering
+
+```typescript
+// Search with metadata filters
+const filteredResults = await vectorRAG.search({
+  query: "artificial intelligence applications",
+  limit: 5,
+  threshold: 0.6,
+  metadata: {
+    category: "AI",
+    difficulty: "intermediate"
+  }
+});
+
+// Search within date range
+const recentResults = await vectorRAG.search({
+  query: "latest AI trends",
+  limit: 10,
+  metadata: {
+    publishDate: { $gte: "2024-01-01" }
+  }
+});
+```
+
+### Hybrid Search (Vector + Document)
+
+Combine both RAG types for comprehensive search:
+
+```typescript
+class HybridRAGSearch {
+  constructor(private vectorRAG: any, private documentRAG: any) {}
+
+  async hybridSearch(query: string, limit: number = 5) {
+    // Perform both searches in parallel
+    const [vectorResults, documentResults] = await Promise.all([
+      this.vectorRAG.search({ query, limit }),
+      this.documentRAG.search({ query, limit })
+    ]);
+
+    // Combine and deduplicate results
+    const combinedResults = new Map();
+    
+    // Add vector results with semantic scores
+    vectorResults.forEach(result => {
+      combinedResults.set(result.id, {
+        ...result,
+        vectorScore: result.score,
+        documentScore: 0
+      });
+    });
+
+    // Add document results with keyword scores
+    documentResults.forEach(result => {
+      if (combinedResults.has(result.id)) {
+        combinedResults.get(result.id).documentScore = result.score;
+      } else {
+        combinedResults.set(result.id, {
+          ...result,
+          vectorScore: 0,
+          documentScore: result.score
+        });
+      }
+    });
+
+    // Calculate hybrid scores and sort
+    const hybridResults = Array.from(combinedResults.values())
+      .map(result => ({
+        ...result,
+        hybridScore: (result.vectorScore * 0.7) + (result.documentScore * 0.3)
+      }))
+      .sort((a, b) => b.hybridScore - a.hybridScore)
+      .slice(0, limit);
+
+    return hybridResults;
+  }
+}
+
+// Use hybrid search
+const hybridSearch = new HybridRAGSearch(vectorRAG, documentRAG);
+const hybridResults = await hybridSearch.hybridSearch("machine learning algorithms", 5);
+```
+
+## Document Management
+
+Manage documents in your RAG system:
+
+```typescript
+// Get document by ID
+const document = await vectorRAG.getDocument(docId);
+console.log('Document:', document);
+
+// Update document
+await vectorRAG.updateDocument(docId, {
+  title: "Updated Machine Learning Guide",
+  content: "Updated content...",
+  metadata: {
+    ...document.metadata,
+    lastModified: new Date().toISOString()
+  }
+});
+
+// Delete document
+await vectorRAG.deleteDocument(docId);
+
+// List all documents
+const allDocuments = await vectorRAG.listDocuments({
+  limit: 20,
+  offset: 0
+});
+
+console.log(`Total documents: ${allDocuments.length}`);
+```
+
+## RAG with External Vector Databases
+
+For production use, you can use external vector databases:
+
+```typescript
+// Example with separate vector database
+const mainDB = await createDatabase({
+  type: 'postgresql',
+  host: 'localhost',
+  database: 'main_app'
+});
+
+const vectorDB = await createDatabase({
+  type: 'postgresql',
+  host: 'vector-db-host',
+  database: 'vector_store'
+});
+
+const vectorRAG = await createRAG({
+  type: 'vector',
+  database: mainDB,        // Main database for metadata
+  vectorDatabase: vectorDB, // Separate vector database
+  provider: provider,
+  tableName: 'knowledge_base'
+});
+
+// This setup:
+// - Stores document metadata in main database
+// - Stores vectors in separate vector database
+// - Optimizes performance and storage
+```
+
+## Performance Optimization
+
+### Chunking Strategy
+
+```typescript
+// Optimize chunking for your content type
+const technicalDocsRAG = await createRAG({
+  type: 'vector',
+  database: db,
+  provider: provider,
+  chunkSize: 1500,    // Larger chunks for technical content
+  chunkOverlap: 300   // More overlap for context preservation
+});
+
+const chatLogsRAG = await createRAG({
+  type: 'vector',
+  database: db,
+  provider: provider,
+  chunkSize: 500,     // Smaller chunks for conversational content
+  chunkOverlap: 100   // Less overlap for distinct messages
+});
+```
+
+### Batch Document Processing
+
+```typescript
+// Process multiple documents efficiently
+async function batchAddDocuments(rag: any, documents: any[]) {
+  const batchSize = 10;
+  const results = [];
+
+  for (let i = 0; i < documents.length; i += batchSize) {
+    const batch = documents.slice(i, i + batchSize);
+    
+    // Process batch in parallel
+    const batchPromises = batch.map(doc => rag.addDocument(doc));
+    const batchResults = await Promise.all(batchPromises);
+    
+    results.push(...batchResults);
+    
+    // Optional: Add delay between batches to avoid rate limits
+    if (i + batchSize < documents.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  return results;
+}
+
+// Use batch processing
+const documentIds = await batchAddDocuments(vectorRAG, largeDocumentSet);
+```
+
+## Integration with Agents
+
+Complete example of RAG-enabled agent:
+
+```typescript
+import { createAgent, createProvider, createMemory, createDatabase, createRAG } from '@astreus-ai/astreus';
+
+async function createRAGAgent() {
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+
+  // Create RAG system
+  const rag = await createRAG({
+    type: 'vector',
+    database: db,
+    provider: provider,
+    tableName: 'knowledge_base',
+    chunkSize: 1000,
+    chunkOverlap: 200
+  });
+
+  // Create agent
+  const agent = await createAgent({
+    name: 'KnowledgeAgent',
+    provider: provider,
+    memory: memory,
+    systemPrompt: `You are a knowledgeable assistant with access to a comprehensive document database. 
+    When answering questions, search for relevant information and cite your sources.`
+  });
+
+  // Add RAG tool to agent
+  const ragTool = rag.getTool();
+  agent.addTool(ragTool);
+
+  return { agent, rag };
+}
+
+// Use RAG-enabled agent
+const { agent, rag } = await createRAGAgent();
+
+// Add some documents
+await rag.addDocument({
+  title: "Company Policies",
+  content: "Our company values include integrity, innovation, and customer focus...",
+  metadata: { type: "policy", department: "HR" }
+});
+
+// Agent can now search and reference documents
+const response = await agent.streamChat({
+  message: "What are our company values?",
+  sessionId: "hr-inquiry",
+  onChunk: (chunk) => console.log(chunk)
 });
 ```
 
 ## Best Practices
 
-### Choosing RAG Type
-- Use **Vector RAG** for large documents that benefit from chunking and semantic search
-- Use **Document RAG** for smaller documents or when you need metadata filtering
+1. **Chunking Strategy**: Choose appropriate chunk sizes based on your content type
+2. **Metadata Design**: Include relevant metadata for filtering and organization
+3. **Search Thresholds**: Set appropriate similarity thresholds for vector search
+4. **Document Updates**: Regularly update documents to maintain accuracy
+5. **Performance Monitoring**: Monitor search performance and optimize as needed
+6. **Hybrid Approach**: Consider combining vector and document RAG for comprehensive search
+7. **External Databases**: Use separate vector databases for production workloads
 
-### Chunk Configuration (Vector RAG)
-- **Small chunks (500-800)**: Better for precise answers, FAQ-style content
-- **Large chunks (1000-1500)**: Better for context understanding, technical docs
-- **Overlap (100-300)**: Ensures important information isn't lost at boundaries
+## Migration Notes
 
-### Metadata Strategy
-- Add meaningful metadata for better filtering and organization
-- Include source, category, date, version, and other relevant fields
-- Use consistent metadata schemas across documents
-- Consider adding tags for flexible categorization
+The RAG system has been optimized for better performance and database usage:
 
-### Vector Database Selection
-- **Same Database**: Good for getting started, simple deployments
-- **Dedicated PostgreSQL**: Better for production, high-volume scenarios
-- **Future Options**: Qdrant, Pinecone, Milvus for specialized needs
-
-### Performance Optimization
-- Use batch processing for large document collections
-- Consider chunking strategy based on document type
-- Monitor embedding generation costs and performance
-- Implement proper error handling for document processing 
+- **External Vector Databases**: When using separate vector databases, only minimal tables are created in the main database
+- **Improved Chunking**: Better text chunking with configurable overlap
+- **Enhanced Search**: More accurate similarity search with metadata filtering
+- **Tool Integration**: Automatic tool creation for seamless agent integration 

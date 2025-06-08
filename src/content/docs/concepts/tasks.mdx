@@ -54,6 +54,8 @@ console.log(`Task created with ID: ${researchTask.id}`);
 | `maxRetries` | number | Maximum retry attempts if task fails | No (default: 3) |
 | `timeout` | number | Time in milliseconds before task times out | No |
 | `tags` | string[] | Labels for categorizing tasks | No |
+| `agentId` | string | Agent ID for the task | No (uses manager default) |
+| `sessionId` | string | Session ID for the task | No (uses manager default) |
 
 ## Running Tasks
 
@@ -147,7 +149,7 @@ You can retrieve and manage tasks:
 
 ```typescript
 // Get all tasks from the task manager
-const allTasks = taskManager.getTasks();
+const allTasks = taskManager.getAllTasks();
 
 // Get tasks for a specific agent
 const agentTasks = taskManager.getTasksByAgent(agent.id);
@@ -156,8 +158,47 @@ const agentTasks = taskManager.getTasksByAgent(agent.id);
 const sessionTasks = taskManager.getTasksBySession("session123");
 
 // Get a specific task by ID
-const task = taskManager.getTasks().find(t => t.id === "task-uuid");
+const task = taskManager.getTask("task-uuid");
+
+// Cancel a task
+const canceled = taskManager.cancelTask("task-uuid");
 ```
+
+## Task Manager Configuration
+
+Configure the task manager when creating it:
+
+```typescript
+import { createTaskManager } from '@astreus-ai/astreus';
+
+// Basic task manager
+const basicTaskManager = createTaskManager({
+  concurrency: 3,  // Run up to 3 tasks concurrently
+  agentId: agent.id,
+  sessionId: "session-123"
+});
+
+// Advanced task manager with memory and database
+const advancedTaskManager = createTaskManager({
+  concurrency: 5,
+  agentId: agent.id,
+  sessionId: "session-123",
+  memory: agent.config.memory,
+  database: agent.config.database,
+  providerModel: agent.getModel()
+});
+```
+
+### Task Manager Configuration Options
+
+| Option | Type | Description | Default |
+|--------|------|-------------|---------|
+| `concurrency` | number | Maximum concurrent tasks | 5 |
+| `agentId` | string | Default agent ID for tasks | undefined |
+| `sessionId` | string | Default session ID for tasks | undefined |
+| `memory` | MemoryInstance | Memory for task context storage | undefined |
+| `database` | DatabaseInstance | Database for task persistence | undefined |
+| `providerModel` | ProviderModel | Model for task execution | undefined |
 
 ## Error Handling and Retries
 
@@ -188,4 +229,161 @@ try {
 } catch (error) {
   console.error("Error executing tasks:", error);
 }
-``` 
+```
+
+## Advanced Task Patterns
+
+### Sequential Task Chain
+
+Create a chain of dependent tasks:
+
+```typescript
+async function createTaskChain() {
+  const tasks = [];
+  
+  // Step 1: Data collection
+  const collectTask = await taskManager.createTask({
+    name: "Collect Data",
+    description: "Gather data from various sources",
+    input: { sources: ["api", "database", "files"] }
+  });
+  tasks.push(collectTask);
+  
+  // Step 2: Data processing (depends on collection)
+  const processTask = await taskManager.createTask({
+    name: "Process Data",
+    description: "Clean and transform collected data",
+    dependsOn: [collectTask.id]
+  });
+  tasks.push(processTask);
+  
+  // Step 3: Analysis (depends on processing)
+  const analyzeTask = await taskManager.createTask({
+    name: "Analyze Data",
+    description: "Perform statistical analysis",
+    dependsOn: [processTask.id]
+  });
+  tasks.push(analyzeTask);
+  
+  // Step 4: Report generation (depends on analysis)
+  const reportTask = await taskManager.createTask({
+    name: "Generate Report",
+    description: "Create final analysis report",
+    dependsOn: [analyzeTask.id]
+  });
+  tasks.push(reportTask);
+  
+  return tasks;
+}
+
+// Execute the entire chain
+const taskChain = await createTaskChain();
+const results = await taskManager.run(taskChain.map(t => t.id));
+```
+
+### Parallel Task Execution
+
+Execute independent tasks in parallel:
+
+```typescript
+async function createParallelTasks() {
+  // These tasks can run in parallel
+  const task1 = await taskManager.createTask({
+    name: "Fetch User Data",
+    description: "Get user information from API",
+    input: { userId: "123" }
+  });
+  
+  const task2 = await taskManager.createTask({
+    name: "Fetch Product Data",
+    description: "Get product information from database",
+    input: { productId: "456" }
+  });
+  
+  const task3 = await taskManager.createTask({
+    name: "Fetch Analytics Data",
+    description: "Get analytics from third-party service",
+    input: { timeRange: "last_30_days" }
+  });
+  
+  // Combine results task (depends on all parallel tasks)
+  const combineTask = await taskManager.createTask({
+    name: "Combine Results",
+    description: "Merge all data sources into final result",
+    dependsOn: [task1.id, task2.id, task3.id]
+  });
+  
+  return [task1, task2, task3, combineTask];
+}
+
+// Execute parallel tasks
+const parallelTasks = await createParallelTasks();
+const results = await taskManager.run(parallelTasks.map(t => t.id));
+```
+
+## Integration with Agents
+
+Task managers work seamlessly with agents:
+
+```typescript
+import { createAgent, createProvider, createMemory, createDatabase, createTaskManager } from '@astreus-ai/astreus';
+
+async function createAgentWithTasks() {
+  const db = await createDatabase();
+  const memory = await createMemory({ database: db });
+  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+  
+  const agent = await createAgent({
+    name: 'TaskAgent',
+    provider: provider,
+    memory: memory,
+    database: db,
+    systemPrompt: "You are a helpful assistant that can execute complex tasks."
+  });
+  
+  // Create task manager for this agent
+  const taskManager = createTaskManager({
+    agentId: agent.id,
+    memory: memory,
+    database: db,
+    providerModel: agent.getModel()
+  });
+  
+  return { agent, taskManager };
+}
+
+// Use agent with tasks
+const { agent, taskManager } = await createAgentWithTasks();
+
+// Create a task that uses the agent's capabilities
+const analysisTask = await taskManager.createTask({
+  name: "Market Analysis",
+  description: "Analyze market trends and provide insights",
+  input: {
+    market: "technology",
+    timeframe: "Q1 2024"
+  }
+});
+
+// Execute the task
+const results = await taskManager.run([analysisTask.id]);
+```
+
+## Best Practices
+
+1. **Clear Dependencies**: Define clear task dependencies to avoid circular references
+2. **Meaningful Names**: Use descriptive names and descriptions for tasks
+3. **Error Handling**: Implement proper error handling and retry logic
+4. **Resource Management**: Set appropriate concurrency limits based on system resources
+5. **Task Granularity**: Break complex operations into smaller, manageable tasks
+6. **Input Validation**: Validate task inputs before execution
+7. **Progress Tracking**: Use task status and results for progress monitoring
+
+## Migration Notes
+
+The task system has been enhanced with better integration with agents and improved dependency management. If you're upgrading from earlier versions, note that:
+
+- Task managers now support agent and session IDs for better organization
+- Dependencies can be specified using both `dependencies` and `dependsOn` fields
+- Task execution includes better error handling and retry mechanisms
+- Integration with memory and database systems is more seamless 

@@ -3,7 +3,7 @@ title: Chat
 description: Learn about real-time streaming chat, advanced chat management, and session organization with Astreus's agent-centric approach
 ---
 
-The **Chat System** in Astreus 0.2.1+ is **agent-centric** and provides powerful **real-time streaming** capabilities with **advanced chat management**. Instead of managing separate chat managers, everything flows through the agent with built-in session management, chat organization, and metadata support.
+The **Chat System** in Astreus is **agent-centric** and provides powerful **real-time streaming** capabilities with **advanced chat management**. Instead of managing separate chat managers, everything flows through the agent with built-in session management, chat organization, and metadata support.
 
 ## Agent-Centric Chat Architecture
 
@@ -15,7 +15,7 @@ const agent = await createAgent({
   name: 'ChatAgent',
   provider: myProvider,
   memory: myMemory,
-  chat: myChatManager // New: Chat management system
+  chat: myChatManager // Chat management system
 });
 
 // Create structured chats with metadata

@@ -33,7 +33,7 @@ Astreus provides a comprehensive set of tools and abstractions to create AI agen
 
 ## Agent-First Approach
 
-With Astreus 0.2.1+, everything revolves around the **Agent** with enhanced chat management:
+With Astreus, everything revolves around the **Agent** with enhanced chat management:
 
 ```typescript
 // Create an agent with all capabilities including chat management
@@ -41,7 +41,7 @@ const agent = await createAgent({
   name: 'My Assistant',
   provider: myProvider,
   memory: myMemory,
-  chat: myChatManager, // New: Chat management system
+  chat: myChatManager, // Chat management system
   tools: [customTool1, customTool2]
 });
 

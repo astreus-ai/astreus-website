@@ -6,15 +6,15 @@ Agents are the **heart of the Astreus framework**. An agent represents an AI ass
 
 ## Agent-Centric Architecture
 
-With Astreus 0.2.1+, everything revolves around the **Agent** with enhanced chat management. Instead of managing separate components, you access everything through the agent:
+With Astreus, everything revolves around the **Agent** with enhanced chat management. Instead of managing separate components, you access everything through the agent:
 
 ```typescript
-// ✅ New Agent-Centric Approach with Chat Management
+// ✅ Agent-Centric Approach with Chat Management
 const agent = await createAgent({
   name: 'MyAgent',
   provider: myProvider,
   memory: myMemory,
-  chat: myChatManager // New: Chat management system
+  chat: myChatManager // Chat management system
 });
 
 // All operations through agent methods
@@ -89,7 +89,7 @@ async function createMyAgent() {
     provider: provider,
     memory: memory,
     database: db,
-    chat: chatManager, // New: Chat management system
+    chat: chatManager, // Chat management system
     systemPrompt: "You are a helpful AI assistant that provides detailed, accurate responses.",
     tools: [customTool1, customTool2] // Optional tools
   });
@@ -328,7 +328,7 @@ const allMemories = await memory.getByAgent(agent.id, 100);
 
 | Option | Type | Description | Required |
 |--------|------|-------------|----------|
-| `name` | string | Agent name | No (defaults to "Assistant") |
+| `name` | string | Agent name | Yes |
 | `description` | string | Agent description | No |
 | `provider` | ProviderInstance | LLM provider | Yes (or model) |
 | `model` | ProviderModel | Specific model instance | Yes (or provider) |
@@ -501,7 +501,7 @@ const response = await chatManager.chat({
   systemPrompt
 });
 
-// ✅ New agent-centric approach (0.1.9+)
+// ✅ New agent-centric approach
 const agent = await createAgent({
   name: 'MyAgent',
   provider: myProvider,
