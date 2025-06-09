@@ -345,7 +345,7 @@ const allMemories = await memory.getByAgent(agent.id, 100);
 When you provide a RAG instance, the agent automatically gains document search tools:
 
 ```typescript
-import { createAgent, createRAG, RAGType, parsePDF } from '@astreus-ai/astreus';
+import { createAgent, createRAG, parsePDF } from '@astreus-ai/astreus';
 
 async function createRAGAgent() {
   const db = await createDatabase();
@@ -354,7 +354,7 @@ async function createRAGAgent() {
 
   // Create RAG system
   const rag = await createRAG({
-    type: RAGType.VECTOR,
+    type: 'vector',
     database: db,
     provider: provider,
     chunkSize: 1000,
@@ -381,7 +381,7 @@ Use the rag_search tool to find relevant information when answering questions.`
   });
 
   // Agent now has RAG tools available
-  console.log('RAG tools:', agent.getAvailableTools().filter(t => t.startsWith('rag_')));
+  console.log('RAG tools:', agent.getAvailableTools().filter(t => t.name.startsWith('rag_')));
 
   return agent;
 }

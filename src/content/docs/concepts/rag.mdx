@@ -161,28 +161,21 @@ Perform searches to retrieve relevant information:
 
 ```typescript
 // Vector search (semantic similarity)
-const vectorResults = await vectorRAG.search({
-  query: "How do neural networks learn?",
-  limit: 5,
-  threshold: 0.7 // Minimum similarity score
-});
+const vectorResults = await vectorRAG.search("How do neural networks learn?", 5);
 
 console.log(`Found ${vectorResults.length} relevant documents`);
 vectorResults.forEach(result => {
-  console.log(`Score: ${result.score}`);
+  console.log(`Score: ${result.similarity}`);
   console.log(`Title: ${result.metadata.title}`);
   console.log(`Content: ${result.content.substring(0, 200)}...`);
 });
 
 // Document search (keyword matching)
-const documentResults = await documentRAG.search({
-  query: "machine learning algorithms",
-  limit: 3
-});
+const documentResults = await documentRAG.search("machine learning algorithms", 3);
 
 documentResults.forEach(result => {
   console.log(`Title: ${result.metadata.title}`);
-  console.log(`Relevance: ${result.score}`);
+  console.log(`Relevance: ${result.similarity}`);
 });
 ```
 
@@ -214,25 +207,16 @@ const response = await agent.streamChat({
 ### Custom Search with Metadata Filtering
 
 ```typescript
-// Search with metadata filters
-const filteredResults = await vectorRAG.search({
-  query: "artificial intelligence applications",
-  limit: 5,
-  threshold: 0.6,
-  metadata: {
+// Search with metadata filters (for Document RAG)
+if ('searchByMetadata' in documentRAG) {
+  const filteredResults = await documentRAG.searchByMetadata({
     category: "AI",
     difficulty: "intermediate"
-  }
-});
+  }, 5);
+}
 
 // Search within date range
-const recentResults = await vectorRAG.search({
-  query: "latest AI trends",
-  limit: 10,
-  metadata: {
-    publishDate: { $gte: "2024-01-01" }
-  }
-});
+const recentResults = await vectorRAG.search("latest AI trends", 10);
 ```
 
 ### Hybrid Search (Vector + Document)
@@ -246,8 +230,8 @@ class HybridRAGSearch {
   async hybridSearch(query: string, limit: number = 5) {
     // Perform both searches in parallel
     const [vectorResults, documentResults] = await Promise.all([
-      this.vectorRAG.search({ query, limit }),
-      this.documentRAG.search({ query, limit })
+      this.vectorRAG.search(query, limit),
+      this.documentRAG.search(query, limit)
     ]);
 
     // Combine and deduplicate results
@@ -257,7 +241,7 @@ class HybridRAGSearch {
     vectorResults.forEach(result => {
       combinedResults.set(result.id, {
         ...result,
-        vectorScore: result.score,
+        vectorScore: result.similarity,
         documentScore: 0
       });
     });
@@ -265,12 +249,12 @@ class HybridRAGSearch {
     // Add document results with keyword scores
     documentResults.forEach(result => {
       if (combinedResults.has(result.id)) {
-        combinedResults.get(result.id).documentScore = result.score;
+        combinedResults.get(result.id).documentScore = result.similarity;
       } else {
         combinedResults.set(result.id, {
           ...result,
           vectorScore: 0,
-          documentScore: result.score
+          documentScore: result.similarity
         });
       }
     });

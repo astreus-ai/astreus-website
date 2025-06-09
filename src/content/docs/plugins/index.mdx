@@ -18,11 +18,11 @@ When you add a RAG (Retrieval Augmented Generation) instance to an agent, it aut
 - **rag_search_by_metadata** - Search by document metadata (Document RAG only)
 
 ```typescript
-import { createRAG, RAGType } from '@astreus-ai/astreus';
+import { createRAG } from '@astreus-ai/astreus';
 
 // Create RAG instance
 const rag = await createRAG({
-  type: RAGType.VECTOR,
+  type: 'vector',
   database: db,
   provider: provider
 });

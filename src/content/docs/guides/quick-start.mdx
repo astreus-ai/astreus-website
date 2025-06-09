@@ -365,18 +365,20 @@ setTimeout(() => {
 Enhance your agent with custom capabilities:
 
 ```typescript
-import { createAgent, createProvider, createMemory, createDatabase, createChat, Plugin } from '@astreus-ai/astreus';
+import { createAgent, createProvider, createMemory, createDatabase, createChat } from '@astreus-ai/astreus';
 
 // Create a weather tool
-const weatherTool: Plugin = {
+const weatherTool = {
   name: "get_weather",
   description: "Get current weather information for a city",
-  parameters: {
-    city: {
+  parameters: [
+    {
+      name: "city",
       type: "string",
-      description: "The city name to get weather for"
+      description: "The city name to get weather for",
+      required: true
     }
-  },
+  ],
   execute: async (params) => {
     // In a real app, you'd call a weather API
     return {
@@ -403,15 +405,17 @@ async function main() {
   });
 
   // Add more tools dynamically
-  const calculatorTool: Plugin = {
+  const calculatorTool = {
     name: "calculator",
     description: "Perform mathematical calculations",
-    parameters: {
-      expression: {
+    parameters: [
+      {
+        name: "expression",
         type: "string",
-        description: "Mathematical expression to evaluate"
+        description: "Mathematical expression to evaluate",
+        required: true
       }
-    },
+    ],
     execute: async (params) => {
       try {
         // Use a proper math parser in production

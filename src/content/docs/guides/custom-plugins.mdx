@@ -23,13 +23,14 @@ import { Tool } from '@astreus-ai/astreus';
 const myCustomTool: Tool = {
   name: 'tool_name',
   description: 'What this tool does',
-  parameters: {
-    type: 'object',
-    properties: {
-      // Parameter definitions
-    },
-    required: ['required_param']
-  },
+  parameters: [
+    {
+      name: 'param_name',
+      type: 'string',
+      description: 'Parameter description',
+      required: true
+    }
+  ],
   execute: async (params: any) => {
     try {
       // Tool implementation
@@ -59,22 +60,21 @@ import { Tool } from '@astreus-ai/astreus';
 const weatherTool: Tool = {
   name: 'get_weather',
   description: 'Get current weather information for a specific location',
-  parameters: {
-    type: 'object',
-    properties: {
-      location: {
-        type: 'string',
-        description: 'The city and country (e.g., "London, UK")'
-      },
-      units: {
-        type: 'string',
-        enum: ['celsius', 'fahrenheit'],
-        description: 'Temperature units',
-        default: 'celsius'
-      }
+  parameters: [
+    {
+      name: 'location',
+      type: 'string',
+      description: 'The city and country (e.g., "London, UK")',
+      required: true
     },
-    required: ['location']
-  },
+    {
+      name: 'units',
+      type: 'string',
+      description: 'Temperature units',
+      required: false,
+      default: 'celsius'
+    }
+  ],
   execute: async (params: { location: string; units?: string }) => {
     try {
       // Simulate API call to weather service
@@ -125,21 +125,20 @@ function createWeatherPlugin(config: WeatherPluginConfig) {
   const weatherTool: Tool = {
     name: 'get_weather',
     description: 'Get current weather information for a specific location',
-    parameters: {
-      type: 'object',
-      properties: {
-        location: {
-          type: 'string',
-          description: 'The city and country (e.g., "London, UK")'
-        },
-        units: {
-          type: 'string',
-          enum: ['celsius', 'fahrenheit'],
-          description: 'Temperature units'
-        }
+    parameters: [
+      {
+        name: 'location',
+        type: 'string',
+        description: 'The city and country (e.g., "London, UK")',
+        required: true
       },
-      required: ['location']
-    },
+      {
+        name: 'units',
+        type: 'string',
+        description: 'Temperature units',
+        required: false
+      }
+    ],
     execute: async (params: { location: string; units?: string }) => {
       const units = params.units || config.defaultUnits || 'celsius';
       
@@ -262,21 +261,20 @@ function createDatabasePlugin(config: DatabasePluginConfig) {
   const queryTool: Tool = {
     name: 'database_query',
     description: 'Execute a SELECT query on the database',
-    parameters: {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-          description: 'SQL SELECT query to execute'
-        },
-        params: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Query parameters for prepared statements'
-        }
+    parameters: [
+      {
+        name: 'query',
+        type: 'string',
+        description: 'SQL SELECT query to execute',
+        required: true
       },
-      required: ['query']
-    },
+      {
+        name: 'params',
+        type: 'array',
+        description: 'Query parameters for prepared statements',
+        required: false
+      }
+    ],
     execute: async (params: { query: string; params?: string[] }) => {
       try {
         // Basic SQL injection protection
@@ -306,20 +304,20 @@ function createDatabasePlugin(config: DatabasePluginConfig) {
   const insertTool: Tool = {
     name: 'database_insert',
     description: 'Insert data into a database table',
-    parameters: {
-      type: 'object',
-      properties: {
-        table: {
-          type: 'string',
-          description: 'Table name to insert into'
-        },
-        data: {
-          type: 'object',
-          description: 'Data to insert as key-value pairs'
-        }
+    parameters: [
+      {
+        name: 'table',
+        type: 'string',
+        description: 'Table name to insert into',
+        required: true
       },
-      required: ['table', 'data']
-    },
+      {
+        name: 'data',
+        type: 'object',
+        description: 'Data to insert as key-value pairs',
+        required: true
+      }
+    ],
     execute: async (params: { table: string; data: Record<string, any> }) => {
       try {
         const columns = Object.keys(params.data);
@@ -380,22 +378,21 @@ function createFilePlugin(config: FilePluginConfig) {
   const readFileTool: Tool = {
     name: 'read_file',
     description: 'Read the contents of a text file',
-    parameters: {
-      type: 'object',
-      properties: {
-        filePath: {
-          type: 'string',
-          description: 'Path to the file to read'
-        },
-        encoding: {
-          type: 'string',
-          enum: ['utf8', 'ascii', 'base64'],
-          description: 'File encoding',
-          default: 'utf8'
-        }
+    parameters: [
+      {
+        name: 'filePath',
+        type: 'string',
+        description: 'Path to the file to read',
+        required: true
       },
-      required: ['filePath']
-    },
+      {
+        name: 'encoding',
+        type: 'string',
+        description: 'File encoding',
+        required: false,
+        default: 'utf8'
+      }
+    ],
     execute: async (params: { filePath: string; encoding?: string }) => {
       try {
         if (!validatePath(params.filePath)) {
@@ -431,26 +428,27 @@ function createFilePlugin(config: FilePluginConfig) {
   const writeFileTool: Tool = {
     name: 'write_file',
     description: 'Write content to a text file',
-    parameters: {
-      type: 'object',
-      properties: {
-        filePath: {
-          type: 'string',
-          description: 'Path to the file to write'
-        },
-        content: {
-          type: 'string',
-          description: 'Content to write to the file'
-        },
-        encoding: {
-          type: 'string',
-          enum: ['utf8', 'ascii'],
-          description: 'File encoding',
-          default: 'utf8'
-        }
+    parameters: [
+      {
+        name: 'filePath',
+        type: 'string',
+        description: 'Path to the file to write',
+        required: true
       },
-      required: ['filePath', 'content']
-    },
+      {
+        name: 'content',
+        type: 'string',
+        description: 'Content to write to the file',
+        required: true
+      },
+      {
+        name: 'encoding',
+        type: 'string',
+        description: 'File encoding',
+        required: false,
+        default: 'utf8'
+      }
+    ],
     execute: async (params: { filePath: string; content: string; encoding?: string }) => {
       try {
         if (!validatePath(params.filePath)) {
@@ -480,21 +478,21 @@ function createFilePlugin(config: FilePluginConfig) {
   const listDirectoryTool: Tool = {
     name: 'list_directory',
     description: 'List files and directories in a directory',
-    parameters: {
-      type: 'object',
-      properties: {
-        directoryPath: {
-          type: 'string',
-          description: 'Path to the directory to list'
-        },
-        includeHidden: {
-          type: 'boolean',
-          description: 'Include hidden files and directories',
-          default: false
-        }
+    parameters: [
+      {
+        name: 'directoryPath',
+        type: 'string',
+        description: 'Path to the directory to list',
+        required: true
       },
-      required: ['directoryPath']
-    },
+      {
+        name: 'includeHidden',
+        type: 'boolean',
+        description: 'Include hidden files and directories',
+        required: false,
+        default: false
+      }
+    ],
     execute: async (params: { directoryPath: string; includeHidden?: boolean }) => {
       try {
         if (!validatePath(params.directoryPath)) {
@@ -574,30 +572,33 @@ function createHttpPlugin(config: HttpPluginConfig = {}) {
   const httpRequestTool: Tool = {
     name: 'http_request',
     description: 'Make an HTTP request to a URL',
-    parameters: {
-      type: 'object',
-      properties: {
-        url: {
-          type: 'string',
-          description: 'URL to make the request to'
-        },
-        method: {
-          type: 'string',
-          enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-          description: 'HTTP method',
-          default: 'GET'
-        },
-        headers: {
-          type: 'object',
-          description: 'HTTP headers as key-value pairs'
-        },
-        body: {
-          type: 'string',
-          description: 'Request body (for POST, PUT, PATCH)'
-        }
+    parameters: [
+      {
+        name: 'url',
+        type: 'string',
+        description: 'URL to make the request to',
+        required: true
       },
-      required: ['url']
-    },
+      {
+        name: 'method',
+        type: 'string',
+        description: 'HTTP method',
+        required: false,
+        default: 'GET'
+      },
+      {
+        name: 'headers',
+        type: 'object',
+        description: 'HTTP headers as key-value pairs',
+        required: false
+      },
+      {
+        name: 'body',
+        type: 'string',
+        description: 'Request body (for POST, PUT, PATCH)',
+        required: false
+      }
+    ],
     execute: async (params: { 
       url: string; 
       method?: string; 

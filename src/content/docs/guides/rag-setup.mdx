@@ -284,18 +284,10 @@ const chatRAG = await createRAG({
 
 ```typescript
 // Search with custom parameters
-const results = await rag.search({
-  query: "How to install the software?",
-  limit: 5,
-  threshold: 0.7, // Minimum similarity score
-  metadata: {
-    category: "documentation",
-    version: "2.1"
-  }
-});
+const results = await rag.search("How to install the software?", 5);
 
 results.forEach(result => {
-  console.log(`Score: ${result.score}`);
+  console.log(`Score: ${result.similarity}`);
   console.log(`Title: ${result.metadata.title}`);
   console.log(`Content: ${result.content.substring(0, 200)}...`);
 });
@@ -480,16 +472,13 @@ async function testRAGSetup() {
   console.log(`Test document added: ${testDocId}`);
   
   // Test search functionality
-  const searchResults = await rag.search({
-    query: "testing procedures",
-    limit: 3
-  });
+  const searchResults = await rag.search("testing procedures", 3);
   
   console.log(`Search found ${searchResults.length} results`);
   
   if (searchResults.length > 0) {
     console.log('✅ RAG search is working');
-    console.log(`Top result score: ${searchResults[0].score}`);
+    console.log(`Top result score: ${searchResults[0].similarity}`);
   } else {
     console.log('❌ RAG search returned no results');
   }
@@ -529,7 +518,7 @@ async function benchmarkRAG() {
   
   for (const query of queries) {
     const queryStart = Date.now();
-    const results = await rag.search({ query, limit: 5 });
+    const results = await rag.search(query, 5);
     const queryTime = Date.now() - queryStart;
     
     console.log(`Query: "${query}"`);
@@ -583,7 +572,7 @@ import { logger } from '@astreus-ai/astreus';
 logger.level = 'debug';
 
 // Your RAG operations will now show detailed logs
-const results = await rag.search({ query: "test query" });
+const results = await rag.search("test query");
 ```
 
 ## Next Steps
