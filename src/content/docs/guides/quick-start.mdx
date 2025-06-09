@@ -26,7 +26,7 @@ Create a `.env` file in your project root with your API keys:
 # OpenAI API Key (Required for OpenAI provider)
 OPENAI_API_KEY=your_openai_api_key
 
-# Database Configuration
+# Database Configuration (tables created automatically when needed)
 DATABASE_TYPE=sqlite  # or postgresql
 DATABASE_PATH=./astreus.db  # Only for SQLite
 # DATABASE_URL=postgresql://user:password@localhost:5432/astreus  # For PostgreSQL
@@ -40,7 +40,7 @@ LOG_LEVEL=info  # debug, info, warn, error
 
 ## Creating Your First Agent with Chat Management
 
-With Astreus, everything revolves around the **Agent** with enhanced chat management. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
+With Astreus, everything revolves around the **Agent** with enhanced chat management. Each component automatically creates its required database tables when first used. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
 
 ```typescript
 import { 
@@ -54,20 +54,20 @@ import {
 
 async function main() {
   try {
-    // Initialize the database
+    // Initialize the database (no need to setup schema)
     const db = await createDatabase();
     
-    // Create memory instance
+    // Create memory instance (automatically creates memories table)
     const memory = await createMemory({
       database: db,
-      tableName: "conversations"
+      tableName: "conversations" // Custom table name
     });
 
-    // Create chat manager instance
+    // Create chat manager instance (automatically creates chats table)
     const chatManager = await createChat({
       database: db,
       memory: memory,
-      tableName: "chats",
+      tableName: "chats", // Custom table name
       maxChats: 100,
       autoGenerateTitles: true
     });
@@ -78,7 +78,7 @@ async function main() {
       model: 'gpt-4o-mini'  // Fast and affordable option
     });
 
-    // Create an agent - everything you need in one place!
+    // Create an agent - automatically creates agents table when needed
     const agent = await createAgent({
       name: 'MyFirstAgent',
       description: 'A helpful AI assistant with streaming and chat management capabilities',
@@ -174,6 +174,43 @@ Run your agent:
 node my-agent.js
 ```
 
+## Database Table Creation
+
+One of the key improvements in Astreus is **automatic table creation**. Each module creates its required tables when first used:
+
+```typescript
+// These operations automatically create their respective tables:
+
+// Creates 'conversations' table when first called
+const memory = await createMemory({
+  database: db,
+  tableName: "conversations"
+});
+
+// Creates 'chats' table when first called  
+const chatManager = await createChat({
+  database: db,
+  memory: memory,
+  tableName: "chats"
+});
+
+// Creates 'agents' table when agent is saved
+const agent = await createAgent({
+  name: 'MyAgent',
+  provider: provider,
+  memory: memory
+});
+
+// Creates 'tasks' table when task is created
+const task = await createTask({
+  name: 'ProcessData',
+  description: 'Process the data'
+});
+
+// Creates 'users' table when user is created
+const userId = await createUser('john_doe');
+```
+
 ## Real-Time Streaming with Chat Management
 
 Here's how to implement real-time streaming with chat management in a web application:
@@ -187,6 +224,8 @@ const wss = new WebSocket.Server({ port: 8080 });
 
 async function setupAgent() {
   const db = await createDatabase();
+  
+  // Tables created automatically when modules are used
   const memory = await createMemory({ database: db });
   const chatManager = await createChat({ database: db, memory: memory });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
@@ -390,6 +429,8 @@ const weatherTool = {
 
 async function main() {
   const db = await createDatabase();
+  
+  // Tables created automatically
   const memory = await createMemory({ database: db });
   const chatManager = await createChat({ database: db, memory: memory });
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
@@ -521,7 +562,7 @@ async function advancedExample() {
 
 ## Next Steps
 
-Now that you have a working agent with streaming capabilities:
+Now that you have a working agent with streaming capabilities and automatic table creation:
 
 1. **Explore Concepts**: Learn about [Agents](/docs/concepts/agents), [Memory](/docs/concepts/memory), and [Chat](/docs/concepts/chat)
 2. **Add Plugins**: Check out [Custom Plugins](/docs/guides/custom-plugins) to extend functionality
@@ -529,6 +570,11 @@ Now that you have a working agent with streaming capabilities:
 4. **Production Deployment**: Configure PostgreSQL and proper error handling for production use
 
 ## Troubleshooting
+
+**Tables not created automatically?**
+- Check database connection and permissions
+- Ensure you're calling the create functions (createMemory, createChat, etc.)
+- Verify database type is supported (SQLite or PostgreSQL)
 
 **Streaming not working?**
 - Ensure you're using OpenAI provider with a valid API key

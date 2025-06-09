@@ -30,6 +30,7 @@ Astreus provides a comprehensive set of tools and abstractions to create AI agen
 - **🎨 Type Safety**: Fully typed with TypeScript for better development experience
 - **📝 Advanced Logging**: Structured logging system for improved debugging and monitoring
 - **⚙️ Flexible Configuration**: Enhanced parameter validation and smart defaults
+- **🔄 Lazy Table Creation**: Each module creates its own database tables when first used
 
 ## Agent-First Approach
 
@@ -74,6 +75,19 @@ const history = await agent.getHistory("chat-123");
 const provider = agent.getProvider();
 const memory = agent.config.memory;
 ```
+
+## Database Architecture
+
+Astreus uses a **lazy table creation** approach where each module automatically creates its required database tables when first used:
+
+- **`createMemory()`** creates the memories table
+- **`createChat()`** creates the chats table  
+- **`createAgent()`** creates the agents table
+- **`createTask()`** creates the tasks table
+- **`createUser()`** creates the users table
+- **`createRAG()`** creates the RAG documents table
+
+This eliminates the need for manual database schema setup and allows for custom table names per module.
 
 ## Getting Started
 

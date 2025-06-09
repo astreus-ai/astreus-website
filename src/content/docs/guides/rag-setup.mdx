@@ -11,6 +11,7 @@ RAG allows agents to:
 - Reference specific information from documents in responses
 - Maintain up-to-date knowledge without retraining
 - Provide citations and sources for their answers
+- Automatically create required database tables when first used
 
 ## Quick Start
 
@@ -20,16 +21,16 @@ Here's a complete example to get you started with RAG:
 import { createAgent, createProvider, createMemory, createDatabase, createRAG } from '@astreus-ai/astreus';
 
 async function setupRAGAgent() {
-  // 1. Initialize core components
+  // 1. Initialize core components (no manual schema setup needed)
   const db = await createDatabase();
-  const memory = await createMemory({ database: db });
+  const memory = await createMemory({ database: db }); // Creates memories table
   const provider = createProvider({ 
     type: 'openai', 
     model: 'gpt-4o-mini',
     apiKey: process.env.OPENAI_API_KEY
   });
 
-  // 2. Create Vector RAG system
+  // 2. Create Vector RAG system (automatically creates RAG tables)
   const rag = await createRAG({
     type: 'vector',
     database: db,
@@ -39,7 +40,7 @@ async function setupRAGAgent() {
     chunkOverlap: 200
   });
 
-  // 3. Create agent
+  // 3. Create agent (creates agents table when needed)
   const agent = await createAgent({
     name: 'KnowledgeAgent',
     provider: provider,
@@ -58,7 +59,7 @@ async function setupRAGAgent() {
 // Use the RAG-enabled agent
 const { agent, rag } = await setupRAGAgent();
 
-// Add some documents
+// Add some documents (RAG tables created automatically on first document)
 await rag.addDocument({
   title: "Company Handbook",
   content: "Our company values include integrity, innovation, and customer focus. We believe in creating value for all stakeholders...",
@@ -81,19 +82,21 @@ const response = await agent.streamChat({
 
 ### Step 1: Choose Your RAG Type
 
-Astreus supports two RAG types:
+Astreus supports two RAG types with automatic table creation:
 
 **Vector RAG** (Recommended for most use cases):
 - Uses semantic similarity search
 - Better for large document collections
 - Supports document chunking
 - Requires OpenAI API for embeddings
+- Creates vector-optimized tables automatically
 
 **Document RAG** (For simpler use cases):
 - Uses keyword-based search
 - Better for smaller document sets
 - No embedding costs
 - Faster setup
+- Creates text-search optimized tables automatically
 
 ### Step 2: Database Configuration
 
@@ -102,13 +105,13 @@ Astreus supports two RAG types:
 ```typescript
 import { createDatabase } from '@astreus-ai/astreus';
 
-// SQLite (for development)
+// SQLite (for development) - no manual schema needed
 const db = await createDatabase({
   type: 'sqlite',
   path: './knowledge.db'
 });
 
-// PostgreSQL (for production)
+// PostgreSQL (for production) - no manual schema needed
 const db = await createDatabase({
   type: 'postgresql',
   host: 'localhost',
@@ -136,6 +139,7 @@ const vectorDB = await createDatabase({
   database: 'vector_store'
 });
 
+// RAG system with separate databases (creates tables in both automatically)
 const rag = await createRAG({
   type: 'vector',
   database: mainDB,        // Main database for metadata
@@ -149,20 +153,27 @@ const rag = await createRAG({
 #### Vector RAG Setup
 
 ```typescript
+// Creates vector-optimized tables automatically
 const vectorRAG = await createRAG({
   type: 'vector',
   database: db,
   provider: provider,
-  tableName: 'documents',
-  chunkSize: 1000,        // Size of text chunks
-  chunkOverlap: 200,      // Overlap between chunks
+  tableName: 'documents',           // Custom table name
+  chunkSize: 1000,                 // Size of text chunks
+  chunkOverlap: 200,               // Overlap between chunks
   embeddingModel: 'text-embedding-3-small' // OpenAI embedding model
 });
+
+// Tables created automatically:
+// - documents (document metadata)
+// - document_chunks (text chunks)
+// - document_embeddings (vector embeddings)
 ```
 
 #### Document RAG Setup
 
 ```typescript
+// Creates text-search optimized tables automatically
 const documentRAG = await createRAG({
   type: 'document',
   database: db,
@@ -170,14 +181,20 @@ const documentRAG = await createRAG({
   chunkSize: 500,
   searchFields: ['title', 'content', 'tags']
 });
+
+// Tables created automatically:
+// - documents (document metadata and content)
+// - document_chunks (searchable text chunks)
 ```
 
 ### Step 4: Add Documents
 
+The required tables are created automatically when you add your first document:
+
 #### Adding Individual Documents
 
 ```typescript
-// Add a single document
+// Add a single document (creates tables if they don't exist)
 const docId = await rag.addDocument({
   title: "Product Manual",
   content: "This manual covers installation, configuration, and troubleshooting...",
@@ -214,7 +231,7 @@ const documents = [
   }
 ];
 
-// Add documents in batch
+// Add documents in batch (tables created on first document)
 for (const doc of documents) {
   await rag.addDocument(doc);
 }
@@ -245,6 +262,79 @@ const ragTool = rag.getTool();
 agent.addTool(ragTool);
 ```
 
+## Database Table Creation
+
+RAG systems automatically create their required tables when first used:
+
+### Vector RAG Tables
+
+When using Vector RAG, these tables are created automatically:
+
+```sql
+-- Document metadata table
+CREATE TABLE knowledge_base (
+  id VARCHAR PRIMARY KEY,
+  title VARCHAR,
+  content TEXT,
+  metadata JSON,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document chunks for processing
+CREATE TABLE knowledge_base_chunks (
+  id VARCHAR PRIMARY KEY,
+  documentId VARCHAR,
+  content TEXT,
+  chunkIndex INTEGER,
+  metadata JSON,
+  FOREIGN KEY (documentId) REFERENCES knowledge_base(id)
+);
+
+-- Vector embeddings for semantic search
+CREATE TABLE knowledge_base_embeddings (
+  id VARCHAR PRIMARY KEY,
+  chunkId VARCHAR,
+  embedding VECTOR, -- or JSON for SQLite
+  FOREIGN KEY (chunkId) REFERENCES knowledge_base_chunks(id)
+);
+
+-- Performance indexes
+CREATE INDEX idx_chunks_document ON knowledge_base_chunks(documentId);
+CREATE INDEX idx_embeddings_chunk ON knowledge_base_embeddings(chunkId);
+```
+
+### Document RAG Tables
+
+When using Document RAG, these tables are created automatically:
+
+```sql
+-- Document storage with full-text search
+CREATE TABLE documents (
+  id VARCHAR PRIMARY KEY,
+  title VARCHAR,
+  content TEXT,
+  metadata JSON,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Text chunks for keyword search
+CREATE TABLE documents_chunks (
+  id VARCHAR PRIMARY KEY,
+  documentId VARCHAR,
+  content TEXT,
+  chunkIndex INTEGER,
+  metadata JSON,
+  FOREIGN KEY (documentId) REFERENCES documents(id)
+);
+
+-- Full-text search indexes
+CREATE INDEX idx_documents_title ON documents(title);
+CREATE INDEX idx_documents_content ON documents USING gin(to_tsvector('english', content));
+CREATE INDEX idx_chunks_content ON documents_chunks USING gin(to_tsvector('english', content));
+```
+
 ## Advanced Configuration
 
 ### Optimizing Chunk Size
@@ -257,6 +347,7 @@ const technicalRAG = await createRAG({
   type: 'vector',
   database: db,
   provider: provider,
+  tableName: 'technical_docs', // Custom table name
   chunkSize: 1500,
   chunkOverlap: 300
 });
@@ -266,6 +357,7 @@ const faqRAG = await createRAG({
   type: 'vector',
   database: db,
   provider: provider,
+  tableName: 'faqs', // Custom table name
   chunkSize: 500,
   chunkOverlap: 100
 });
@@ -275,6 +367,7 @@ const chatRAG = await createRAG({
   type: 'vector',
   database: db,
   provider: provider,
+  tableName: 'conversations', // Custom table name
   chunkSize: 800,
   chunkOverlap: 150
 });
@@ -298,7 +391,7 @@ results.forEach(result => {
 You can use multiple RAG systems for different types of content:
 
 ```typescript
-// Create specialized RAG systems
+// Create specialized RAG systems (each creates its own tables)
 const policyRAG = await createRAG({
   type: 'vector',
   database: db,
@@ -391,7 +484,7 @@ Set up your environment variables:
 # .env file
 OPENAI_API_KEY=your_openai_api_key
 
-# Database configuration
+# Database configuration (no manual schema setup needed)
 DATABASE_TYPE=postgresql
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
@@ -414,7 +507,7 @@ async function batchAddDocuments(rag: any, documents: any[], batchSize = 10) {
   for (let i = 0; i < documents.length; i += batchSize) {
     const batch = documents.slice(i, i + batchSize);
     
-    // Process batch in parallel
+    // Process batch in parallel (tables created on first document)
     await Promise.all(batch.map(doc => rag.addDocument(doc)));
     
     // Optional: Add delay between batches
@@ -462,7 +555,7 @@ async function robustDocumentAdd(rag: any, document: any, retries = 3) {
 async function testRAGSetup() {
   console.log('Testing RAG setup...');
   
-  // Add a test document
+  // Add a test document (creates tables if needed)
   const testDocId = await rag.addDocument({
     title: "Test Document",
     content: "This is a test document for verifying RAG functionality. It contains information about testing procedures.",
@@ -537,16 +630,22 @@ await benchmarkRAG();
 
 ### Common Issues
 
+**Tables not created automatically?**
+- Check database connection and permissions
+- Ensure you're calling `rag.addDocument()` to trigger table creation
+- Verify database type is supported (SQLite or PostgreSQL)
+- Check that the database user has CREATE TABLE permissions
+
 **No search results returned:**
 - Check if documents were added successfully
-- Verify embedding generation is working
+- Verify embedding generation is working (for Vector RAG)
 - Lower the similarity threshold
 - Check for typos in search queries
 
 **Slow search performance:**
 - Consider using a separate vector database
 - Optimize chunk sizes for your content
-- Add database indexes
+- Add database indexes (handled automatically)
 - Use batch processing for large document sets
 
 **High embedding costs:**
@@ -577,7 +676,7 @@ const results = await rag.search("test query");
 
 ## Next Steps
 
-Once you have RAG working:
+Once you have RAG working with automatic table creation:
 
 1. **Expand your knowledge base** with more documents
 2. **Optimize chunk sizes** based on your content
@@ -585,5 +684,6 @@ Once you have RAG working:
 4. **Add metadata filtering** for better search precision
 5. **Monitor performance** and costs in production
 6. **Consider hybrid search** combining multiple RAG types
+7. **Trust the automatic table creation** - no manual schema needed
 
 For more advanced features, see the [RAG Concepts](/docs/concepts/rag) documentation. 

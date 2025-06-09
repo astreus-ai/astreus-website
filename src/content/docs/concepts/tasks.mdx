@@ -2,7 +2,7 @@
 title: Tasks
 ---
 
-Tasks enable agents to break down complex problems into manageable sub-tasks, execute them in a specific order, and coordinate the results.
+Tasks enable agents to break down complex problems into manageable sub-tasks, execute them in a specific order, and coordinate the results. Each task automatically creates its database table when first created.
 
 ## Task Architecture
 
@@ -12,13 +12,14 @@ The Task system consists of:
 - **Task Manager**: Coordinates execution and dependencies
 - **Task Results**: Structured outputs from completed tasks
 - **Task Dependencies**: Define execution order and data flow
+- **Automatic Table Creation**: Tasks table created when first task is created
 
 ## Creating Tasks
 
-Tasks are created through the TaskManager:
+Tasks are created through the TaskManager and automatically create their database table:
 
 ```typescript
-import { createAgent, createTaskManager } from '@astreus-ai/astreus';
+import { createAgent, createTaskManager, createTask } from '@astreus-ai/astreus';
 
 // Create an agent
 const agent = await createAgent({ /* configuration */ });
@@ -30,7 +31,7 @@ const taskManager = createTaskManager({
   database: agent.config.database
 });
 
-// Create a research task
+// Create a research task (automatically creates tasks table on first use)
 const researchTask = await taskManager.createTask({
   name: "Research Trip",
   description: "Find information about tourist attractions in Tokyo",
@@ -41,6 +42,13 @@ const researchTask = await taskManager.createTask({
 });
 
 console.log(`Task created with ID: ${researchTask.id}`);
+
+// Alternative: Use createTask directly (also creates table automatically)
+const directTask = await createTask({
+  name: "Process Data",
+  description: "Process and analyze the data set",
+  input: { dataFile: "sales_2023.csv" }
+});
 ```
 
 ## Task Configuration Options
@@ -56,6 +64,36 @@ console.log(`Task created with ID: ${researchTask.id}`);
 | `tags` | string[] | Labels for categorizing tasks | No |
 | `agentId` | string | Agent ID for the task | No (uses manager default) |
 | `sessionId` | string | Session ID for the task | No (uses manager default) |
+
+## Database Table Creation
+
+The tasks table is automatically created when the first task is created. The table includes:
+
+```sql
+-- Tasks table schema (created automatically)
+CREATE TABLE tasks (
+  id VARCHAR PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  description TEXT NOT NULL,
+  status VARCHAR NOT NULL,
+  retries INTEGER DEFAULT 0,
+  plugins JSON,
+  input JSON,
+  dependencies JSON,
+  result JSON,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  startedAt TIMESTAMP,
+  completedAt TIMESTAMP,
+  agentId VARCHAR,
+  sessionId VARCHAR,
+  metadata JSON
+);
+
+-- Indexes for performance
+CREATE INDEX tasks_status_idx ON tasks(status);
+CREATE INDEX tasks_agentId_idx ON tasks(agentId);
+CREATE INDEX tasks_sessionId_idx ON tasks(sessionId);
+```
 
 ## Running Tasks
 
@@ -178,7 +216,7 @@ const basicTaskManager = createTaskManager({
   sessionId: "session-123"
 });
 
-// Advanced task manager with memory and database
+// Advanced task manager with memory and database (tables created automatically)
 const advancedTaskManager = createTaskManager({
   concurrency: 5,
   agentId: agent.id,
@@ -323,14 +361,14 @@ const results = await taskManager.run(parallelTasks.map(t => t.id));
 
 ## Integration with Agents
 
-Task managers work seamlessly with agents:
+Task managers work seamlessly with agents and automatically create required tables:
 
 ```typescript
 import { createAgent, createProvider, createMemory, createDatabase, createTaskManager } from '@astreus-ai/astreus';
 
 async function createAgentWithTasks() {
   const db = await createDatabase();
-  const memory = await createMemory({ database: db });
+  const memory = await createMemory({ database: db }); // Creates memories table
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
   
   const agent = await createAgent({
@@ -339,9 +377,9 @@ async function createAgentWithTasks() {
     memory: memory,
     database: db,
     systemPrompt: "You are a helpful assistant that can execute complex tasks."
-  });
+  }); // Creates agents table when saved
   
-  // Create task manager for this agent
+  // Create task manager for this agent (will create tasks table when first task is created)
   const taskManager = createTaskManager({
     agentId: agent.id,
     memory: memory,
@@ -355,7 +393,7 @@ async function createAgentWithTasks() {
 // Use agent with tasks
 const { agent, taskManager } = await createAgentWithTasks();
 
-// Create a task that uses the agent's capabilities
+// Create a task that uses the agent's capabilities (creates tasks table)
 const analysisTask = await taskManager.createTask({
   name: "Market Analysis",
   description: "Analyze market trends and provide insights",
@@ -369,21 +407,42 @@ const analysisTask = await taskManager.createTask({
 const results = await taskManager.run([analysisTask.id]);
 ```
 
+## Direct Task Creation
+
+You can also create tasks directly without a task manager:
+
+```typescript
+import { createTask } from '@astreus-ai/astreus';
+
+// Create task directly (creates tasks table automatically)
+const task = await createTask({
+  name: "Direct Task",
+  description: "A task created directly",
+  input: { data: "example" }
+});
+
+// Execute the task
+const result = await task.execute();
+console.log('Task result:', result);
+```
+
 ## Best Practices
 
-1. **Clear Dependencies**: Define clear task dependencies to avoid circular references
-2. **Meaningful Names**: Use descriptive names and descriptions for tasks
-3. **Error Handling**: Implement proper error handling and retry logic
-4. **Resource Management**: Set appropriate concurrency limits based on system resources
-5. **Task Granularity**: Break complex operations into smaller, manageable tasks
-6. **Input Validation**: Validate task inputs before execution
-7. **Progress Tracking**: Use task status and results for progress monitoring
+1. **Automatic Tables**: Trust the automatic table creation - no need for manual schema setup
+2. **Clear Dependencies**: Define clear task dependencies to avoid circular references
+3. **Meaningful Names**: Use descriptive names and descriptions for tasks
+4. **Error Handling**: Implement proper error handling and retry logic
+5. **Resource Management**: Set appropriate concurrency limits based on system resources
+6. **Task Granularity**: Break complex operations into smaller, manageable tasks
+7. **Input Validation**: Validate task inputs before execution
+8. **Progress Tracking**: Use task status and results for progress monitoring
 
 ## Migration Notes
 
-The task system has been enhanced with better integration with agents and improved dependency management. If you're upgrading from earlier versions, note that:
+The task system has been enhanced with automatic table creation and better integration:
 
-- Task managers now support agent and session IDs for better organization
-- Dependencies can be specified using both `dependencies` and `dependsOn` fields
-- Task execution includes better error handling and retry mechanisms
-- Integration with memory and database systems is more seamless 
+- **Automatic Tables**: Tasks table is created automatically when first task is created
+- **Simplified Setup**: No need for manual database schema initialization
+- **Better Integration**: Enhanced integration with agents, memory, and database systems
+- **Task Creation**: Both `createTask` and `taskManager.createTask` create tables automatically
+- **Error Handling**: Improved error handling and retry mechanisms 
