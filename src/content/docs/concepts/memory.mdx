@@ -9,8 +9,8 @@ Memory in Astreus is **agent-centric** and provides powerful conversation histor
 With the new approach, memory is accessed through agents and automatically manages:
 
 - **Session-Based History**: Organized conversations by session ID
-- **Automatic Message Storage**: Messages saved during `agent.chat()` and `agent.streamChat()`
-- **Direct Memory Access**: Full memory operations through `agent.config.memory`
+- **Automatic Message Storage**: Messages saved during `agent.chat()` and `agent.chat({ stream: true })`
+- **Direct Memory Access**: Full memory operations through `agent.getMemory()`
 - **Session Management**: Built-in session listing and management
 - **Metadata Support**: Rich metadata for each message and session
 - **Semantic Search**: Optional vector embeddings for content search
@@ -53,10 +53,11 @@ async function setupAgentWithMemory() {
 const agent = await setupAgentWithMemory();
 
 // Automatic memory storage during chat
-await agent.streamChat({
+await agent.chat({
   message: "Remember that I like coffee",
   sessionId: "preferences",
   metadata: { category: 'personal_preferences' },
+  stream: true,
   onChunk: (chunk) => console.log(chunk)
 });
 
@@ -141,7 +142,7 @@ For advanced operations, access the memory instance directly:
 
 ```typescript
 // Get memory instance from agent
-const memory = agent.config.memory;
+const memory = agent.getMemory();
 
 // Advanced memory operations
 const agentMemories = await memory.getByAgent(agent.id, 100);
@@ -238,15 +239,17 @@ const agent = await createAgent({
 });
 
 // Chat with automatic embedding storage
-await agent.streamChat({
+await agent.chat({
   message: "I'm interested in machine learning algorithms",
   sessionId: "ml-discussion",
+  stream: true,
   onChunk: (chunk) => console.log(chunk)
 });
 
-await agent.streamChat({
+await agent.chat({
   message: "Tell me about neural networks",
   sessionId: "ml-discussion",
+  stream: true,
   onChunk: (chunk) => console.log(chunk)
 });
 
@@ -277,7 +280,7 @@ class ContextualAgent {
     const recentHistory = await this.agent.getHistory(sessionId, 5);
     
     // Search for relevant past conversations
-    const memory = this.agent.config.memory;
+    const memory = this.agent.getMemory();
     const relevantMemories = await memory.searchByText(message, 3);
     
     // Build context-aware system prompt
@@ -288,10 +291,11 @@ class ContextualAgent {
 
     const contextPrompt = `Previous context:\n${context}\n\nCurrent message: ${message}`;
 
-    return await this.agent.streamChat({
+    return await this.agent.chat({
       message: contextPrompt,
       sessionId,
       systemPrompt: `You are a helpful assistant. Use the provided context to give more relevant and personalized responses.`,
+      stream: true,
       onChunk: (chunk) => console.log(chunk)
     });
   }
@@ -310,7 +314,7 @@ class ContextualAgent {
   }
 
   async getUserPreferences(sessionId: string) {
-    const memory = this.agent.config.memory;
+    const memory = this.agent.getMemory();
     const preferences = await memory.searchByText("User preference", 10);
     
     return preferences
@@ -349,7 +353,7 @@ class MultiSessionMemoryManager {
   }
 
   async findSessionsByTopic(topic: string) {
-    const memory = this.agent.config.memory;
+    const memory = this.agent.getMemory();
     const topicResults = await memory.searchByText(topic, 20);
     
     // Group by session
@@ -403,7 +407,7 @@ Memory integrates seamlessly with the database system:
 
 ```typescript
 // Access database directly through agent
-const database = agent.config.database;
+const database = agent.getDatabase();
 
 // Custom queries on memory data
 const customQuery = await database.knex('memories')
@@ -451,9 +455,10 @@ const history = await memory.getBySession("session-456");
 
 // ✅ New Agent-Centric Approach
 const agent = await createAgent({ provider, memory });
-await agent.streamChat({
+await agent.chat({
   message: "Hello",
   sessionId: "session-456",
+  stream: true,
   onChunk: (chunk) => console.log(chunk)
 });
 const history = await agent.getHistory("session-456");

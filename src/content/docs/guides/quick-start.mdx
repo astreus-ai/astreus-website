@@ -111,12 +111,12 @@ async function main() {
     });
     console.log('Agent:', response);
 
-    // ⚡ Streaming chat with chat ID (real-time responses)
-    console.log('\n=== Streaming Chat with Chat ID ===');
-    const streamResponse = await agent.streamChatWithId({
+    // ⚡ Streaming chat (real-time responses)
+    console.log('\n=== Streaming Chat ===');
+    await agent.chat({
       message: "Tell me about the benefits of AI in 3 points",
-      chatId: "welcome-chat-123",
-      userId: "user-456",
+      sessionId: "welcome-chat-123",
+      stream: true,
       onChunk: (chunk) => {
         process.stdout.write(chunk); // Print each chunk as it arrives
       }
@@ -198,395 +198,192 @@ const chatManager = await createChat({
 const agent = await createAgent({
   name: 'MyAgent',
   provider: provider,
-  memory: memory
+  memory: memory,
+  chat: chatManager
 });
-
-// Creates 'tasks' table when task is created
-const task = await createTask({
-  name: 'ProcessData',
-  description: 'Process the data'
-});
-
-// Creates 'users' table when user is created
-const userId = await createUser('john_doe');
 ```
 
-## Real-Time Streaming with Chat Management
+## Working with Tools and Plugins
 
-Here's how to implement real-time streaming with chat management in a web application:
+Add custom functionality to your agent:
 
 ```typescript
-import { createAgent, createProvider, createMemory, createDatabase, createChat } from '@astreus-ai/astreus';
-import WebSocket from 'ws';
-
-// WebSocket server for real-time streaming with chat management
-const wss = new WebSocket.Server({ port: 8080 });
-
-async function setupAgent() {
-  const db = await createDatabase();
-  
-  // Tables created automatically when modules are used
-  const memory = await createMemory({ database: db });
-  const chatManager = await createChat({ database: db, memory: memory });
-  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
-
-  return await createAgent({
-    name: 'StreamingChatAgent',
-    provider: provider,
-    memory: memory,
-    chat: chatManager,
-    systemPrompt: "You are a helpful assistant that provides detailed, informative responses."
-  });
-}
-
-wss.on('connection', async (ws) => {
-  const agent = await setupAgent();
-  
-  ws.on('message', async (data) => {
-    const { action, message, chatId, userId, ...params } = JSON.parse(data.toString());
-    
-    try {
-      if (action === 'create_chat') {
-        // Create a new chat
-        const chat = await agent.createChat({
-          chatId,
-          userId,
-          title: params.title || "New Conversation",
-          metadata: params.metadata || {}
-        });
-        
-        ws.send(JSON.stringify({ 
-          type: 'chat_created', 
-          chat 
-        }));
-        return;
-      }
-      
-      if (action === 'list_chats') {
-        // List user's chats
-        const chats = await agent.listChats({ 
-          userId, 
-          status: 'active',
-          limit: 20 
-        });
-        
-        ws.send(JSON.stringify({ 
-          type: 'chats_list', 
-          chats 
-        }));
-        return;
-      }
-      
-      if (action === 'chat_stats') {
-        // Get chat statistics
-        const stats = await agent.getChatStats({ userId });
-        
-        ws.send(JSON.stringify({ 
-          type: 'chat_stats', 
-          stats 
-        }));
-        return;
-      }
-      
-      if (action === 'stream_chat') {
-        // Stream response to client in real-time
-        await agent.streamChatWithId({
-          message,
-          chatId,
-          userId,
-          onChunk: (chunk) => {
-            ws.send(JSON.stringify({ 
-              type: 'chunk', 
-              content: chunk,
-              chatId
-            }));
-          }
-        });
-        
-        // Signal completion
-        ws.send(JSON.stringify({ 
-          type: 'complete',
-          chatId
-        }));
-      }
-      
-    } catch (error) {
-      ws.send(JSON.stringify({ 
-        type: 'error', 
-        message: error.message 
-      }));
-    }
-  });
-});
-
-console.log('WebSocket server with chat management running on ws://localhost:8080');
-```
-
-## Frontend Integration Example
-
-Here's how to connect from a frontend application:
-
-```javascript
-// Frontend WebSocket client
-const ws = new WebSocket('ws://localhost:8080');
-
-// Create a new chat
-function createChat(userId, title, metadata = {}) {
-  const chatId = `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  
-  ws.send(JSON.stringify({
-    action: 'create_chat',
-    chatId,
-    userId,
-    title,
-    metadata
-  }));
-  
-  return chatId;
-}
-
-// List user's chats
-function listChats(userId) {
-  ws.send(JSON.stringify({
-    action: 'list_chats',
-    userId
-  }));
-}
-
-// Send a streaming message
-function sendMessage(message, chatId, userId) {
-  ws.send(JSON.stringify({
-    action: 'stream_chat',
-    message,
-    chatId,
-    userId
-  }));
-}
-
-// Handle incoming messages
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  
-  switch (data.type) {
-    case 'chat_created':
-      console.log('Chat created:', data.chat);
-      break;
-      
-    case 'chats_list':
-      console.log('User chats:', data.chats);
-      break;
-      
-    case 'chunk':
-      // Display chunk in real-time
-      document.getElementById('response').innerHTML += data.content;
-      break;
-      
-    case 'complete':
-      console.log('Response complete for chat:', data.chatId);
-      break;
-      
-    case 'error':
-      console.error('Error:', data.message);
-      break;
-  }
-};
-
-// Example usage
-const userId = 'user-123';
-const chatId = createChat(userId, 'AI Discussion', { topic: 'technology' });
-setTimeout(() => {
-  sendMessage('Hello! Tell me about artificial intelligence.', chatId, userId);
-}, 1000);
-```
-
-## Adding Custom Tools
-
-Enhance your agent with custom capabilities:
-
-```typescript
-import { createAgent, createProvider, createMemory, createDatabase, createChat } from '@astreus-ai/astreus';
-
-// Create a weather tool
+// Define a custom tool
 const weatherTool = {
   name: "get_weather",
-  description: "Get current weather information for a city",
+  description: "Get current weather for a location",
   parameters: [
     {
-      name: "city",
+      name: "location",
       type: "string",
-      description: "The city name to get weather for",
+      description: "The city and state/country",
       required: true
     }
   ],
   execute: async (params) => {
-    // In a real app, you'd call a weather API
-    return {
-      success: true,
-      output: `The weather in ${params.city} is sunny with 22°C`
-    };
+    // Your weather API logic here
+    return `The weather in ${params.location} is sunny and 72°F`;
   }
 };
 
-async function main() {
-  const db = await createDatabase();
-  
-  // Tables created automatically
-  const memory = await createMemory({ database: db });
-  const chatManager = await createChat({ database: db, memory: memory });
-  const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+// Add tool to agent
+agent.addTool(weatherTool);
 
-  // Create agent with tools
-  const agent = await createAgent({
-    name: 'WeatherAgent',
-    provider: provider,
-    memory: memory,
-    chat: chatManager,
-    tools: [weatherTool], // Add tools here
-    systemPrompt: "You are a helpful assistant that can provide weather information. Use the get_weather tool when asked about weather."
-  });
-
-  // Add more tools dynamically
-  const calculatorTool = {
-    name: "calculator",
-    description: "Perform mathematical calculations",
-    parameters: [
-      {
-        name: "expression",
-        type: "string",
-        description: "Mathematical expression to evaluate",
-        required: true
-      }
-    ],
-    execute: async (params) => {
-      try {
-        // Use a proper math parser in production
-        const result = Function(`'use strict'; return (${params.expression})`)();
-        return { success: true, output: `Result: ${result}` };
-      } catch (error) {
-        return { success: false, error: error.message };
-      }
-    }
-  };
-
-  // Add tool to existing agent
-  agent.addTool(calculatorTool);
-
-  // Test the tools
-  console.log('Available tools:', agent.getAvailableTools());
-
-  // Chat with tool usage
-  const response = await agent.streamChat({
-    message: "What's the weather in London and what's 15 * 24?",
-    sessionId: "tools-session",
-    onChunk: (chunk) => process.stdout.write(chunk)
-  });
-}
-
-main();
+// Now the agent can use the weather tool
+const response = await agent.chat({
+  message: "What's the weather like in New York?",
+  sessionId: "weather-chat"
+});
 ```
 
-## Memory and Session Management
+## Using Plugins
 
-Access and manage conversation history:
+Extend your agent with official plugins:
 
 ```typescript
-async function memoryExample() {
-  const agent = await setupAgent(); // Your agent setup
+import { XPlugin } from 'astreus-x-plugin';
 
-  // Add custom memory entries
-  await agent.addToMemory({
-    sessionId: "custom-session",
-    role: 'system',
-    content: "User prefers detailed explanations",
-    metadata: { preference: 'detailed' }
-  });
+// Initialize plugin
+const xPlugin = new XPlugin();
+await xPlugin.init();
 
-  // Get conversation history
-  const history = await agent.getHistory("custom-session", 10);
-  console.log('Recent messages:', history);
+// Create agent with plugin
+const agent = await createAgent({
+  name: 'Social Media Agent',
+  provider: provider,
+  memory: memory,
+  chat: chatManager,
+  plugins: [xPlugin], // Add plugins here
+  systemPrompt: "You are a social media assistant that can help with X (Twitter) interactions."
+});
 
-  // Clear a session
-  await agent.clearHistory("old-session");
-
-  // List all sessions with metadata
-  const sessions = await agent.listSessions(20);
-  sessions.forEach(session => {
-    console.log(`Session: ${session.sessionId}`);
-    console.log(`Last message: ${session.lastMessage}`);
-    console.log(`Messages: ${session.messageCount}`);
-    console.log(`Last activity: ${session.lastActivity}`);
-  });
-
-  // Access memory directly for advanced operations
-  const memory = agent.config.memory;
-  const searchResults = await memory.searchByText("weather", 5);
-  console.log('Weather-related messages:', searchResults);
-}
+// The agent now has access to X plugin tools
+const response = await agent.chat({
+  message: "Post a tweet saying 'Hello from Astreus!'",
+  sessionId: "social-session"
+});
 ```
 
-## Advanced Configuration
+## RAG (Retrieval Augmented Generation)
 
-Access all components through the agent:
+Add document search capabilities to your agent:
 
 ```typescript
-async function advancedExample() {
-  const agent = await setupAgent();
+import { createRAG, parsePDF } from '@astreus-ai/astreus';
 
-  // Access provider
-  const provider = agent.getProvider();
-  if (provider) {
-    console.log('Available models:', provider.listModels());
-    console.log('Current model:', agent.getModel().name);
-  }
+// Parse a PDF document
+const document = await parsePDF('path/to/document.pdf', {
+  splitStrategy: 'section',
+  chunkSize: 1000,
+  includePageNumbers: true
+});
 
-  // Access database directly
-  const db = agent.config.database;
-  const customQuery = await db.knex('memories')
-    .where('agentId', agent.id)
-    .count('* as total');
-  console.log('Total memories:', customQuery[0].total);
+// Create RAG system
+const rag = await createRAG({
+  type: 'vector',
+  database: db,
+  provider: provider, // For embeddings
+  documents: document.documents
+});
 
-  // Access memory for advanced operations
-  const memory = agent.config.memory;
-  const agentMemories = await memory.getByAgent(agent.id, 50);
-  console.log(`Agent has ${agentMemories.length} memories`);
+// Create agent with RAG
+const agent = await createAgent({
+  name: 'Document Assistant',
+  provider: provider,
+  memory: memory,
+  chat: chatManager,
+  rag: rag, // RAG tools are automatically added
+  systemPrompt: 'You are a helpful assistant that can answer questions about documents.'
+});
 
-  // Switch models dynamically
-  const newModel = provider?.getModel('gpt-4');
-  if (newModel) {
-    agent.config.model = newModel;
-    console.log('Switched to GPT-4');
-  }
-}
+// The agent can now search through documents
+const response = await agent.chat({
+  message: "What does the document say about climate change?",
+  sessionId: "doc-session"
+});
 ```
 
 ## Next Steps
 
-Now that you have a working agent with streaming capabilities and automatic table creation:
+Now that you have a basic agent running with chat management and streaming capabilities, explore these advanced features:
 
-1. **Explore Concepts**: Learn about [Agents](/docs/concepts/agents), [Memory](/docs/concepts/memory), and [Chat](/docs/concepts/chat)
-2. **Add Plugins**: Check out [Custom Plugins](/docs/guides/custom-plugins) to extend functionality
-3. **Setup RAG**: Follow the [RAG Setup Guide](/docs/guides/rag-setup) for document search capabilities
-4. **Production Deployment**: Configure PostgreSQL and proper error handling for production use
+- [Agents](/docs/concepts/agents) - Learn about agent configuration and capabilities
+- [Chat Management](/docs/concepts/chat) - Advanced chat features and metadata handling
+- [Memory System](/docs/concepts/memory) - Understanding conversation storage and retrieval
+- [Providers](/docs/concepts/providers) - Working with different LLM providers
+- [Tasks](/docs/concepts/tasks) - Breaking down complex operations
+- [RAG Setup](/docs/guides/rag-setup) - Advanced document search setup
+- [Custom Plugins](/docs/guides/custom-plugins) - Building your own tools and plugins
 
-## Troubleshooting
+## Common Patterns
 
-**Tables not created automatically?**
-- Check database connection and permissions
-- Ensure you're calling the create functions (createMemory, createChat, etc.)
-- Verify database type is supported (SQLite or PostgreSQL)
+### Simple Chat Bot
+```typescript
+const agent = await createAgent({
+  provider: createProvider({ type: 'openai', model: 'gpt-4o-mini' }),
+  memory: await createMemory({ database: await createDatabase() }),
+  chat: await createChat({ database: db, memory: memory })
+});
 
-**Streaming not working?**
-- Ensure you're using OpenAI provider with a valid API key
-- Check that `onChunk` callback is properly defined
-- Verify your model supports streaming (most OpenAI models do)
+const response = await agent.chat({
+  message: "Hello!",
+  sessionId: "simple-chat"
+});
+```
 
-**Memory issues?**
-- Check database connection and table creation
-- Verify session IDs are consistent
-- Use `agent.getHistory()` to debug conversation flow
+### Streaming Responses
+```typescript
+await agent.chat({
+  message: "Write a story about AI",
+  sessionId: "story-session",
+  stream: true,
+  onChunk: (chunk) => console.log(chunk)
+});
+```
 
-**Tool not being called?**
-- Ensure tool description clearly explains when to use it
-- Check parameter definitions match expected input
-- Use detailed system prompts that mention available tools 
+### Chat with Metadata
+```typescript
+await agent.chatWithId({
+  message: "Help me with my project",
+  chatId: "project-consultation",
+  userId: "user123",
+  metadata: { project: "ecommerce", urgency: "high" }
+});
+```
+
+### Tool-Enabled Agent
+```typescript
+const agent = await createAgent({
+  provider: provider,
+  memory: memory,
+  chat: chatManager,
+  tools: [weatherTool, calculatorTool],
+  systemPrompt: "You are a helpful assistant with access to weather and calculator tools."
+});
+```
+
+### WebSocket Integration for Real-time Chat
+```typescript
+import WebSocket from 'ws';
+
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on('connection', async (ws) => {
+  ws.on('message', async (data) => {
+    const { message, sessionId } = JSON.parse(data.toString());
+    
+    // Stream response back to client
+    await agent.chat({
+      message,
+      sessionId,
+      stream: true,
+      onChunk: (chunk) => {
+        ws.send(JSON.stringify({ type: 'chunk', content: chunk }));
+      }
+    });
+    
+    // Send completion signal
+    ws.send(JSON.stringify({ type: 'complete' }));
+  });
+});
+``` 

@@ -65,7 +65,8 @@ async function createAgentWithPlugins() {
 const agent = await createAgentWithPlugins();
 
 // Agent can now use all plugin capabilities
-await agent.streamChat({
+await agent.chat({
+  stream: true,
   message: "Send an email to john@example.com about our meeting tomorrow",
   sessionId: "business-session",
   onChunk: (chunk) => console.log(chunk)

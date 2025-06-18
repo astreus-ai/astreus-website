@@ -71,7 +71,8 @@ await rag.addDocument({
 });
 
 // Agent can now search and reference documents
-const response = await agent.streamChat({
+const response = await agent.chat({
+  stream: true,
   message: "What are our company values?",
   sessionId: "hr-inquiry",
   onChunk: (chunk) => console.log(chunk)
@@ -165,9 +166,9 @@ const vectorRAG = await createRAG({
 });
 
 // Tables created automatically:
-// - documents (document metadata)
-// - document_chunks (text chunks)
-// - document_embeddings (vector embeddings)
+// - documents_documents (document metadata)
+// - documents_chunks (text chunks)
+// - documents_chunk_associations (for external vector DBs)
 ```
 
 #### Document RAG Setup
@@ -183,8 +184,7 @@ const documentRAG = await createRAG({
 });
 
 // Tables created automatically:
-// - documents (document metadata and content)
-// - document_chunks (searchable text chunks)
+// - documents_documents (document metadata and content)
 ```
 
 ### Step 4: Add Documents
@@ -271,14 +271,12 @@ RAG systems automatically create their required tables when first used:
 When using Vector RAG, these tables are created automatically:
 
 ```sql
--- Document metadata table
-CREATE TABLE knowledge_base (
+-- Document metadata table (with tableName 'knowledge_base')
+CREATE TABLE knowledge_base_documents (
   id VARCHAR PRIMARY KEY,
-  title VARCHAR,
   content TEXT,
   metadata JSON,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Document chunks for processing
@@ -286,22 +284,22 @@ CREATE TABLE knowledge_base_chunks (
   id VARCHAR PRIMARY KEY,
   documentId VARCHAR,
   content TEXT,
-  chunkIndex INTEGER,
   metadata JSON,
-  FOREIGN KEY (documentId) REFERENCES knowledge_base(id)
+  embedding JSON,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (documentId) REFERENCES knowledge_base_documents(id)
 );
 
--- Vector embeddings for semantic search
-CREATE TABLE knowledge_base_embeddings (
-  id VARCHAR PRIMARY KEY,
-  chunkId VARCHAR,
-  embedding VECTOR, -- or JSON for SQLite
-  FOREIGN KEY (chunkId) REFERENCES knowledge_base_chunks(id)
+-- For external vector databases, association tracking
+CREATE TABLE knowledge_base_chunk_associations (
+  chunkId VARCHAR PRIMARY KEY,
+  documentId VARCHAR,
+  chunkIndex INTEGER,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Performance indexes
 CREATE INDEX idx_chunks_document ON knowledge_base_chunks(documentId);
-CREATE INDEX idx_embeddings_chunk ON knowledge_base_embeddings(chunkId);
 ```
 
 ### Document RAG Tables
@@ -309,30 +307,17 @@ CREATE INDEX idx_embeddings_chunk ON knowledge_base_embeddings(chunkId);
 When using Document RAG, these tables are created automatically:
 
 ```sql
--- Document storage with full-text search
-CREATE TABLE documents (
+-- Document storage with full-text search (with tableName 'documents')
+CREATE TABLE documents_documents (
   id VARCHAR PRIMARY KEY,
-  title VARCHAR,
   content TEXT,
   metadata JSON,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Text chunks for keyword search
-CREATE TABLE documents_chunks (
-  id VARCHAR PRIMARY KEY,
-  documentId VARCHAR,
-  content TEXT,
-  chunkIndex INTEGER,
-  metadata JSON,
-  FOREIGN KEY (documentId) REFERENCES documents(id)
+  embedding JSON, -- if storeEmbeddings is enabled
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Full-text search indexes
-CREATE INDEX idx_documents_title ON documents(title);
-CREATE INDEX idx_documents_content ON documents USING gin(to_tsvector('english', content));
-CREATE INDEX idx_chunks_content ON documents_chunks USING gin(to_tsvector('english', content));
+CREATE INDEX idx_documents_content ON documents_documents USING gin(to_tsvector('english', content));
 ```
 
 ## Advanced Configuration
@@ -686,4 +671,5 @@ Once you have RAG working with automatic table creation:
 6. **Consider hybrid search** combining multiple RAG types
 7. **Trust the automatic table creation** - no manual schema needed
 
+For more advanced features, see the [RAG Concepts](/docs/concepts/rag) documentation. 
 For more advanced features, see the [RAG Concepts](/docs/concepts/rag) documentation. 

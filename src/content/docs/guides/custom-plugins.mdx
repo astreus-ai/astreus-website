@@ -230,7 +230,8 @@ async function createWeatherAgent() {
 // Use the weather agent
 const agent = await createWeatherAgent();
 
-const response = await agent.streamChat({
+const response = await agent.chat({
+  stream: true,
   message: "What's the weather like in Tokyo?",
   sessionId: "weather-session",
   onChunk: (chunk) => console.log(chunk)

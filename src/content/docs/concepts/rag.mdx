@@ -88,7 +88,7 @@ const singleDbVectorRAG = await createRAG({
 | `database` | DatabaseInstance | Main database for metadata | Required |
 | `vectorDatabase` | DatabaseInstance | Optional separate vector database | Same as database |
 | `provider` | ProviderInstance | Provider for embeddings | Required |
-| `tableName` | string | Table name for documents | 'rag_documents' |
+| `tableName` | string | Base table name (creates tableName_documents, tableName_chunks) | 'rag' |
 | `chunkSize` | number | Size of text chunks | 1000 |
 | `chunkOverlap` | number | Overlap between chunks | 200 |
 | `embeddingModel` | string | Embedding model name | 'text-embedding-3-small' |
@@ -113,7 +113,7 @@ const documentRAG = await createRAG({
 |--------|------|-------------|---------|
 | `type` | string | Must be 'document' | Required |
 | `database` | DatabaseInstance | Database for storage | Required |
-| `tableName` | string | Table name for documents | 'rag_documents' |
+| `tableName` | string | Base table name (creates tableName_documents) | 'rag' |
 | `chunkSize` | number | Size of text chunks | 1000 |
 | `searchFields` | string[] | Fields to search in | ['content'] |
 
@@ -193,9 +193,10 @@ agent.addTool(vectorTool);
 agent.addTool(documentTool);
 
 // Agent can now use RAG in conversations
-const response = await agent.streamChat({
+const response = await agent.chat({
   message: "What are the latest developments in machine learning?",
   sessionId: "research-session",
+  stream: true,
   onChunk: (chunk) => console.log(chunk)
 });
 
@@ -442,9 +443,10 @@ await rag.addDocument({
 });
 
 // Agent can now search and reference documents
-const response = await agent.streamChat({
+const response = await agent.chat({
   message: "What are our company values?",
   sessionId: "hr-inquiry",
+  stream: true,
   onChunk: (chunk) => console.log(chunk)
 });
 ```

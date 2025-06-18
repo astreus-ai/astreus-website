@@ -18,7 +18,7 @@ Astreus provides a comprehensive set of tools and abstractions to create AI agen
 ## Key Features
 
 - **🤖 Agent-Centric Architecture**: Everything accessible through agent methods - no need for separate managers
-- **⚡ Real-Time Streaming**: Built-in streaming chat with `agent.streamChat()` and `agent.streamChatWithId()` for live responses
+- **⚡ Real-Time Streaming**: Built-in streaming chat with `agent.chat({ stream: true })` for live responses
 - **💬 Advanced Chat Management**: Create, organize, and manage chats with metadata using `agent.createChat()`, `agent.listChats()`
 - **🧠 Unified Memory Access**: Direct memory management with `agent.getHistory()`, `agent.addToMemory()`
 - **📊 Session & Chat Analytics**: Get insights with `agent.getChatStats()` and `agent.searchChats()`
@@ -54,7 +54,8 @@ const chat = await agent.createChat({
 });
 
 // Stream responses in real-time with chat IDs
-await agent.streamChatWithId({
+await agent.chat({
+  stream: true,
   message: "Hello!",
   chatId: "consultation-123",
   onChunk: (chunk) => console.log(chunk)
