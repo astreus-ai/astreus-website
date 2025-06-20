@@ -55,20 +55,26 @@ async function main() {
   const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
   
   // Initialize X Plugin
-  const xPlugin = new XPlugin();
+  const xPlugin = new XPlugin({
+    apiKey: process.env.X_API_KEY,
+    apiSecret: process.env.X_API_SECRET_KEY,
+    accessToken: process.env.X_ACCESS_TOKEN,
+    accessSecret: process.env.X_ACCESS_TOKEN_SECRET
+  });
   await xPlugin.init();
   
-  // Create an agent with the X Plugin
+  // Create an agent
   const agent = await createAgent({
     name: 'Social Media Agent',
     description: 'An assistant that can interact with X',
     provider: provider,
     memory: memory,
-    database: db,
     systemPrompt: `You are a helpful assistant that can interact with X (formerly Twitter).
-Help the user search, post, and analyze content on X.`,
-    plugins: [xPlugin]  // Add the plugin directly
+Help the user search, post, and analyze content on X.`
   });
+  
+  // Add X plugin tools to agent
+  xPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Your agent is now ready to interact with X
   const response = await agent.chat("Find the latest tweets about #AI");

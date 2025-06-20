@@ -271,9 +271,9 @@ const weatherTool = {
 // Add tool to agent
 agent.addTool(weatherTool);
 
-// Get available tools
-const tools = agent.getAvailableTools();
-console.log('Available tools:', tools);
+// Get available tool names
+const toolNames = agent.getAvailableTools();
+console.log('Available tools:', toolNames);
 
 // The agent will automatically use tools when appropriate
 const response = await agent.chat({
@@ -287,10 +287,17 @@ const response = await agent.chat({
 Use plugins to extend agent capabilities:
 
 ```typescript
-import { XPlugin } from 'astreus-x-plugin';
+import { XPlugin } from '@astreus-ai/x-plugin';
 
-// Initialize plugin
-const xPlugin = new XPlugin();
+// Initialize plugin with configuration
+const xPlugin = new XPlugin({
+  apiKey: process.env.X_API_KEY,
+  apiSecret: process.env.X_API_SECRET_KEY,
+  accessToken: process.env.X_ACCESS_TOKEN,
+  accessSecret: process.env.X_ACCESS_TOKEN_SECRET
+});
+
+// Initialize the plugin
 await xPlugin.init();
 
 // Create agent with plugins
@@ -328,8 +335,13 @@ const rag = await createRAG({
   type: 'vector',
   database: db,
   provider: provider,
-  documents: document.documents
+  tableName: 'technical_docs'
 });
+
+// Add documents to RAG system
+for (const doc of document.documents) {
+  await rag.addDocument(doc);
+}
 
 // Create agent with RAG
 const agent = await createAgent({

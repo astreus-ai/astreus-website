@@ -27,14 +27,16 @@ const rag = await createRAG({
   provider: provider
 });
 
-// Agent automatically gets RAG tools when RAG is provided
+// Create agent and add RAG tools
 const agent = await createAgent({
   name: 'DocumentAssistant',
   provider: provider,
-  memory: memory,
-  database: db,
-  rag: rag  // Automatically adds RAG tools
+  memory: memory
 });
+
+// Add RAG tools to agent
+const ragTools = rag.createRAGTools();
+ragTools.forEach(tool => agent.addTool(tool));
 ```
 
 ## Official Plugins
@@ -57,7 +59,7 @@ Then initialize and use the plugin with your agent:
 
 ```typescript
 import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
-import WhatsAppPlugin from '@astreus-ai/whatsapp-plugin';
+import { WhatsAppPlugin } from '@astreus-ai/whatsapp-plugin';
 
 // Initialize Astreus components
 const db = await createDatabase();
@@ -65,17 +67,22 @@ const memory = await createMemory({ database: db, tableName: 'memories' });
 const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
 // Initialize plugin
-const whatsAppPlugin = new WhatsAppPlugin();
+const whatsAppPlugin = new WhatsAppPlugin({
+  accountSid: process.env.TWILIO_ACCOUNT_SID,
+  authToken: process.env.TWILIO_AUTH_TOKEN,
+  phoneNumber: process.env.TWILIO_PHONE_NUMBER
+});
 await whatsAppPlugin.init();
 
-// Create agent with plugin
+// Create agent
 const agent = await createAgent({
   name: 'WhatsApp Agent',
   provider: provider,
-  memory: memory,
-  database: db,
-  plugins: [whatsAppPlugin]
+  memory: memory
 });
+
+// Add plugin tools to agent
+whatsAppPlugin.getTools().forEach(tool => agent.addTool(tool));
 ```
 
 ## Creating Custom Plugins

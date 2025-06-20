@@ -20,7 +20,9 @@ With the enhanced approach, plugins are managed directly through agents:
 
 ```typescript
 import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
-import { createResendPlugin, createWhatsAppPlugin, createXPlugin } from '@astreus-ai/plugins';
+import { ResendPlugin } from '@astreus-ai/resend-plugin';
+import { WhatsAppPlugin } from '@astreus-ai/whatsapp-plugin';
+import { XPlugin } from '@astreus-ai/x-plugin';
 
 async function createAgentWithPlugins() {
   const db = await createDatabase();
@@ -34,29 +36,32 @@ async function createAgentWithPlugins() {
     systemPrompt: "You are a helpful assistant with email, WhatsApp, and social media capabilities."
   });
 
-  // Create and add plugins
-  const resendPlugin = createResendPlugin({
+  // Create and initialize plugins
+  const resendPlugin = new ResendPlugin({
     apiKey: process.env.RESEND_API_KEY,
-    fromEmail: 'noreply@company.com'
+    defaultFrom: 'noreply@company.com'
   });
+  await resendPlugin.init();
 
-  const whatsappPlugin = createWhatsAppPlugin({
+  const whatsappPlugin = new WhatsAppPlugin({
     accountSid: process.env.TWILIO_ACCOUNT_SID,
     authToken: process.env.TWILIO_AUTH_TOKEN,
     phoneNumber: process.env.TWILIO_PHONE_NUMBER
   });
+  await whatsappPlugin.init();
 
-  const xPlugin = createXPlugin({
+  const xPlugin = new XPlugin({
     apiKey: process.env.X_API_KEY,
     apiSecret: process.env.X_API_SECRET,
     accessToken: process.env.X_ACCESS_TOKEN,
-    accessTokenSecret: process.env.X_ACCESS_TOKEN_SECRET
+    accessSecret: process.env.X_ACCESS_TOKEN_SECRET
   });
+  await xPlugin.init();
 
-  // Add tools to agent
-  agent.addTool(resendPlugin.getTool());
-  agent.addTool(whatsappPlugin.getTool());
-  agent.addTool(xPlugin.getTool());
+  // Add all tools from plugins to agent
+  resendPlugin.getTools().forEach(tool => agent.addTool(tool));
+  whatsappPlugin.getTools().forEach(tool => agent.addTool(tool));
+  xPlugin.getTools().forEach(tool => agent.addTool(tool));
 
   return agent;
 }
@@ -80,16 +85,19 @@ await agent.chat({
 Send emails through the Resend service:
 
 ```typescript
-import { createResendPlugin } from '@astreus-ai/resend-plugin';
+import { ResendPlugin } from '@astreus-ai/resend-plugin';
 
-const resendPlugin = createResendPlugin({
+const resendPlugin = new ResendPlugin({
   apiKey: process.env.RESEND_API_KEY,
-  fromEmail: 'support@company.com',
-  fromName: 'Company Support' // Optional
+  defaultFrom: 'support@company.com',
+  defaultReplyTo: 'support@company.com'
 });
 
-// Add to agent
-agent.addTool(resendPlugin.getTool());
+// Initialize the plugin
+await resendPlugin.init();
+
+// Add tools to agent
+resendPlugin.getTools().forEach(tool => agent.addTool(tool));
 
 // Agent can now send emails
 await agent.chat({
@@ -103,16 +111,19 @@ await agent.chat({
 Send WhatsApp messages via Twilio:
 
 ```typescript
-import { createWhatsAppPlugin } from '@astreus-ai/whatsapp-plugin';
+import { WhatsAppPlugin } from '@astreus-ai/whatsapp-plugin';
 
-const whatsappPlugin = createWhatsAppPlugin({
+const whatsappPlugin = new WhatsAppPlugin({
   accountSid: process.env.TWILIO_ACCOUNT_SID,
   authToken: process.env.TWILIO_AUTH_TOKEN,
   phoneNumber: process.env.TWILIO_PHONE_NUMBER // Your Twilio WhatsApp number
 });
 
-// Add to agent
-agent.addTool(whatsappPlugin.getTool());
+// Initialize the plugin
+await whatsappPlugin.init();
+
+// Add tools to agent
+whatsappPlugin.getTools().forEach(tool => agent.addTool(tool));
 
 // Agent can now send WhatsApp messages
 await agent.chat({
@@ -126,17 +137,20 @@ await agent.chat({
 Post to X (formerly Twitter):
 
 ```typescript
-import { createXPlugin } from '@astreus-ai/x-plugin';
+import { XPlugin } from '@astreus-ai/x-plugin';
 
-const xPlugin = createXPlugin({
+const xPlugin = new XPlugin({
   apiKey: process.env.X_API_KEY,
-  apiSecret: process.env.X_API_SECRET,
+  apiSecret: process.env.X_API_SECRET_KEY,
   accessToken: process.env.X_ACCESS_TOKEN,
-  accessTokenSecret: process.env.X_ACCESS_TOKEN_SECRET
+  accessSecret: process.env.X_ACCESS_TOKEN_SECRET
 });
 
-// Add to agent
-agent.addTool(xPlugin.getTool());
+// Initialize the plugin
+await xPlugin.init();
+
+// Add tools to agent
+xPlugin.getTools().forEach(tool => agent.addTool(tool));
 
 // Agent can now post to X
 await agent.chat({
@@ -150,20 +164,19 @@ await agent.chat({
 Manage plugins through agent methods:
 
 ```typescript
-// Get all available tools
-const availableTools = agent.getAvailableTools();
-console.log('Available tools:', availableTools.map(tool => tool.name));
+// Get all available tool names
+const availableToolNames = agent.getAvailableTools();
+console.log('Available tools:', availableToolNames);
 
 // Check if a specific tool is available
-const hasEmailTool = availableTools.some(tool => tool.name === 'send_email');
+const hasEmailTool = availableToolNames.includes('resend_send_email');
 console.log('Email capability:', hasEmailTool ? 'Available' : 'Not available');
 
-// Get tool by name
-const emailTool = availableTools.find(tool => tool.name === 'send_email');
-if (emailTool) {
-  console.log('Email tool description:', emailTool.description);
-  console.log('Email tool parameters:', emailTool.parameters);
-}
+// Get plugin information
+const pluginInfo = resendPlugin.config;
+console.log('Plugin name:', pluginInfo.name);
+console.log('Plugin description:', pluginInfo.description);
+console.log('Plugin tools:', pluginInfo.tools.map(tool => tool.name));
 ```
 
 ## Creating Custom Plugins

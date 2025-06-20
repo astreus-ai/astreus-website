@@ -49,9 +49,9 @@ async function setupRAGAgent() {
     When answering questions, search for relevant information and cite your sources.`
   });
 
-  // 4. Add RAG tool to agent
-  const ragTool = rag.getTool();
-  agent.addTool(ragTool);
+  // 4. Add RAG tools to agent
+  const ragTools = rag.createRAGTools();
+  ragTools.forEach(tool => agent.addTool(tool));
 
   return { agent, rag };
 }

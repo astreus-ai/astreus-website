@@ -21,7 +21,7 @@ const agent = await createAgent({
 // Create structured chats with metadata
 const chat = await agent.createChat({
   chatId: "consultation-123",
-  title: "Export Regulation Consultation",
+  title: "Business Consultation",
   metadata: { type: "business", priority: "high" }
 });
 
@@ -42,7 +42,7 @@ const response = await agent.chatWithId({
 // Advanced chat management
 const chats = await agent.listChats({ status: 'active' });
 const stats = await agent.getChatStats();
-const searchResults = await agent.searchChats({ query: "export" });
+const searchResults = await agent.searchChats({ query: "business" });
 
 // Legacy session management (still supported)
 const sessions = await agent.listSessions();

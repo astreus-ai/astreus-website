@@ -61,12 +61,14 @@ Vector RAG uses embeddings for semantic similarity search:
 const vectorRAG = await createRAG({
   type: 'vector',
   database: mainDatabase,
-  vectorDatabase: vectorDatabase, // Optional: separate vector database
+  vectorDatabase: {
+    type: 'postgres',
+    connectionString: 'postgresql://user:password@localhost:5432/vector_db'
+  },
   provider: provider,
   tableName: 'knowledge_base',
   chunkSize: 1000,
-  chunkOverlap: 200,
-  embeddingModel: 'text-embedding-3-small'
+  chunkOverlap: 200
 });
 
 // Vector RAG with same database for vectors
@@ -86,12 +88,12 @@ const singleDbVectorRAG = await createRAG({
 |--------|------|-------------|---------|
 | `type` | string | Must be 'vector' | Required |
 | `database` | DatabaseInstance | Main database for metadata | Required |
-| `vectorDatabase` | DatabaseInstance | Optional separate vector database | Same as database |
+| `vectorDatabase` | VectorDatabaseConfig | Optional separate vector database config | Same as database |
 | `provider` | ProviderInstance | Provider for embeddings | Required |
 | `tableName` | string | Base table name (creates tableName_documents, tableName_chunks) | 'rag' |
 | `chunkSize` | number | Size of text chunks | 1000 |
 | `chunkOverlap` | number | Overlap between chunks | 200 |
-| `embeddingModel` | string | Embedding model name | 'text-embedding-3-small' |
+
 
 ## Document RAG Configuration
 
@@ -185,12 +187,12 @@ RAG systems automatically create search tools that agents can use:
 
 ```typescript
 // Get RAG tools
-const vectorTool = vectorRAG.getTool();
-const documentTool = documentRAG.getTool();
+const vectorTools = vectorRAG.createRAGTools();
+const documentTools = documentRAG.createRAGTools();
 
 // Add tools to agent
-agent.addTool(vectorTool);
-agent.addTool(documentTool);
+vectorTools.forEach(tool => agent.addTool(tool));
+documentTools.forEach(tool => agent.addTool(tool));
 
 // Agent can now use RAG in conversations
 const response = await agent.chat({

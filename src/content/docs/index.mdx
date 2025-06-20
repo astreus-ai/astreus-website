@@ -49,7 +49,7 @@ const agent = await createAgent({
 // Create and manage structured chats
 const chat = await agent.createChat({
   chatId: "consultation-123",
-  title: "Export Consultation",
+  title: "Business Consultation",
   metadata: { type: "business", priority: "high" }
 });
 
@@ -64,7 +64,7 @@ await agent.chat({
 // Advanced chat management
 const chats = await agent.listChats({ status: 'active', limit: 10 });
 const stats = await agent.getChatStats();
-const searchResults = await agent.searchChats({ query: "export" });
+const searchResults = await agent.searchChats({ query: "business" });
 
 // Archive or delete chats
 await agent.archiveChat("old-chat-id");
