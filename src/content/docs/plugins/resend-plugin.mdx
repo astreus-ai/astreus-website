@@ -61,7 +61,7 @@ async function main() {
   const resendPlugin = new ResendPlugin();
   await resendPlugin.init();
   
-  // Create an agent with the Resend Plugin
+  // Create an agent
   const agent = await createAgent({
     name: 'Email Agent',
     description: 'An assistant that can send emails',
@@ -69,9 +69,11 @@ async function main() {
     memory: memory,
     database: db,
     systemPrompt: `You are a helpful assistant that can send emails using Resend.
-Help the user compose and send professional emails.`,
-    plugins: [resendPlugin]
+Help the user compose and send professional emails.`
   });
+  
+  // Add plugin tools to agent
+  resendPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Your agent is now ready to send emails
   const response = await agent.chat('Send an email to john@example.com with subject "Welcome" and message "Hello, welcome to our service!"');
@@ -185,9 +187,11 @@ async function sendWelcomeEmail(userEmail: string, userName: string) {
     description: 'Sends welcome emails to new users',
     provider: provider,
     memory: memory,
-    database: db,
-    plugins: [resendPlugin]
+    database: db
   });
+  
+  // Add plugin tools to agent
+  resendPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   try {
     const response = await agent.execute('resend_send_email', {

@@ -9,7 +9,7 @@ X Plugin (formerly Twitter) enables agents to interact with the X platform, allo
 - **Post Tweets**: Create and publish tweets programmatically
 - **Search Tweets**: Find tweets using keywords, hashtags, or other criteria
 - **User Profiles**: Retrieve and analyze user profile information
-- **Task Integration**: Execute X-related operations using Astreus's task system
+- **Tool Integration**: Execute X-related operations using Astreus's tool system
 - **API Authentication**: Seamless connection to X API using credentials
 
 ## Installation
@@ -91,51 +91,35 @@ The X Plugin provides several tools for interacting with the X platform:
 ### Post Tweet
 
 ```typescript
-// Post a tweet using the agent and task system
-const tweetTask = await agent.createTask({
-  name: "Post Tweet",
-  description: "Post a new tweet to X",
-  input: {
-    text: "Hello world from Astreus X Plugin! #AI #MachineLearning"
-  }
+// Post a tweet using the agent
+const response = await agent.execute('x_send_tweet', {
+  text: "Hello world from Astreus X Plugin! #AI #MachineLearning"
 });
 
-// Run the task
-const taskResults = await agent.runTasks([tweetTask.id]);
-const tweetResult = taskResults.get(tweetTask.id);
+console.log(`Tweet posted with ID: ${response.id}`);
 ```
 
 ### Search Tweets
 
 ```typescript
 // Search for tweets
-const searchTask = await agent.createTask({
-  name: "Search Tweets",
-  description: "Find tweets about a specific topic",
-  input: {
-    query: "#machinelearning",
-    limit: 10
-  }
+const response = await agent.execute('x_search_tweets', {
+  query: "#machinelearning",
+  limit: 10
 });
 
-// Run the search task
-const taskResults = await agent.runTasks([searchTask.id]);
+console.log(`Found ${response.tweets.length} tweets`);
 ```
 
 ### Get User Profile
 
 ```typescript
 // Retrieve a user profile
-const profileTask = await agent.createTask({
-  name: "Get User Profile",
-  description: "Retrieve information about a specific X user",
-  input: {
-    username: "OpenAI"
-  }
+const response = await agent.execute('x_get_profile', {
+  username: "OpenAI"
 });
 
-// Run the profile task
-const taskResults = await agent.runTasks([profileTask.id]);
+console.log(`User: ${response.name} (@${response.username})`);
 ```
 
 ## X Plugin Starter Project
@@ -171,19 +155,20 @@ The X Plugin includes robust error handling:
 
 ```typescript
 try {
-  const taskResults = await agent.runTasks([tweetTask.id]);
-  const tweetResult = taskResults.get(tweetTask.id);
+  const response = await agent.execute('x_send_tweet', {
+    text: "Hello world from Astreus X Plugin! #AI #MachineLearning"
+  });
   
-  if (tweetResult?.success) {
-    console.log(`Tweet posted successfully`);
+  if (response.success) {
+    console.log(`Tweet posted successfully with ID: ${response.id}`);
   } else {
     console.warn("Tweet posting failed");
-    if (tweetResult?.output?.error) {
-      console.error(`Error: ${tweetResult.output.error}`);
+    if (response.error) {
+      console.error(`Error: ${response.error}`);
     }
   }
 } catch (error) {
-  console.error("Error executing task:", error);
+  console.error("Error executing tool:", error);
 }
 ```
 
@@ -211,23 +196,26 @@ async function main() {
     name: 'Scheduled Twitter Bot',
     provider: provider,
     memory: memory,
-    database: db,
-    plugins: [xPlugin]
+    database: db
   });
+  
+  // Add plugin tools to agent
+  xPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Schedule tweets every day at 9:00 AM
   cron.schedule('0 9 * * *', async () => {
     // Generate tweet content (could use the agent to generate content)
     const tweetText = `Daily AI update: ${new Date().toLocaleDateString()}`;
     
-    // Create and run the tweet task
-    const tweetTask = await agent.createTask({
-      name: "Daily Tweet",
-      description: "Post daily scheduled tweet",
-      input: { text: tweetText }
-    });
-    
-    await agent.runTasks([tweetTask.id]);
+    // Post the tweet
+    try {
+      const response = await agent.execute('x_send_tweet', {
+        text: tweetText
+      });
+      console.log(`Daily tweet posted with ID: ${response.id}`);
+    } catch (error) {
+      console.error('Failed to post daily tweet:', error);
+    }
   });
   
   console.log('Scheduled tweet system started');
@@ -257,31 +245,28 @@ async function monitorKeywords(keywords, interval = 60000) {
     name: 'X Monitoring Agent',
     provider: provider,
     memory: memory,
-    database: db,
-    plugins: [xPlugin]
+    database: db
   });
+  
+  // Add plugin tools to agent
+  xPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Monitoring loop
   setInterval(async () => {
     for (const keyword of keywords) {
-      // Create search task
-      const searchTask = await agent.createTask({
-        name: "Monitor Keyword",
-        description: `Search for recent tweets containing ${keyword}`,
-        input: {
+      try {
+        // Search for tweets
+        const response = await agent.execute('x_search_tweets', {
           query: keyword,
-          limit: 10,
-          recent: true
+          limit: 10
+        });
+        
+        if (response.success && response.tweets?.length > 0) {
+          console.log(`Found ${response.tweets.length} tweets containing "${keyword}"`);
+          // Process the tweets (analyze sentiment, categorize, etc.)
         }
-      });
-      
-      // Run the task and analyze results
-      const results = await agent.runTasks([searchTask.id]);
-      const searchResult = results.get(searchTask.id);
-      
-      if (searchResult?.success && searchResult.output.tweets?.length > 0) {
-        console.log(`Found ${searchResult.output.tweets.length} tweets containing "${keyword}"`);
-        // Process the tweets (analyze sentiment, categorize, etc.)
+      } catch (error) {
+        console.error(`Error monitoring keyword "${keyword}":`, error);
       }
     }
   }, interval);

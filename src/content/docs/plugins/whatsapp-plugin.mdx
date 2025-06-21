@@ -70,7 +70,7 @@ async function main() {
   const whatsAppPlugin = new WhatsAppPlugin();
   await whatsAppPlugin.init();
   
-  // Create an agent with the WhatsApp Plugin
+  // Create an agent
   const agent = await createAgent({
     name: 'WhatsApp Agent',
     description: 'An assistant that can interact with WhatsApp',
@@ -78,9 +78,11 @@ async function main() {
     memory: memory,
     database: db,
     systemPrompt: `You are a helpful assistant that can interact with WhatsApp.
-Help the user send messages, media, and manage WhatsApp communications.`,
-    plugins: [whatsAppPlugin]
+Help the user send messages, media, and manage WhatsApp communications.`
   });
+  
+  // Add plugin tools to agent
+  whatsAppPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Your agent is now ready to interact with WhatsApp
   const response = await agent.chat('Send a WhatsApp message to +1234567890 saying "Hello, how are you?"');
@@ -296,9 +298,11 @@ async function createSupportBot() {
     database: db,
     systemPrompt: `You are a helpful customer support assistant on WhatsApp.
     Help customers with their questions and provide quick, friendly responses.
-    If you can't help with something, offer to connect them with a human agent.`,
-    plugins: [whatsAppPlugin]
+    If you can't help with something, offer to connect them with a human agent.`
   });
+  
+  // Add plugin tools to agent
+  whatsAppPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   return agent;
 }

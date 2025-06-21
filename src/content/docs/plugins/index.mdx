@@ -59,7 +59,7 @@ Then initialize and use the plugin with your agent:
 
 ```typescript
 import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
-import { WhatsAppPlugin } from '@astreus-ai/whatsapp-plugin';
+import WhatsAppPlugin from '@astreus-ai/whatsapp-plugin';
 
 // Initialize Astreus components
 const db = await createDatabase();
@@ -68,9 +68,10 @@ const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
 // Initialize plugin
 const whatsAppPlugin = new WhatsAppPlugin({
-  accountSid: process.env.TWILIO_ACCOUNT_SID,
-  authToken: process.env.TWILIO_AUTH_TOKEN,
-  phoneNumber: process.env.TWILIO_PHONE_NUMBER
+  apiVersion: 'v17.0',
+  apiToken: process.env.WHATSAPP_API_TOKEN,
+  phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
+  businessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID
 });
 await whatsAppPlugin.init();
 
