@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body className={`${spaceGrotesk.className} antialiased flex flex-col h-screen`}>
-        <RootProvider>{children}</RootProvider>
+        <RootProvider theme={{ defaultTheme: 'dark', forcedTheme: 'dark' }}>{children}</RootProvider>
       </body>
     </html>
   )
