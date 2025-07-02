@@ -42,7 +42,7 @@ export default function Plugins() {
     <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
       {/* Background image with animation */}
       <motion.div 
-        className="absolute inset-0 z-[0]"
+        className="fixed inset-0 z-[0]"
         initial={{ scale: 1.1, opacity: 0 }}
         animate={{ 
           scale: 1,
@@ -59,7 +59,7 @@ export default function Plugins() {
           width={3072}
           height={1536}
           priority
-          className="object-cover h-full w-full"
+          className="object-cover h-screen w-screen"
         />
       </motion.div>
       
