@@ -54,7 +54,7 @@ export default function Plugins() {
         }}
       >
         <Image
-          src="/plugins-background.webp"
+          src="/background.webp"
           alt="Background"
           width={3072}
           height={1536}
