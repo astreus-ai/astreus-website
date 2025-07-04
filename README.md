@@ -1,6 +1,4 @@
-<p align="center">
-    <img src="public/astreus-logo.svg" alt="Astreus Logo" width="240">
-</p>
+![Astreus Welcome](public/docs/welcome.webp)
 
 This is the official website for the Astreus AI Agent Framework.
 
