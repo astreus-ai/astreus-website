@@ -2,7 +2,7 @@
 title: Quick Start Guide
 ---
 
-This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent with **streaming capabilities** and **advanced chat management**.
+This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent with **streaming capabilities**, **advanced chat management**, **media analysis**, and **intent recognition**.
 
 ## Installation
 
@@ -303,6 +303,71 @@ const response = await agent.chat({
 });
 ```
 
+## Media Analysis
+
+Astreus includes powerful AI-powered media analysis capabilities:
+
+```typescript
+// Analyze images with custom prompts
+const imageAnalysis = await agent.analyzeImage({
+  imagePath: './screenshot.png',
+  prompt: 'What UI elements are visible in this screenshot?',
+  detail: 'high'
+});
+
+// Analyze documents (PDF, Word, etc.)
+const documentAnalysis = await agent.analyzeDocument({
+  filePath: './contract.pdf',
+  prompt: 'Extract key terms and conditions from this contract'
+});
+
+// General media analysis with context
+const mediaAnalysis = await agent.analyzeMedia({
+  filePath: './presentation.pptx',
+  analysisType: 'detailed',
+  prompt: 'Summarize the main points of this presentation'
+});
+```
+
+## Intent Recognition & Smart Tool Selection
+
+Astreus can automatically select the right tools for tasks using LLM-powered intent recognition:
+
+```typescript
+// The agent will automatically determine which tools to use based on the task
+const task = agent.createTask({
+  name: "Send Email Report",
+  description: "Generate a sales report and send it via email to the team",
+  input: { period: "Q1 2024" }
+});
+
+// Intent recognition will automatically select email and reporting tools
+const result = await agent.runTasks([task.id]);
+```
+
+## Enhanced Database Features
+
+Astreus provides flexible database management with custom table naming:
+
+```typescript
+// Create memory with custom table name
+const memory = await createMemory({
+  database: db,
+  tableName: "custom_memories",  // Use your own table name
+  maxEntries: 1000,
+  enableEmbeddings: true
+});
+
+// Create chat manager with custom table
+const chat = await createChat({
+  database: db,
+  memory: memory,
+  tableName: "custom_chats",     // Use your own table name
+  maxChats: 100,
+  autoGenerateTitles: true
+});
+```
+
 ## Next Steps
 
 Now that you have a basic agent running with chat management and streaming capabilities, explore these advanced features:
@@ -310,6 +375,8 @@ Now that you have a basic agent running with chat management and streaming capab
 - [Agents](/docs/concepts/agents) - Learn about agent configuration and capabilities
 - [Chat Management](/docs/concepts/chat) - Advanced chat features and metadata handling
 - [Memory System](/docs/concepts/memory) - Understanding conversation storage and retrieval
+- [Media Analysis](/docs/concepts/media-analysis) - AI-powered file and image analysis
+- [Intent Recognition](/docs/concepts/intent-recognition) - Smart tool selection and automation
 - [Providers](/docs/concepts/providers) - Working with different LLM providers
 - [Tasks](/docs/concepts/tasks) - Breaking down complex operations
 - [RAG Setup](/docs/guides/rag-setup) - Advanced document search setup

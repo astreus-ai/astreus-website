@@ -41,6 +41,9 @@ Each Astreus agent provides:
 - **🔌 Tool Integration**: Add and use custom tools
 - **🗄️ Database Access**: Direct access to underlying storage
 - **🎯 Provider Flexibility**: Switch models and providers dynamically
+- **🖼️ Media Analysis**: AI-powered image, document, and file analysis
+- **🤖 Intent Recognition**: Smart tool selection based on task context
+- **📋 Enhanced Database**: Custom table naming and flexible schema management
 
 ## Creating an Agent
 
@@ -357,6 +360,114 @@ const agent = await createAgent({
 const response = await agent.chat({
   message: "How do I configure the SSL settings?",
   sessionId: "tech-support"
+});
+```
+
+## Media Analysis
+
+Astreus agents include powerful AI-powered media analysis capabilities:
+
+```typescript
+// Analyze images with custom prompts
+const imageAnalysis = await agent.analyzeImage({
+  imagePath: './screenshot.png',
+  prompt: 'What UI elements are visible in this screenshot?',
+  detail: 'high'
+});
+
+console.log('Image analysis:', imageAnalysis);
+
+// Analyze documents (PDF, Word, etc.)
+const documentAnalysis = await agent.analyzeDocument({
+  filePath: './contract.pdf',
+  prompt: 'Extract key terms and conditions from this contract'
+});
+
+console.log('Document analysis:', documentAnalysis);
+
+// General media analysis with context
+const mediaAnalysis = await agent.analyzeMedia({
+  filePath: './presentation.pptx',
+  analysisType: 'detailed',
+  prompt: 'Summarize the main points of this presentation'
+});
+
+console.log('Media analysis:', mediaAnalysis);
+
+// Analyze with additional context
+const contextualAnalysis = await agent.analyzeWithContext({
+  filePath: './chart.png',
+  prompt: 'What trends are shown in this chart?',
+  context: 'This chart shows sales data for Q1 2024',
+  detail: 'auto'
+});
+```
+
+## Intent Recognition & Smart Tool Selection
+
+Astreus can automatically select the right tools for tasks using LLM-powered intent recognition:
+
+```typescript
+import { IntentRecognizer } from '@astreus-ai/astreus';
+
+// Create an intent recognizer
+const intentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: [weatherTool, emailTool, calculatorTool]
+});
+
+// Create agent with intent recognition
+const agent = await createAgent({
+  name: 'Smart Assistant',
+  provider: provider,
+  memory: memory,
+  chat: chatManager,
+  tools: [weatherTool, emailTool, calculatorTool],
+  intentRecognizer: intentRecognizer,
+  systemPrompt: 'You are a smart assistant that can automatically select the right tools for tasks.'
+});
+
+// The agent will automatically determine which tools to use based on the task
+const task = agent.createTask({
+  name: "Send Weather Report",
+  description: "Check the weather in New York and send a summary email",
+  input: { location: "New York", recipient: "team@company.com" }
+});
+
+// Intent recognition will automatically select weather and email tools
+const result = await agent.runTasks([task.id]);
+```
+
+## Enhanced Database Features
+
+Astreus provides flexible database management with custom table naming:
+
+```typescript
+// Create memory with custom table name
+const memory = await createMemory({
+  database: db,
+  tableName: "custom_memories",  // Use your own table name
+  maxEntries: 1000,
+  enableEmbeddings: true
+});
+
+// Create chat manager with custom table
+const chatManager = await createChat({
+  database: db,
+  memory: memory,
+  tableName: "custom_chats",     // Use your own table name
+  maxChats: 100,
+  autoGenerateTitles: true
+});
+
+// Create agent with custom configuration
+const agent = await createAgent({
+  name: 'Custom Agent',
+  provider: provider,
+  memory: memory,
+  chat: chatManager,
+  database: db,
+  systemPrompt: 'You are a customized assistant with enhanced database capabilities.'
 });
 ```
 

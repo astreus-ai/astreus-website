@@ -1,0 +1,454 @@
+---
+title: Intent Recognition
+description: Intelligent tool selection using LLM-powered intent detection
+---
+
+Intent Recognition in Astreus enables agents to automatically select the most appropriate tools and methods for completing tasks. By leveraging LLM-powered analysis, agents can understand user intentions and choose the right combination of tools to achieve the desired outcome.
+
+## Overview
+
+Intent Recognition provides:
+
+- **🤖 Smart Tool Selection**: Automatically choose the right tools for each task
+- **🎯 Context Understanding**: Analyze task context and requirements
+- **⚡ Automated Workflows**: Chain multiple tools together intelligently
+- **📊 Performance Optimization**: Select the most efficient tool combinations
+- **🔄 Adaptive Learning**: Improve tool selection over time
+
+## How It Works
+
+Intent Recognition analyzes tasks using several factors:
+
+1. **Task Description**: Understanding what needs to be accomplished
+2. **Available Tools**: Evaluating which tools are available and suitable
+3. **Context**: Considering the current conversation and historical data
+4. **Constraints**: Respecting any limitations or preferences
+
+## Basic Intent Recognition
+
+Create an intent recognizer and use it with your agent:
+
+```typescript
+import { IntentRecognizer } from '@astreus-ai/astreus';
+
+// Define your tools
+const weatherTool = {
+  name: "get_weather",
+  description: "Get current weather information for a location",
+  parameters: [
+    {
+      name: "location",
+      type: "string",
+      description: "City and state/country",
+      required: true
+    }
+  ],
+  execute: async (params) => {
+    // Weather API logic
+    return `Weather in ${params.location}: Sunny, 72°F`;
+  }
+};
+
+const emailTool = {
+  name: "send_email",
+  description: "Send an email message",
+  parameters: [
+    {
+      name: "recipient",
+      type: "string",
+      description: "Email address of recipient",
+      required: true
+    },
+    {
+      name: "subject",
+      type: "string",
+      description: "Email subject",
+      required: true
+    },
+    {
+      name: "body",
+      type: "string",
+      description: "Email body content",
+      required: true
+    }
+  ],
+  execute: async (params) => {
+    // Email sending logic
+    return `Email sent to ${params.recipient}`;
+  }
+};
+
+// Create intent recognizer
+const intentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: [weatherTool, emailTool]
+});
+
+// Create agent with intent recognition
+const agent = await createAgent({
+  name: 'Smart Assistant',
+  provider: provider,
+  memory: memory,
+  chat: chatManager,
+  tools: [weatherTool, emailTool],
+  intentRecognizer: intentRecognizer,
+  systemPrompt: 'You are a smart assistant that automatically selects the right tools for tasks.'
+});
+```
+
+## Task-Based Intent Recognition
+
+Use intent recognition with the task system for complex workflows:
+
+```typescript
+// Create a complex task
+const task = agent.createTask({
+  name: "Weather Report Email",
+  description: "Get weather for New York and send a summary email to the team",
+  input: {
+    location: "New York, NY",
+    recipient: "team@company.com",
+    urgency: "normal"
+  }
+});
+
+// Intent recognition will automatically:
+// 1. Identify that weather data is needed
+// 2. Select the weather tool
+// 3. Recognize that email sending is required
+// 4. Select the email tool
+// 5. Chain the tools together appropriately
+
+const result = await agent.runTasks([task.id]);
+console.log('Task completed:', result);
+```
+
+## Advanced Intent Recognition
+
+Configure intent recognition with advanced options:
+
+```typescript
+const intentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: [weatherTool, emailTool, calculatorTool, calendarTool],
+  
+  // Advanced configuration
+  maxToolsPerTask: 3,           // Maximum tools to use per task
+  confidenceThreshold: 0.7,     // Minimum confidence score
+  enableToolChaining: true,     // Allow tools to be chained
+  prioritizeEfficiency: true,   // Prefer faster tools when possible
+  
+  // Custom intent patterns
+  intentPatterns: [
+    {
+      pattern: /weather.*email/i,
+      tools: ['get_weather', 'send_email'],
+      priority: 'high'
+    },
+    {
+      pattern: /calculate.*report/i,
+      tools: ['calculator', 'generate_report'],
+      priority: 'medium'
+    }
+  ]
+});
+```
+
+## Context-Aware Intent Recognition
+
+Intent recognition considers conversation context and history:
+
+```typescript
+// Previous conversation context influences tool selection
+await agent.chat({
+  message: "Check the weather in San Francisco",
+  sessionId: "planning-session"
+});
+
+// Later in the conversation - context is maintained
+await agent.chat({
+  message: "Send that information to my team",
+  sessionId: "planning-session"
+  // Intent recognizer knows "that information" refers to weather data
+  // and will automatically select email tool with weather context
+});
+```
+
+## Multi-Step Intent Recognition
+
+Handle complex multi-step tasks with dependent operations:
+
+```typescript
+const complexTask = agent.createTask({
+  name: "Travel Planning",
+  description: "Check weather for destination, find available flights, and send itinerary email",
+  input: {
+    destination: "Paris, France",
+    departure: "2024-04-15",
+    return: "2024-04-22",
+    traveler: "john@example.com"
+  }
+});
+
+// Intent recognition will automatically:
+// 1. Identify weather checking requirement
+// 2. Recognize flight search need
+// 3. Understand itinerary creation requirement
+// 4. Select appropriate tools in correct order
+// 5. Chain outputs from one tool to the next
+
+const result = await agent.runTasks([complexTask.id]);
+```
+
+## Custom Intent Patterns
+
+Define custom patterns for specific use cases:
+
+```typescript
+const intentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: availableTools,
+  
+  // Custom business-specific patterns
+  intentPatterns: [
+    {
+      name: "customer_support",
+      pattern: /support ticket|help request|issue|problem/i,
+      tools: ['create_ticket', 'notify_support', 'send_confirmation'],
+      priority: 'high',
+      requiresHuman: false
+    },
+    {
+      name: "sales_inquiry",
+      pattern: /quote|pricing|purchase|buy/i,
+      tools: ['generate_quote', 'send_proposal', 'create_lead'],
+      priority: 'high',
+      requiresHuman: true
+    },
+    {
+      name: "data_analysis",
+      pattern: /analyze|report|dashboard|metrics/i,
+      tools: ['fetch_data', 'analyze_data', 'generate_report'],
+      priority: 'medium',
+      requiresHuman: false
+    }
+  ]
+});
+```
+
+## Intent Recognition with Plugins
+
+Intent recognition works seamlessly with plugins:
+
+```typescript
+import { XPlugin } from '@astreus-ai/x-plugin';
+import { EmailPlugin } from '@astreus-ai/email-plugin';
+
+// Initialize plugins
+const xPlugin = new XPlugin();
+const emailPlugin = new EmailPlugin();
+
+await xPlugin.init();
+await emailPlugin.init();
+
+// Create intent recognizer with plugin tools
+const intentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: [
+    ...xPlugin.getTools(),
+    ...emailPlugin.getTools(),
+    customTool1,
+    customTool2
+  ]
+});
+
+// Create agent with plugins and intent recognition
+const agent = await createAgent({
+  name: 'Social Media Manager',
+  provider: provider,
+  memory: memory,
+  chat: chatManager,
+  plugins: [xPlugin, emailPlugin],
+  intentRecognizer: intentRecognizer,
+  systemPrompt: 'You are a social media manager that can automatically handle various tasks.'
+});
+
+// Agent can now intelligently select between X tools, email tools, and custom tools
+const task = agent.createTask({
+  name: "Social Media Campaign",
+  description: "Create a tweet about our new product and send email to stakeholders",
+  input: {
+    product: "AI Assistant Pro",
+    hashtags: ["#AI", "#Productivity"],
+    stakeholders: ["ceo@company.com", "marketing@company.com"]
+  }
+});
+
+const result = await agent.runTasks([task.id]);
+```
+
+## Performance Monitoring
+
+Monitor intent recognition performance:
+
+```typescript
+const intentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: availableTools,
+  
+  // Enable performance monitoring
+  enableMetrics: true,
+  
+  // Callback for monitoring
+  onIntentRecognized: (intent) => {
+    console.log('Intent recognized:', {
+      task: intent.taskName,
+      selectedTools: intent.selectedTools,
+      confidence: intent.confidence,
+      processingTime: intent.processingTime
+    });
+  }
+});
+
+// Get performance metrics
+const metrics = intentRecognizer.getMetrics();
+console.log('Intent recognition metrics:', {
+  totalTasks: metrics.totalTasks,
+  averageConfidence: metrics.averageConfidence,
+  averageProcessingTime: metrics.averageProcessingTime,
+  toolUsageStats: metrics.toolUsageStats
+});
+```
+
+## Error Handling
+
+Implement proper error handling for intent recognition:
+
+```typescript
+try {
+  const task = agent.createTask({
+    name: "Complex Task",
+    description: "Perform complex analysis and reporting",
+    input: { data: "complex_dataset.csv" }
+  });
+  
+  const result = await agent.runTasks([task.id]);
+  
+  if (result.get(task.id)?.success) {
+    console.log('Task completed successfully');
+  } else {
+    console.log('Task failed:', result.get(task.id)?.error);
+  }
+} catch (error) {
+  if (error.message.includes('No suitable tools found')) {
+    console.error('Intent recognition could not find appropriate tools');
+    // Handle missing tools scenario
+  } else if (error.message.includes('Confidence threshold not met')) {
+    console.error('Intent recognition confidence too low');
+    // Handle low confidence scenario
+  } else {
+    console.error('Intent recognition failed:', error);
+  }
+}
+```
+
+## Best Practices
+
+### 1. Provide Clear Task Descriptions
+```typescript
+// ✅ Good: Clear, specific task description
+const task = agent.createTask({
+  name: "Generate Sales Report",
+  description: "Fetch Q1 sales data, analyze trends, and create a PDF report",
+  input: { quarter: "Q1", year: 2024 }
+});
+
+// ❌ Poor: Vague task description
+const task = agent.createTask({
+  name: "Do Something",
+  description: "Handle the data",
+  input: { data: "something" }
+});
+```
+
+### 2. Use Appropriate Tool Sets
+```typescript
+// ✅ Good: Focused tool set for specific domain
+const salesIntentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: [salesTool, reportTool, emailTool, analyticsTool]
+});
+
+// ❌ Poor: Too many unrelated tools
+const overloadedRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: [weatherTool, gameTool, cookingTool, salesTool, musicTool]
+});
+```
+
+### 3. Monitor and Adjust Confidence Thresholds
+```typescript
+// ✅ Good: Monitor and adjust based on performance
+const intentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: availableTools,
+  confidenceThreshold: 0.8, // Start conservative
+  
+  onIntentRecognized: (intent) => {
+    if (intent.confidence < 0.7) {
+      console.warn('Low confidence intent recognition');
+    }
+  }
+});
+```
+
+### 4. Use Context Effectively
+```typescript
+// ✅ Good: Provide context for better intent recognition
+await agent.chat({
+  message: "Generate the monthly report",
+  sessionId: "sales-meeting",
+  metadata: { 
+    context: "sales_meeting",
+    department: "sales",
+    reportType: "monthly"
+  }
+});
+```
+
+## Integration with Other Features
+
+### With RAG Systems
+```typescript
+// Intent recognition can automatically select RAG tools
+const ragIntentRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: [searchTool, ragTool, summaryTool]
+});
+
+const task = agent.createTask({
+  name: "Research Question",
+  description: "Find information about AI regulations and provide summary",
+  input: { topic: "AI regulatory compliance" }
+});
+
+// Will automatically select RAG search and summarization tools
+```
+
+### With Memory Systems
+```typescript
+// Intent recognition considers conversation history
+const memoryAwareRecognizer = new IntentRecognizer({
+  provider: provider,
+  tools: availableTools,
+  useMemoryContext: true,
+  memoryContextWindow: 10 // Last 10 messages
+});
+```
+
+## Next Steps
+
+- Learn about [Media Analysis](/docs/concepts/media-analysis) for file analysis capabilities
+- Explore [Agents](/docs/concepts/agents) for comprehensive agent setup
+- Check out [Tasks](/docs/concepts/tasks) for structured task management
+- See [Plugins](/docs/plugins) for extending tool capabilities
