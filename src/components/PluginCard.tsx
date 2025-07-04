@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FiGithub, FiBook } from 'react-icons/fi';
 import { Plugin } from '@/constants/plugins';
 
@@ -26,6 +27,17 @@ export default function PluginCard({ plugin }: PluginCardProps) {
       className="backdrop-blur-sm w-full md:w-1/2 lg:w-1/3 bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-300 flex flex-col h-full"
     >
       <div className="flex-grow">
+        {/* Plugin Image */}
+        <div className="mb-4 w-full aspect-video">
+          <Image
+            src={plugin.image}
+            alt={plugin.title}
+            width={400}
+            height={225}
+            className="rounded-lg shadow-lg w-full h-full object-cover"
+          />
+        </div>
+        
         <h3 className="text-xl font-semibold mb-2">{plugin.title}</h3>
         <p className="text-gray-300 mb-4">{plugin.description}</p>
         
