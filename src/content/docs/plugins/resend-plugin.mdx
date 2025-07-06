@@ -50,7 +50,7 @@ LOG_LEVEL=info  # Options: error, warn, info, debug
 Create an agent with the Resend Plugin:
 
 ```typescript
-import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createMemory, createProvider, createDatabase, PluginManager } from '@astreus-ai/astreus';
 import ResendPlugin from '@astreus-ai/resend-plugin';
 
 async function main() {
@@ -63,6 +63,12 @@ async function main() {
   const resendPlugin = new ResendPlugin();
   await resendPlugin.init();
   
+  // Create a plugin manager and add the Resend plugin
+  const pluginManager = new PluginManager({
+    name: 'email-plugins',
+    tools: resendPlugin.getTools()
+  });
+  
   // Create an agent
   const agent = await createAgent({
     name: 'Email Agent',
@@ -70,12 +76,10 @@ async function main() {
     provider: provider,
     memory: memory,
     database: db,
+    plugins: [pluginManager],
     systemPrompt: `You are a helpful assistant that can send emails using Resend.
 Help the user compose and send professional emails.`
   });
-  
-  // Add plugin tools to agent
-  resendPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Your agent is now ready to send emails
   const response = await agent.chat('Send an email to john@example.com with subject "Welcome" and message "Hello, welcome to our service!"');

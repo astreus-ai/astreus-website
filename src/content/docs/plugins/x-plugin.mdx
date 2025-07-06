@@ -47,7 +47,7 @@ X_CLIENT_SECRET=your-x-client-secret
 Create an agent with the X Plugin:
 
 ```typescript
-import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createMemory, createProvider, createDatabase, PluginManager } from '@astreus-ai/astreus';
 import { XPlugin } from '@astreus-ai/x-plugin';
 
 async function main() {
@@ -65,18 +65,22 @@ async function main() {
   });
   await xPlugin.init();
   
+  // Create a plugin manager and add the X plugin
+  const pluginManager = new PluginManager({
+    name: 'social-plugins',
+    tools: xPlugin.getTools()
+  });
+  
   // Create an agent
   const agent = await createAgent({
     name: 'Social Media Agent',
     description: 'An assistant that can interact with X',
     provider: provider,
     memory: memory,
+    plugins: [pluginManager],
     systemPrompt: `You are a helpful assistant that can interact with X (formerly Twitter).
 Help the user search, post, and analyze content on X.`
   });
-  
-  // Add X plugin tools to agent
-  xPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Your agent is now ready to interact with X
   const response = await agent.chat("Find the latest tweets about #AI");

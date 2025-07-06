@@ -45,6 +45,7 @@ ragTools.forEach(tool => agent.addTool(tool));
 
 Astreus offers several official plugins to enhance your agents:
 
+- [EVM Plugin](/docs/plugins/evm-plugin) - Comprehensive Web3 integration for Ethereum and EVM-compatible blockchains
 - [X Plugin](/docs/plugins/x-plugin) - Interact with the X (formerly Twitter) platform
 - [WhatsApp Plugin](/docs/plugins/whatsapp-plugin) - Send and manage WhatsApp messages using the official WhatsApp Cloud API
 - [Resend Plugin](/docs/plugins/resend-plugin) - Send emails using the Resend API with template support
@@ -54,38 +55,43 @@ Astreus offers several official plugins to enhance your agents:
 To start using plugins with Astreus, install the desired plugin package alongside Astreus:
 
 ```bash
-npm install @astreus-ai/astreus @astreus-ai/whatsapp-plugin
+npm install @astreus-ai/astreus @astreus-ai/evm-plugin
 ```
 
 Then initialize and use the plugin with your agent:
 
 ```typescript
-import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
-import WhatsAppPlugin from '@astreus-ai/whatsapp-plugin';
+import { createAgent, createMemory, createProvider, createDatabase, PluginManager } from '@astreus-ai/astreus';
+import EVMPlugin from '@astreus-ai/evm-plugin';
 
 // Initialize Astreus components
 const db = await createDatabase();
 const memory = await createMemory({ database: db, tableName: 'memories' });
 const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
 
-// Initialize plugin
-const whatsAppPlugin = new WhatsAppPlugin({
-  apiVersion: 'v17.0',
-  apiToken: process.env.WHATSAPP_API_TOKEN,
-  phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
-  businessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID
+// Initialize EVM plugin
+const evmPlugin = new EVMPlugin({
+  defaultNetwork: 'sepolia', // Use testnet for development
+  privateKeys: [process.env.WALLET_PRIVATE_KEY]
 });
-await whatsAppPlugin.init();
+await evmPlugin.init();
+
+// Create a plugin manager and add the EVM plugin
+const pluginManager = new PluginManager({
+  name: 'web3-plugins',
+  tools: evmPlugin.getTools()
+});
 
 // Create agent
 const agent = await createAgent({
-  name: 'WhatsApp Agent',
+  name: 'Web3 Agent',
   provider: provider,
-  memory: memory
+  memory: memory,
+  plugins: [pluginManager]
 });
 
-// Add plugin tools to agent
-whatsAppPlugin.getTools().forEach(tool => agent.addTool(tool));
+// Agent automatically gets EVM tools from the plugin manager
+await agent.chat('Send 0.1 ETH to vitalik.eth');
 ```
 
 ## Creating Custom Plugins

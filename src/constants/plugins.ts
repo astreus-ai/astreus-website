@@ -10,6 +10,15 @@ export interface Plugin {
 
 export const plugins: Plugin[] = [
   {
+    id: "evm-plugin",
+    title: "EVM Plugin",
+    description: "A comprehensive Web3 integration plugin for the Astreus AI agent framework, enabling agents to interact with Ethereum and EVM-compatible blockchains.",
+    githubUrl: "https://github.com/astreus-ai/astreus-evm-plugin",
+    docsUrl: "/docs/plugins/evm-plugin",
+    tags: ["web3", "ethereum", "blockchain", "defi", "crypto"],
+    image: "/docs/evm-plugin.webp"
+  },
+  {
     id: "x-plugin",
     title: "X Plugin",
     description: "An X (formerly Twitter) integration plugin for the Astreus AI agent framework, allowing agents to interact with X.",

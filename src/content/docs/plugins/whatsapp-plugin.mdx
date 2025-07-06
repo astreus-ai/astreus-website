@@ -59,7 +59,7 @@ LOG_LEVEL=info  # Options: error, warn, info, debug
 Create an agent with the WhatsApp Plugin:
 
 ```typescript
-import { createAgent, createMemory, createProvider, createDatabase } from '@astreus-ai/astreus';
+import { createAgent, createMemory, createProvider, createDatabase, PluginManager } from '@astreus-ai/astreus';
 import WhatsAppPlugin from '@astreus-ai/whatsapp-plugin';
 
 async function main() {
@@ -72,6 +72,12 @@ async function main() {
   const whatsAppPlugin = new WhatsAppPlugin();
   await whatsAppPlugin.init();
   
+  // Create a plugin manager and add the WhatsApp plugin
+  const pluginManager = new PluginManager({
+    name: 'messaging-plugins',
+    tools: whatsAppPlugin.getTools()
+  });
+  
   // Create an agent
   const agent = await createAgent({
     name: 'WhatsApp Agent',
@@ -79,12 +85,10 @@ async function main() {
     provider: provider,
     memory: memory,
     database: db,
+    plugins: [pluginManager],
     systemPrompt: `You are a helpful assistant that can interact with WhatsApp.
 Help the user send messages, media, and manage WhatsApp communications.`
   });
-  
-  // Add plugin tools to agent
-  whatsAppPlugin.getTools().forEach(tool => agent.addTool(tool));
   
   // Your agent is now ready to interact with WhatsApp
   const response = await agent.chat('Send a WhatsApp message to +1234567890 saying "Hello, how are you?"');

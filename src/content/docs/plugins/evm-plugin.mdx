@@ -1,0 +1,334 @@
+---
+title: EVM Plugin
+---
+
+![EVM Plugin](/docs/evm-plugin.webp)
+
+EVM Plugin enables agents to interact with Ethereum Virtual Machine (EVM) compatible blockchains, providing comprehensive Web3 capabilities for smart contracts, transactions, and wallet management.
+
+## Features
+
+- **Multi-Network Support**: Connect to Ethereum, Polygon, Arbitrum, Optimism, Base, Avalanche, BSC and more
+- **Transaction Management**: Send native tokens, estimate gas costs, and track transaction status
+- **Smart Contract Interaction**: Deploy contracts, call methods, and interact with DeFi protocols
+- **Wallet Management**: Create, import, and manage multiple cryptocurrency wallets
+- **ENS Resolution**: Resolve Ethereum Name Service domains to addresses
+- **Blockchain Data**: Query blocks, transactions, and event logs across networks
+- **Message Signing**: Sign and verify cryptographic messages
+
+## Installation
+
+Install the EVM Plugin along with Astreus:
+
+```bash
+npm install @astreus-ai/astreus @astreus-ai/evm-plugin
+```
+
+## Configuration
+
+The EVM Plugin can be configured through environment variables or constructor options.
+
+### Environment Variables
+
+Create a `.env` file with your configuration:
+
+```bash
+# Default network (mainnet, sepolia, polygon, arbitrum, etc.)
+EVM_DEFAULT_NETWORK=mainnet
+
+# Private keys (comma-separated for multiple wallets)
+EVM_PRIVATE_KEYS=0x1234567890abcdef...,0xabcdef1234567890...
+
+# Or use a mnemonic phrase for HD wallet
+EVM_MNEMONIC=word1 word2 word3 ... word12
+
+# HD wallet configuration (optional)
+EVM_HD_PATH=m/44'/60'/0'/0
+EVM_ACCOUNT_INDEX=0
+```
+
+### Programmatic Configuration
+
+```typescript
+import EVMPlugin from '@astreus-ai/evm-plugin';
+
+const evmPlugin = new EVMPlugin({
+  defaultNetwork: 'mainnet',
+  privateKeys: ['0x...'], // Your private keys
+  mnemonic: 'your twelve word mnemonic phrase',
+  networks: {
+    custom: {
+      name: 'Custom Network',
+      chainId: 1337,
+      rpcUrl: 'http://localhost:8545',
+      nativeCurrency: {
+        name: 'Custom Token',
+        symbol: 'CUSTOM',
+        decimals: 18
+      }
+    }
+  }
+});
+```
+
+## Basic Usage
+
+Create an agent with the EVM Plugin:
+
+```typescript
+import { createAgent, createMemory, createProvider, createDatabase, PluginManager } from '@astreus-ai/astreus';
+import EVMPlugin from '@astreus-ai/evm-plugin';
+
+// Initialize Astreus components
+const db = await createDatabase();
+const memory = await createMemory({ database: db, tableName: 'memories' });
+const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+
+// Initialize EVM plugin
+const evmPlugin = new EVMPlugin({
+  defaultNetwork: 'sepolia', // Use testnet for development
+  privateKeys: [process.env.WALLET_PRIVATE_KEY]
+});
+await evmPlugin.init();
+
+// Create a plugin manager and add the EVM plugin
+const pluginManager = new PluginManager({
+  name: 'web3-plugins',
+  tools: evmPlugin.getTools()
+});
+
+// Create agent
+const agent = await createAgent({
+  name: 'Web3 Agent',
+  provider: provider,
+  memory: memory,
+  plugins: [pluginManager]
+});
+
+// Agent automatically gets EVM tools from the plugin manager
+const response = await agent.chat('Send 0.1 ETH to 0x742d35Cc6634C0532925a3b844Bc9e7595f6AEd3');
+```
+
+## Available Tools
+
+The EVM Plugin provides 18 specialized tools for blockchain interactions:
+
+### Network Management
+- **evm_get_network** - Get current network information
+- **evm_switch_network** - Switch to a different blockchain network
+
+### Wallet Operations
+- **evm_create_wallet** - Generate a new cryptocurrency wallet
+- **evm_import_wallet** - Import wallet from private key
+- **evm_list_wallets** - List all available wallet addresses
+
+### Balance and Transactions
+- **evm_get_balance** - Check ETH/token balance of any address
+- **evm_send_transaction** - Send native currency (ETH, MATIC, AVAX, etc.)
+- **evm_estimate_gas** - Estimate gas costs for transactions
+- **evm_get_transaction** - Retrieve transaction details by hash
+
+### Smart Contract Interaction
+- **evm_call_contract** - Call contract methods (read-only operations)
+- **evm_send_contract_transaction** - Execute contract transactions
+- **evm_deploy_contract** - Deploy new smart contracts
+
+### Blockchain Data
+- **evm_get_block** - Get block information by number or hash
+- **evm_get_logs** - Query event logs with filters
+- **evm_get_gas_prices** - Get current network gas prices
+
+### Utilities
+- **evm_resolve_ens** - Resolve ENS names to addresses
+- **evm_sign_message** - Sign messages with wallet
+- **evm_verify_message** - Verify signed message authenticity
+
+## Usage Examples
+
+### Checking Balances
+
+```typescript
+// Agent can check any address balance
+const balance = await agent.chat('What is the ETH balance of vitalik.eth?');
+
+// Or check multiple addresses
+const balances = await agent.chat('Check balances for these addresses: 0x123..., 0x456...');
+```
+
+### Sending Transactions
+
+```typescript
+// Send native currency
+await agent.chat('Send 0.5 ETH to 0x742d35Cc6634C0532925a3b844Bc9e7595f6AEd3');
+
+// Send on different networks
+await agent.chat('Switch to Polygon and send 10 MATIC to 0x123...');
+```
+
+### Smart Contract Interactions
+
+```typescript
+// Check ERC20 token balance
+await agent.chat('Check my USDC balance on the contract 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48');
+
+// Call contract methods
+await agent.chat('Call the totalSupply method on the USDC contract');
+
+// Send tokens
+await agent.chat('Send 100 USDC tokens to 0x456... using the transfer method');
+```
+
+### Multi-Network Operations
+
+```typescript
+// Work across different blockchains
+await agent.chat('Switch to Arbitrum and check gas prices');
+await agent.chat('What is the current block number on Base network?');
+await agent.chat('Get the transaction 0x123... details on Polygon');
+```
+
+### ENS and Message Signing
+
+```typescript
+// ENS resolution
+await agent.chat('What is the address for vitalik.eth?');
+
+// Message signing
+await agent.chat('Sign the message "Hello Web3" with my wallet');
+```
+
+## Supported Networks
+
+The plugin includes pre-configured support for major EVM networks:
+
+| Network | Chain ID | Native Token |
+|---------|----------|--------------|
+| Ethereum Mainnet | 1 | ETH |
+| Sepolia Testnet | 11155111 | ETH |
+| Polygon | 137 | MATIC |
+| Arbitrum One | 42161 | ETH |
+| Optimism | 10 | ETH |
+| Base | 8453 | ETH |
+| Avalanche C-Chain | 43114 | AVAX |
+| BNB Smart Chain | 56 | BNB |
+
+## Security Best Practices
+
+### Private Key Management
+- Never commit private keys to version control
+- Use environment variables for sensitive data
+- Consider using HD wallets for better key management
+- Implement proper access controls in production
+
+### Transaction Safety
+- Always verify transaction details before execution
+- Use testnet networks for development and testing
+- Implement gas limit safeguards
+- Monitor transaction confirmations
+
+### Smart Contract Interactions
+- Verify contract addresses before interactions
+- Understand contract ABIs and methods
+- Be cautious with contract upgrades and proxies
+- Implement proper error handling
+
+## Error Handling
+
+The plugin provides comprehensive error handling for common blockchain scenarios:
+
+```typescript
+try {
+  const result = await agent.chat('Send 1000 ETH to 0x123...');
+} catch (error) {
+  if (error.message.includes('insufficient funds')) {
+    console.log('Not enough ETH in wallet');
+  } else if (error.message.includes('gas')) {
+    console.log('Gas estimation failed or too high');
+  }
+}
+```
+
+## Advanced Configuration
+
+### Custom Networks
+
+```typescript
+const evmPlugin = new EVMPlugin({
+  networks: {
+    localhost: {
+      name: 'Local Hardhat',
+      chainId: 31337,
+      rpcUrl: 'http://127.0.0.1:8545',
+      nativeCurrency: {
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18
+      }
+    }
+  },
+  defaultNetwork: 'localhost'
+});
+```
+
+### HD Wallet Configuration
+
+```typescript
+const evmPlugin = new EVMPlugin({
+  mnemonic: 'your twelve word mnemonic phrase here',
+  hdPath: "m/44'/60'/0'/0", // Ethereum derivation path
+  accountIndex: 0 // Start from first account
+});
+```
+
+## Integration with DeFi
+
+The EVM Plugin can interact with popular DeFi protocols:
+
+```typescript
+// Uniswap V2 Router example
+const uniswapV2RouterABI = [
+  'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)'
+];
+
+await agent.chat(`
+  Call getAmountsOut on Uniswap V2 Router at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+  with parameters: ["1000000000000000000", ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"]]
+  to get price for 1 ETH to USDC
+`);
+```
+
+## Testing
+
+Use testnets for development and testing:
+
+```typescript
+const evmPlugin = new EVMPlugin({
+  defaultNetwork: 'sepolia', // Ethereum testnet
+  privateKeys: [process.env.TESTNET_PRIVATE_KEY]
+});
+
+// Get testnet ETH from faucets
+await agent.chat('What is my balance on Sepolia testnet?');
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **RPC Connection Errors**: Verify network RPC URLs are accessible
+2. **Gas Estimation Failures**: Check transaction parameters and network congestion
+3. **Private Key Errors**: Ensure private keys are properly formatted (0x prefix)
+4. **Network Mismatch**: Verify you're on the correct network for the operation
+
+### Debug Mode
+
+Enable debug logging to troubleshoot issues:
+
+```typescript
+import { logger } from '@astreus-ai/astreus';
+
+// Set log level to debug
+logger.setLevel('debug');
+```
+
+The EVM Plugin provides powerful Web3 capabilities for Astreus agents, enabling sophisticated blockchain interactions across multiple networks with enterprise-grade security and reliability.
