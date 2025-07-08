@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build && next-sitemap",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "fumadocs-mdx"
@@ -16,6 +16,7 @@
     "fumadocs-core": "^15.3.4",
     "fumadocs-ui": "^15.3.4",
     "next": "15.3.2",
+    "next-sitemap": "^4.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",

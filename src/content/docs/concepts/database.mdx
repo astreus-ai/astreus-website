@@ -1,0 +1,536 @@
+---
+title: Database Management
+---
+
+![Database](/docs/database.webp)
+
+Astreus provides **flexible database management** with enhanced features including custom table naming, automatic schema creation, and lazy table initialization. The framework supports both SQLite and PostgreSQL with seamless migration and configuration options.
+
+## Database Architecture
+
+Astreus uses a **lazy table creation** approach where each module automatically creates its required database tables when first used:
+
+- **`createMemory()`** creates the memories table
+- **`createChat()`** creates the chats table  
+- **`createAgent()`** creates the agents table
+- **`createTask()`** creates the tasks table
+- **`createUser()`** creates the users table
+- **`createRAG()`** creates the RAG documents table
+
+This eliminates the need for manual database schema setup and allows for custom table names per module.
+
+## Database Configuration
+
+### SQLite (Default)
+
+```typescript
+import { createDatabase } from '@astreus-ai/astreus';
+
+// SQLite with default path
+const db = await createDatabase();
+
+// SQLite with custom path
+const db = await createDatabase({
+  type: 'sqlite',
+  path: './my-custom-astreus.db'
+});
+
+// Using environment variable
+process.env.DATABASE_PATH = './data/astreus.db';
+const db = await createDatabase({
+  type: 'sqlite'
+});
+```
+
+### PostgreSQL
+
+```typescript
+import { createDatabase } from '@astreus-ai/astreus';
+
+// PostgreSQL with connection string
+const db = await createDatabase({
+  type: 'postgresql',
+  connectionString: 'postgresql://user:password@localhost:5432/astreus'
+});
+
+// Using environment variable
+process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/astreus';
+const db = await createDatabase({
+  type: 'postgresql'
+});
+
+// PostgreSQL with individual parameters
+const db = await createDatabase({
+  type: 'postgresql',
+  host: 'localhost',
+  port: 5432,
+  user: 'astreus_user',
+  password: 'secure_password',
+  database: 'astreus_db'
+});
+```
+
+## Custom Table Naming
+
+Each Astreus component supports custom table names for better organization:
+
+### Memory with Custom Tables
+
+```typescript
+import { createMemory, createDatabase } from '@astreus-ai/astreus';
+
+const db = await createDatabase();
+
+// Create memory with custom table name
+const memory = await createMemory({
+  database: db,
+  tableName: "conversation_history",  // Custom table name
+  maxEntries: 1000,
+  enableEmbeddings: true
+});
+
+// Different memory instances with different tables
+const userMemory = await createMemory({
+  database: db,
+  tableName: "user_memories",
+  maxEntries: 500
+});
+
+const systemMemory = await createMemory({
+  database: db,
+  tableName: "system_logs",
+  maxEntries: 2000
+});
+```
+
+### Chat Management with Custom Tables
+
+```typescript
+import { createChat, createMemory, createDatabase } from '@astreus-ai/astreus';
+
+const db = await createDatabase();
+const memory = await createMemory({ database: db });
+
+// Create chat manager with custom table
+const chatManager = await createChat({
+  database: db,
+  memory: memory,
+  tableName: "customer_chats",     // Custom table name
+  maxChats: 100,
+  autoGenerateTitles: true
+});
+
+// Support chat manager
+const supportChatManager = await createChat({
+  database: db,
+  memory: memory,
+  tableName: "support_tickets",
+  maxChats: 500,
+  autoGenerateTitles: true
+});
+```
+
+### RAG with Custom Tables
+
+```typescript
+import { createRAG, createDatabase, createProvider } from '@astreus-ai/astreus';
+
+const db = await createDatabase();
+const provider = createProvider({ type: 'openai', model: 'gpt-4o-mini' });
+
+// Create RAG system with custom table
+const documentRAG = await createRAG({
+  type: 'vector',
+  database: db,
+  provider: provider,
+  tableName: 'technical_documents',  // Custom table name
+  chunkSize: 1000,
+  chunkOverlap: 200
+});
+
+// Knowledge base RAG
+const knowledgeRAG = await createRAG({
+  type: 'vector',
+  database: db,
+  provider: provider,
+  tableName: 'knowledge_base',
+  chunkSize: 800,
+  chunkOverlap: 150
+});
+```
+
+## Advanced Database Features
+
+### Database Schema Management
+
+```typescript
+// Access the underlying database for custom operations
+const db = await createDatabase();
+
+// Get the Knex instance for direct database access
+const knex = db.knex;
+
+// Create custom tables if needed
+await knex.schema.createTableIfNotExists('custom_analytics', (table) => {
+  table.increments('id').primary();
+  table.string('event_type').notNullable();
+  table.json('event_data');
+  table.timestamp('created_at').defaultTo(knex.fn.now());
+});
+
+// Custom queries
+const analytics = await knex('custom_analytics')
+  .where('event_type', 'chat_completed')
+  .count('* as total');
+
+console.log(`Total chat completions: ${analytics[0].total}`);
+```
+
+### Database Migrations
+
+```typescript
+// Check database connection and tables
+const db = await createDatabase();
+
+// Verify tables exist (they're created automatically when modules are used)
+const memory = await createMemory({ database: db });
+const chatManager = await createChat({ database: db, memory: memory });
+
+// Check if specific tables exist
+const hasMemoryTable = await db.knex.schema.hasTable('memories');
+const hasChatTable = await db.knex.schema.hasTable('chats');
+
+console.log(`Memory table exists: ${hasMemoryTable}`);
+console.log(`Chat table exists: ${hasChatTable}`);
+```
+
+### Multi-Database Setup
+
+```typescript
+// Use different databases for different purposes
+const mainDb = await createDatabase({
+  type: 'postgresql',
+  connectionString: 'postgresql://user:pass@localhost/main'
+});
+
+const analyticsDb = await createDatabase({
+  type: 'postgresql', 
+  connectionString: 'postgresql://user:pass@localhost/analytics'
+});
+
+// Main application components
+const memory = await createMemory({ 
+  database: mainDb,
+  tableName: "conversations"
+});
+
+const chatManager = await createChat({
+  database: mainDb,
+  memory: memory,
+  tableName: "chats"
+});
+
+// Analytics components
+const analyticsMemory = await createMemory({
+  database: analyticsDb,
+  tableName: "usage_logs",
+  maxEntries: 10000
+});
+```
+
+## Vector Database Integration
+
+For advanced RAG capabilities, Astreus supports external vector databases:
+
+### PostgreSQL with pgvector
+
+```typescript
+import { createRAG, VectorDatabaseType } from '@astreus-ai/astreus';
+
+const vectorRAG = await createRAG({
+  type: 'vector',
+  database: db,
+  provider: provider,
+  vectorDatabase: {
+    type: VectorDatabaseType.POSTGRES,
+    connectionString: 'postgresql://user:password@localhost:5432/vector_db',
+    tableName: 'document_embeddings'
+  },
+  chunkSize: 1000,
+  chunkOverlap: 200
+});
+```
+
+### External Vector Databases
+
+```typescript
+// Qdrant integration
+const qdrantRAG = await createRAG({
+  type: 'vector',
+  database: db,
+  provider: provider,
+  vectorDatabase: {
+    type: VectorDatabaseType.QDRANT,
+    url: 'http://localhost:6333',
+    collectionName: 'documents'
+  }
+});
+
+// Pinecone integration
+const pineconeRAG = await createRAG({
+  type: 'vector', 
+  database: db,
+  provider: provider,
+  vectorDatabase: {
+    type: VectorDatabaseType.PINECONE,
+    apiKey: process.env.PINECONE_API_KEY,
+    environment: process.env.PINECONE_ENVIRONMENT,
+    indexName: 'astreus-documents'
+  }
+});
+```
+
+## Database Performance Optimization
+
+### Connection Pooling
+
+```typescript
+// PostgreSQL with connection pooling
+const db = await createDatabase({
+  type: 'postgresql',
+  connectionString: 'postgresql://user:password@localhost:5432/astreus',
+  pool: {
+    min: 2,
+    max: 10,
+    acquireTimeoutMillis: 30000,
+    idleTimeoutMillis: 30000
+  }
+});
+```
+
+### Indexing for Performance
+
+```typescript
+// Add custom indexes for better performance
+const db = await createDatabase();
+const knex = db.knex;
+
+// Add indexes to memory table for faster searches
+await knex.schema.alterTable('memories', (table) => {
+  table.index(['sessionId', 'timestamp'], 'idx_memories_session_time');
+  table.index(['agentId', 'role'], 'idx_memories_agent_role');
+});
+
+// Add indexes to chat table
+await knex.schema.alterTable('chats', (table) => {
+  table.index(['userId', 'status'], 'idx_chats_user_status');
+  table.index(['createdAt'], 'idx_chats_created');
+});
+```
+
+### Database Cleanup and Maintenance
+
+```typescript
+// Clean up old data periodically
+async function cleanupDatabase(db) {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  // Archive old memories
+  await db.knex('memories')
+    .where('timestamp', '<', thirtyDaysAgo)
+    .andWhere('role', 'user')
+    .del();
+  
+  // Clean up deleted chats
+  await db.knex('chats')
+    .where('status', 'deleted')
+    .andWhere('deletedAt', '<', thirtyDaysAgo)
+    .del();
+    
+  console.log('Database cleanup completed');
+}
+
+// Run cleanup periodically
+setInterval(() => cleanupDatabase(db), 24 * 60 * 60 * 1000); // Daily
+```
+
+## Environment Configuration
+
+Set up database configuration using environment variables:
+
+```bash
+# .env file
+DATABASE_TYPE=postgresql
+DATABASE_URL=postgresql://user:password@localhost:5432/astreus
+
+# Alternative PostgreSQL configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=astreus_user
+DB_PASSWORD=secure_password
+DB_NAME=astreus_db
+
+# SQLite configuration
+DATABASE_PATH=./data/astreus.db
+
+# Vector database configuration
+QDRANT_URL=http://localhost:6333
+PINECONE_API_KEY=your-pinecone-key
+PINECONE_ENVIRONMENT=your-pinecone-env
+```
+
+## Database Monitoring
+
+Monitor database performance and usage:
+
+```typescript
+// Database statistics
+async function getDatabaseStats(db) {
+  const knex = db.knex;
+  
+  // Get table sizes
+  const memoryCount = await knex('memories').count('* as count');
+  const chatCount = await knex('chats').count('* as count');
+  const agentCount = await knex('agents').count('* as count');
+  
+  // Get recent activity
+  const recentChats = await knex('chats')
+    .where('createdAt', '>', new Date(Date.now() - 24 * 60 * 60 * 1000))
+    .count('* as count');
+  
+  return {
+    totalMemories: memoryCount[0].count,
+    totalChats: chatCount[0].count,
+    totalAgents: agentCount[0].count,
+    chatsLast24h: recentChats[0].count
+  };
+}
+
+// Usage example
+const stats = await getDatabaseStats(db);
+console.log('Database Statistics:', stats);
+```
+
+## Best Practices
+
+### 1. Use Custom Table Names for Organization
+
+```typescript
+// ✅ Good: Organized table naming
+const userMemory = await createMemory({
+  database: db,
+  tableName: "user_conversations",
+  maxEntries: 1000
+});
+
+const systemMemory = await createMemory({
+  database: db,
+  tableName: "system_events",
+  maxEntries: 5000
+});
+```
+
+### 2. Implement Database Connection Retry Logic
+
+```typescript
+// ✅ Good: Retry connection on failure
+async function createDatabaseWithRetry(config, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await createDatabase(config);
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      console.log(`Database connection attempt ${i + 1} failed, retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+}
+```
+
+### 3. Use Transactions for Critical Operations
+
+```typescript
+// ✅ Good: Use transactions for data consistency
+async function createAgentWithSetup(agentConfig) {
+  const db = await createDatabase();
+  
+  return await db.knex.transaction(async (trx) => {
+    // Create agent within transaction
+    const memory = await createMemory({ database: { knex: trx } });
+    const chatManager = await createChat({ database: { knex: trx }, memory });
+    
+    const agent = await createAgent({
+      ...agentConfig,
+      memory,
+      chat: chatManager,
+      database: { knex: trx }
+    });
+    
+    return agent;
+  });
+}
+```
+
+### 4. Regular Database Maintenance
+
+```typescript
+// ✅ Good: Regular maintenance schedule
+async function performMaintenance(db) {
+  // Vacuum SQLite database
+  if (db.type === 'sqlite') {
+    await db.knex.raw('VACUUM');
+  }
+  
+  // Update PostgreSQL statistics
+  if (db.type === 'postgresql') {
+    await db.knex.raw('ANALYZE');
+  }
+  
+  console.log('Database maintenance completed');
+}
+```
+
+## Troubleshooting
+
+### Common Database Issues
+
+**Connection refused**
+```bash
+Error: connect ECONNREFUSED 127.0.0.1:5432
+```
+- Ensure PostgreSQL is running
+- Check connection string format
+- Verify network access and firewall settings
+
+**Table already exists**
+```bash
+Error: table "memories" already exists
+```
+- Astreus handles table creation automatically
+- This usually indicates a schema conflict
+- Drop tables manually if needed: `DROP TABLE IF EXISTS memories;`
+
+**SQLite database locked**
+```bash
+Error: database is locked
+```
+- Ensure no other processes are using the database
+- Close existing connections properly
+- Use WAL mode for better concurrency: `PRAGMA journal_mode=WAL;`
+
+**Out of memory with large embeddings**
+```bash
+Error: out of memory
+```
+- Reduce chunk size in RAG configuration
+- Use external vector database for large datasets
+- Implement pagination for large queries
+
+## Next Steps
+
+- Learn about [Memory](/docs/concepts/memory) for conversation storage
+- Explore [RAG](/docs/concepts/rag) for document search integration
+- Check out [Agents](/docs/concepts/agents) for complete agent configuration
+- See [Chat](/docs/concepts/chat) for advanced chat management
+- Review [Providers](/docs/concepts/providers) for model configuration

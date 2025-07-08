@@ -1,0 +1,12 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /node_modules/
+
+# Host
+Host: https://astreus.org
+
+# Sitemaps
+Sitemap: https://astreus.org/sitemap.xml

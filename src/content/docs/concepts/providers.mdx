@@ -11,6 +11,8 @@ Providers establish connections to Language Model APIs, allowing your agents to 
 Astreus currently supports the following LLM providers:
 
 - **OpenAI**: Access to models like GPT-4o, GPT-4o-mini, and GPT-3.5 Turbo
+- **Claude (Anthropic)**: Access to Claude 3.5 Sonnet, Claude 3.5 Haiku, and other Claude models
+- **Gemini (Google)**: Access to Gemini 1.5 Pro, Gemini 1.5 Flash, and other Gemini models
 - **Ollama**: Connect to locally hosted models like Llama, Mistral, and others
 
 ## Creating a Provider
@@ -27,11 +29,25 @@ const openaiProvider = createProvider({
   apiKey: process.env.OPENAI_API_KEY // Optional, defaults to OPENAI_API_KEY env var
 });
 
+// For Claude (Anthropic)
+const claudeProvider = createProvider({
+  type: 'claude',
+  model: 'claude-3-5-sonnet-20241022',
+  apiKey: process.env.ANTHROPIC_API_KEY // Optional, defaults to ANTHROPIC_API_KEY env var
+});
+
+// For Gemini (Google)
+const geminiProvider = createProvider({
+  type: 'gemini',
+  model: 'gemini-1.5-pro',
+  apiKey: process.env.GOOGLE_API_KEY // Optional, defaults to GOOGLE_API_KEY env var
+});
+
 // For Ollama (local models)
 const ollamaProvider = createProvider({
   type: 'ollama',
   baseUrl: "http://localhost:11434",
-  model: "llama3"
+  model: "llama3.1"
 });
 ```
 
@@ -42,19 +58,40 @@ const ollamaProvider = createProvider({
 | Option | Type | Description | Required |
 |--------|------|-------------|----------|
 | `type` | string | Must be 'openai' | Yes |
-| `model` | string | Model name (e.g., 'gpt-4o', 'gpt-3.5-turbo') | Yes |
+| `model` | string | Model name (e.g., 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo') | Yes |
 | `apiKey` | string | OpenAI API key | No (defaults to OPENAI_API_KEY env var) |
 | `baseUrl` | string | Custom API endpoint | No |
 | `organizationId` | string | Organization ID for OpenAI | No |
 | `embeddingModel` | string | Embedding model for RAG | No (defaults to 'text-embedding-3-small') |
+
+### Claude (Anthropic) Provider Options
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `type` | string | Must be 'claude' | Yes |
+| `model` | string | Model name (e.g., 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022') | Yes |
+| `apiKey` | string | Anthropic API key | No (defaults to ANTHROPIC_API_KEY env var) |
+| `baseUrl` | string | Custom API endpoint | No |
+| `maxTokens` | number | Maximum tokens per response | No (defaults to 4000) |
+
+### Gemini (Google) Provider Options
+
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `type` | string | Must be 'gemini' | Yes |
+| `model` | string | Model name (e.g., 'gemini-1.5-pro', 'gemini-1.5-flash') | Yes |
+| `apiKey` | string | Google API key | No (defaults to GOOGLE_API_KEY env var) |
+| `baseUrl` | string | Custom API endpoint | No |
+| `safetySettings` | array | Safety settings for content filtering | No |
 
 ### Ollama Provider Options
 
 | Option | Type | Description | Required |
 |--------|------|-------------|----------|
 | `type` | string | Must be 'ollama' | Yes |
-| `model` | string | Model name (e.g., 'llama3', 'mistral') | Yes |
+| `model` | string | Model name (e.g., 'llama3.1', 'mistral', 'mixtral') | Yes |
 | `baseUrl` | string | Ollama API URL | No (defaults to 'http://localhost:11434') |
+| `options` | object | Model-specific options | No |
 
 ## Working with Models
 
@@ -177,6 +214,16 @@ Providers can be configured using environment variables:
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_BASE_URL=https://api.openai.com/v1  # Optional custom endpoint
 OPENAI_ORGANIZATION_ID=your_org_id  # Optional
+OPENAI_EMBEDDING_API_KEY=your_embedding_key  # Optional separate key for embeddings
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small  # Optional embedding model
+
+# Claude (Anthropic) Configuration
+ANTHROPIC_API_KEY=sk-ant-your_anthropic_api_key
+ANTHROPIC_BASE_URL=https://api.anthropic.com  # Optional custom endpoint
+
+# Gemini (Google) Configuration
+GOOGLE_API_KEY=your_google_api_key
+GOOGLE_BASE_URL=https://generativelanguage.googleapis.com  # Optional custom endpoint
 
 # Ollama Configuration
 OLLAMA_BASE_URL=http://localhost:11434  # Default Ollama endpoint
@@ -209,14 +256,20 @@ async function createMultiProviderSystem() {
 
   // Powerful provider for complex tasks
   const powerfulProvider = createProvider({
-    type: 'openai',
-    model: 'gpt-4o'
+    type: 'claude',
+    model: 'claude-3-5-sonnet-20241022'
+  });
+
+  // Creative provider for content generation
+  const creativeProvider = createProvider({
+    type: 'gemini',
+    model: 'gemini-1.5-pro'
   });
 
   // Local provider for privacy-sensitive tasks
   const localProvider = createProvider({
     type: 'ollama',
-    model: 'llama3',
+    model: 'llama3.1',
     baseUrl: 'http://localhost:11434'
   });
 
@@ -232,7 +285,14 @@ async function createMultiProviderSystem() {
     name: 'PowerfulAgent',
     provider: powerfulProvider,
     memory: memory,
-    systemPrompt: "You provide detailed, comprehensive responses."
+    systemPrompt: "You provide detailed, comprehensive responses with careful reasoning."
+  });
+
+  const creativeAgent = await createAgent({
+    name: 'CreativeAgent',
+    provider: creativeProvider,
+    memory: memory,
+    systemPrompt: "You are a creative assistant that generates engaging content."
   });
 
   const localAgent = await createAgent({
@@ -242,7 +302,7 @@ async function createMultiProviderSystem() {
     systemPrompt: "You are a privacy-focused assistant running locally."
   });
 
-  return { fastAgent, powerfulAgent, localAgent };
+  return { fastAgent, powerfulAgent, creativeAgent, localAgent };
 }
 ```
 
@@ -253,12 +313,23 @@ async function createMultiProviderSystem() {
 - Verify network connectivity to provider endpoints
 - Ensure model names are correct and available
 
-**Ollama connection issues?**
-- Make sure Ollama is running locally
-- Check the base URL is correct
-- Verify the model is downloaded and available
-
 **OpenAI API errors?**
 - Check API key validity and permissions
 - Monitor rate limits and usage quotas
-- Verify model availability in your region 
+- Verify model availability in your region
+
+**Claude (Anthropic) API errors?**
+- Ensure your ANTHROPIC_API_KEY is valid
+- Check rate limits and usage quotas
+- Verify model access permissions
+
+**Gemini (Google) API errors?**
+- Validate GOOGLE_API_KEY is correctly set
+- Check Google Cloud project settings
+- Ensure the Generative AI API is enabled
+
+**Ollama connection issues?**
+- Make sure Ollama is running locally
+- Check the base URL is correct (`http://localhost:11434`)
+- Verify the model is downloaded and available (`ollama list`)
+- Try pulling the model: `ollama pull llama3.1` 
