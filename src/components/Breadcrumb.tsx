@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { IoChevronForward, IoHome } from 'react-icons/io5';
+import StructuredData from './StructuredData';
 
 interface BreadcrumbItem {
   label: string;
@@ -45,7 +46,28 @@ export default function Breadcrumb() {
   
   if (breadcrumbs.length === 0) return null;
 
+  // Generate structured data for breadcrumbs
+  const structuredDataItems = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://astreus.org/"
+    },
+    ...breadcrumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 2,
+      name: crumb.label,
+      item: `https://astreus.org${crumb.href}`
+    }))
+  ];
+
   return (
+    <>
+      <StructuredData 
+        type="breadcrumb" 
+        data={{ items: structuredDataItems }} 
+      />
     <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
       <Link 
         href="/" 
@@ -73,5 +95,6 @@ export default function Breadcrumb() {
         </div>
       ))}
     </nav>
+    </>
   );
 }

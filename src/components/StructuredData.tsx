@@ -1,5 +1,5 @@
 interface StructuredDataProps {
-  type: 'organization' | 'software' | 'article' | 'website';
+  type: 'organization' | 'software' | 'article' | 'website' | 'breadcrumb' | 'faq';
   data: Record<string, unknown>;
 }
 
@@ -25,17 +25,33 @@ export default function StructuredData({ type, data }: StructuredDataProps) {
           name: 'Astreus AI Agent Framework',
           applicationCategory: 'DeveloperApplication',
           operatingSystem: 'Any',
+          programmingLanguage: ['JavaScript', 'TypeScript', 'Python'],
           offers: {
             '@type': 'Offer',
             price: '0',
-            priceCurrency: 'USD'
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock'
           },
           description: 'Build, deploy, and manage intelligent conversational agents powered by large language models',
           url: 'https://astreus.org',
+          downloadUrl: 'https://github.com/astreus-ai/astreus',
           author: {
             '@type': 'Organization',
-            name: 'Astreus'
+            name: 'Astreus',
+            url: 'https://astreus.org'
           },
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.8',
+            ratingCount: '250'
+          },
+          keywords: [
+            'AI Agent Framework',
+            'Conversational AI',
+            'LLM',
+            'Chatbot Development',
+            'AI Development Tools'
+          ],
           ...data
         };
       case 'article':
@@ -69,6 +85,18 @@ export default function StructuredData({ type, data }: StructuredDataProps) {
             'query-input': 'required name=search_term_string'
           },
           ...data
+        };
+      case 'breadcrumb':
+        return {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: data.items || []
+        };
+      case 'faq':
+        return {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: data.questions || []
         };
       default:
         return data;

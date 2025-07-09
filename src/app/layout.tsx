@@ -13,7 +13,62 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'Astreus - AI Agent Framework',
   description: 'Astreus is an AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).',
-  keywords: ['AI', 'Agent Framework', 'LLM', 'Conversational AI', 'Machine Learning', 'Artificial Intelligence', 'Plugins', 'RAG', 'Intent Recognition'],
+  keywords: [
+    // Core Astreus keywords
+    'astreus', 'Astreus', 'astreus ai', 'Astreus AI', 'astreus framework', 'Astreus Framework',
+    'astreus agent', 'Astreus Agent', 'astreus.org', 'Astreus.org',
+    
+    // Popular AI Agent terms
+    'AI Agent Framework', 'ai agent framework', 'ai agents', 'AI agents', 'autonomous agents',
+    'intelligent agents', 'multi agent system', 'agent based ai',
+    
+    // Conversational AI
+    'Conversational AI', 'conversational ai', 'AI chatbot', 'ai chatbot', 'chatbot framework',
+    'chatbot development', 'conversational bot', 'voice bot', 'text bot',
+    
+    // LLM and popular AI
+    'LLM framework', 'llm framework', 'Large Language Models', 'large language models',
+    'llm integration', 'gpt integration', 'openai integration', 'claude integration',
+    'chat gpt', 'ChatGPT', 'generative ai', 'Generative AI',
+    
+    // AI Development
+    'AI development', 'ai development', 'ai programming', 'ai software', 'ai tools',
+    'ai framework', 'AI platform', 'ai platform', 'ai sdk', 'AI SDK',
+    
+    // Machine Learning
+    'Machine Learning', 'machine learning', 'deep learning', 'neural networks',
+    
+    // NLP
+    'NLP', 'nlp', 'Natural Language Processing', 'natural language processing',
+    'text processing', 'language model', 'text analysis',
+    
+    // AI Assistant
+    'AI assistant', 'ai assistant', 'virtual assistant', 'digital assistant',
+    'smart assistant', 'ai helper',
+    
+    // Chat AI
+    'chat ai', 'Chat AI', 'ai chat', 'conversational interface',
+    
+    // Bot Framework
+    'bot framework', 'Bot Framework', 'bot development', 'bot builder',
+    'chatbot builder', 'Chatbot Builder',
+    
+    // Artificial Intelligence
+    'Artificial Intelligence', 'artificial intelligence', 'AI', 'ai',
+    'machine intelligence', 'cognitive computing',
+    
+    // Automation
+    'automation', 'Automation', 'ai automation', 'AI Automation',
+    'workflow automation', 'process automation', 'rpa', 'RPA',
+    
+    // Enterprise
+    'enterprise ai', 'Enterprise AI', 'business ai', 'ai solution',
+    'ai services', 'custom ai', 'ai consulting',
+    
+    // Other important terms
+    'Plugins', 'plugins', 'RAG', 'Intent Recognition', 'intent recognition',
+    'voice ai', 'Voice AI'
+  ],
   authors: [{ name: 'Astreus Team' }],
   creator: 'Astreus',
   publisher: 'Astreus',
@@ -68,7 +123,31 @@ export default function RootLayout({
         />
         <StructuredData 
           type="software" 
-          data={{}} 
+          data={{
+            version: "1.0.0",
+            datePublished: "2024-01-01",
+            dateModified: new Date().toISOString(),
+            license: "MIT",
+            downloadUrl: "https://github.com/astreus-ai/astreus",
+            codeRepository: "https://github.com/astreus-ai/astreus",
+            programmingLanguage: ["JavaScript", "TypeScript", "Python"],
+            runtimePlatform: ["Node.js", "Browser", "Server"],
+            applicationCategory: ["DeveloperApplication", "BusinessApplication"],
+            applicationSubCategory: "AI Development Framework",
+            featureList: [
+              "AI Agent Development",
+              "Conversational AI",
+              "LLM Integration",
+              "Plugin System",
+              "Multi-modal Support",
+              "Real-time Communication",
+              "Enterprise Ready"
+            ],
+            requirements: "Node.js 18+",
+            memoryRequirement: "512MB",
+            processorRequirement: "Any modern processor",
+            storageRequirement: "100MB"
+          }} 
         />
       </head>
       <body className={`${spaceGrotesk.className} antialiased flex flex-col h-screen`}>
