@@ -24,25 +24,99 @@ yarn add @astreus-ai/astreus
 
 Create a `.env` file in your project root with your API keys:
 
-```
+```bash
 # OpenAI API Key (Required for OpenAI provider)
 OPENAI_API_KEY=your_openai_api_key
+
+# Anthropic API Key (Required for Claude provider)
+ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# Google API Key (Required for Gemini provider)
+GOOGLE_API_KEY=your_google_api_key
 
 # Database Configuration (tables created automatically when needed)
 DATABASE_TYPE=sqlite  # or postgresql
 DATABASE_PATH=./astreus.db  # Only for SQLite
 # DATABASE_URL=postgresql://user:password@localhost:5432/astreus  # For PostgreSQL
 
-# Ollama Configuration (Optional)
+# Ollama Configuration (Optional for local models)
 # OLLAMA_BASE_URL=http://localhost:11434
 
 # Logging
 LOG_LEVEL=info  # debug, info, warn, error
 ```
 
-## Creating Your First Agent with Adaptive Context
+## Creating Your First Agent
 
-With Astreus, everything revolves around the **Agent** with enhanced memory storage and adaptive context management. Each component automatically creates its required database tables when first used. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
+With Astreus, everything revolves around the **Agent**. Let's start with a simple example that demonstrates the basic functionality. Create a file named `hello-agent.js` (or `.ts` if using TypeScript):
+
+```typescript
+import { 
+  createAgent, 
+  createProvider,
+  createMemory,
+  createDatabase
+} from '@astreus-ai/astreus';
+
+async function main() {
+  // Initialize the database
+  const db = await createDatabase();
+  
+  // Create a simple memory instance
+  const memory = await createMemory({
+    database: db
+  });
+
+  // Configure your provider
+  const provider = createProvider({
+    type: 'openai',
+    model: 'gpt-4o-mini'  // Fast and affordable option
+  });
+
+  // Create an agent
+  const agent = await createAgent({
+    name: 'HelloAgent',
+    description: 'A simple AI assistant',
+    provider: provider,
+    memory: memory,
+    systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely."
+  });
+
+  // Have a simple conversation
+  console.log('=== Simple Chat ===');
+  const response = await agent.chat({
+    message: "Hello! What's 2 + 2?",
+    sessionId: "simple-session"
+  });
+  console.log('Agent:', response);
+
+  // Ask a follow-up question
+  const followUp = await agent.chat({
+    message: "Can you multiply that result by 10?",
+    sessionId: "simple-session"
+  });
+  console.log('Agent:', followUp);
+
+  // Check the conversation history
+  const history = await agent.getHistory("simple-session");
+  console.log(`\nConversation history: ${history.length} messages`);
+  history.forEach((msg, index) => {
+    console.log(`${index + 1}. ${msg.role}: ${msg.content}`);
+  });
+}
+
+main();
+```
+
+Run your first agent:
+
+```bash
+node hello-agent.js
+```
+
+## Creating an Agent with Adaptive Context
+
+Now let's create a more advanced agent with **hierarchical memory storage**, **adaptive context management**, **streaming capabilities**, and **chat management**. Create a file named `advanced-agent.js`:
 
 ```typescript
 import { 
@@ -56,10 +130,10 @@ import {
 
 async function main() {
   try {
-    // Initialize the database (no need to setup schema)
+    // Initialize the database
     const db = await createDatabase();
     
-    // Create memory instance with adaptive context (automatically creates memories table)
+    // Create memory instance with adaptive context
     const memory = await createMemory({
       database: db,
       tableName: "conversations", // Custom table name
@@ -72,7 +146,7 @@ async function main() {
       }
     });
 
-    // Create chat service instance (automatically creates chats table)
+    // Create chat service instance
     const chatService = await createChat({
       database: db,
       memory: memory,
@@ -85,47 +159,47 @@ async function main() {
     // Configure your provider
     const provider = createProvider({
       type: 'openai',
-      model: 'gpt-4o-mini'  // Fast and affordable option
+      model: 'gpt-4o-mini'
     });
 
-    // Create an agent - automatically creates agents table when needed
+    // Create an advanced agent
     const agent = await createAgent({
-      name: 'MyFirstAgent',
-      description: 'A helpful AI assistant with adaptive context and intelligent memory',
+      name: 'AdvancedAgent',
+      description: 'An AI assistant with adaptive context and intelligent memory',
       provider: provider,
       memory: memory,
-      chat: chatService, // Chat service system
+      chat: chatService,
       systemPrompt: "You are a friendly and helpful AI assistant with advanced memory. Answer questions concisely and accurately."
     });
 
-    // 📊 Create a structured chat with metadata
+    // Create a structured chat with metadata
     console.log('=== Creating Chat ===');
     const chat = await agent.createChat({
-      chatId: "welcome-chat-123",
+      chatId: "advanced-chat-123",
       userId: "user-456",
-      title: "Welcome Conversation",
+      title: "Advanced Conversation",
       metadata: {
-        type: "onboarding",
+        type: "demo",
         priority: "normal",
         language: "en"
       }
     });
     console.log('Chat created:', chat);
 
-    // 🚀 Basic chat with chat ID (recommended)
-    console.log('\n=== Basic Chat with Chat ID ===');
+    // Basic chat with chat ID
+    console.log('\n=== Chat with ID ===');
     const response = await agent.chatWithId({
-      message: "Hello! What can you do for me?",
-      chatId: "welcome-chat-123",
+      message: "Explain quantum computing in simple terms",
+      chatId: "advanced-chat-123",
       userId: "user-456"
     });
     console.log('Agent:', response);
 
-    // ⚡ Streaming chat (real-time responses)
+    // Streaming chat (real-time responses)
     console.log('\n=== Streaming Chat ===');
     await agent.chat({
       message: "Tell me about the benefits of AI in 3 points",
-      sessionId: "welcome-chat-123",
+      sessionId: "advanced-chat-123",
       stream: true,
       onChunk: (chunk) => {
         process.stdout.write(chunk); // Print each chunk as it arrives
@@ -133,7 +207,7 @@ async function main() {
     });
     console.log('\n✅ Streaming complete!');
 
-    // 📊 Chat management operations
+    // Chat management operations
     console.log('\n=== Chat Management ===');
     
     // List chats
@@ -149,26 +223,6 @@ async function main() {
       userId: "user-456"
     });
     console.log(`Total chats: ${stats.totalChats}, Messages: ${stats.totalMessages}`);
-
-    // Search chats
-    const searchResults = await agent.searchChats({
-      query: "AI benefits",
-      userId: "user-456",
-      limit: 5
-    });
-    console.log(`Found ${searchResults.length} matching chats`);
-
-    // 📊 Check session history (works with chat IDs)
-    console.log('\n=== Session History ===');
-    const history = await agent.getHistory("welcome-chat-123");
-    console.log(`Found ${history.length} messages in chat`);
-
-    // 📋 List all sessions (legacy support)
-    console.log('\n=== All Sessions ===');
-    const sessions = await agent.listSessions();
-    sessions.forEach(session => {
-      console.log(`Session: ${session.sessionId} (${session.messageCount} messages)`);
-    });
     
   } catch (error) {
     logger.error('Error:', error);
@@ -178,10 +232,10 @@ async function main() {
 main();
 ```
 
-Run your agent:
+Run the advanced agent:
 
 ```bash
-node my-agent.js
+node advanced-agent.js
 ```
 
 ## Database Table Creation
