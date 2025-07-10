@@ -1,24 +1,26 @@
 ---
-title: Tasks
+title: Task Execution
 ---
 
 ![Tasks](/docs/tasks.webp)
 
-Tasks enable agents to break down complex problems into manageable sub-tasks, execute them in a specific order, and coordinate the results. Each task automatically creates its database table when first created.
+Task Execution enables agents to break down complex problems into manageable sub-tasks with intelligent orchestration, dependency management, and structured workflows. The system uses a **TaskExecutor** for advanced task coordination.
 
-## Task Architecture
+## Task Execution Architecture
 
-The Task system consists of:
+The Task Execution system consists of:
 
 - **Task Definitions**: Specifications of work to be done
-- **Task Manager**: Coordinates execution and dependencies
+- **Task Executor**: Intelligent orchestration with dependency management (formerly TaskManager)
 - **Task Results**: Structured outputs from completed tasks
-- **Task Dependencies**: Define execution order and data flow
+- **Task Dependencies**: Define execution order and data flow with `dependsOn` support
 - **Automatic Table Creation**: Tasks table created when first task is created
+- **Concurrency Control**: Configurable parallel task execution
+- **Retry Logic**: Automatic retry on task failures
 
 ## Creating Tasks
 
-Tasks are created through the TaskManager and automatically create their database table:
+Tasks are created through the TaskExecutor (createTaskManager creates a TaskExecutor) and automatically create their database table:
 
 ```typescript
 import { createAgent, createTaskManager, createTask } from '@astreus-ai/astreus';
@@ -26,15 +28,17 @@ import { createAgent, createTaskManager, createTask } from '@astreus-ai/astreus'
 // Create an agent
 const agent = await createAgent({ /* configuration */ });
 
-// Create a task manager
-const taskManager = createTaskManager({
+// Create a task executor (TaskManager is an alias for backward compatibility)
+const taskExecutor = createTaskManager({
   agentId: agent.id,
   memory: agent.config.memory,
-  database: agent.config.database
+  database: agent.config.database,
+  concurrency: 5,  // Run up to 5 tasks in parallel
+  maxRetries: 3    // Retry failed tasks up to 3 times
 });
 
 // Create a research task (automatically creates tasks table on first use)
-const researchTask = await taskManager.createTask({
+const researchTask = await taskExecutor.createTask({
   name: "Research Trip",
   description: "Find information about tourist attractions in Tokyo",
   input: {

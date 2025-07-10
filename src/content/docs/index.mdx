@@ -4,7 +4,7 @@ title: Welcome to Astreus
 
 ![Welcome to Astreus](/docs/welcome.webp)
 
-**Astreus** is a powerful and flexible AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs).
+**Astreus** is a powerful and flexible AI Agent Framework designed to help you easily build, deploy, and manage intelligent conversational agents powered by large language models (LLMs) with advanced memory management, task orchestration, and plugin system.
 
 ## What is Astreus?
 
@@ -21,22 +21,23 @@ Astreus provides a comprehensive set of tools and abstractions to create AI agen
 
 - **🤖 Agent-Centric Architecture**: Everything accessible through agent methods - no need for separate managers
 - **⚡ Real-Time Streaming**: Built-in streaming chat with `agent.chat({ stream: true })` for live responses
-- **💬 Advanced Chat Management**: Create, organize, and manage chats with metadata using `agent.createChat()`, `agent.listChats()`
-- **🧠 Unified Memory Access**: Direct memory management with `agent.getHistory()`, `agent.addToMemory()`
-- **📊 Session & Chat Analytics**: Get insights with `agent.getChatStats()` and `agent.searchChats()`
-- **🔌 Integrated Plugin System**: Add tools with `agent.addTool()` and access via `agent.getAvailableTools()`
-- **🗄️ Database Integration**: Direct database access through `agent.config.database`
-- **🎯 Provider Flexibility**: Switch models with `agent.getProvider()` and `agent.getModel()`
-- **📊 Multi-Provider Support**: Works with OpenAI, Ollama, and other LLM providers
+- **💬 Chat Service**: Advanced chat management with metadata, search, and organization
+- **🧠 Memory Storage**: Hierarchical memory system with immediate, summarized, and persistent layers
+- **🎯 Task Execution**: Intelligent task orchestration with dependency management
+- **🔌 Plugin Registry**: Centralized plugin management with automatic tool registration
+- **🌐 Provider Client**: Unified interface for multiple AI model providers
+- **🧩 Context Processor**: Adaptive context window management with token budgeting
+- **📊 Multi-Provider Support**: Works with OpenAI, Ollama, Claude (Anthropic), and Gemini (Google)
 - **🔍 RAG Support**: Built-in Retrieval Augmented Generation with automatic tool creation
 - **🎨 Type Safety**: Fully typed with TypeScript for better development experience
-- **📝 Advanced Logging**: Structured logging system for improved debugging and monitoring
-- **⚙️ Flexible Configuration**: Enhanced parameter validation and smart defaults
+- **📝 Professional Logging**: Structured logging system with color-coded output and consistent formatting
+- **⚙️ Modular Configuration**: Enhanced parameter validation, smart defaults, and module-specific configs
 - **🔄 Lazy Table Creation**: Each module creates its own database tables when first used
-- **🖼️ Media Analysis**: AI-powered image, document, and file analysis capabilities
-- **🎯 Intent Recognition**: Intelligent tool selection using LLM-powered intent detection
-- **📋 Enhanced Database Management**: Flexible table naming, automatic schema creation, and migration support
+- **🖼️ Media Analysis**: AI-powered image, document, and file analysis capabilities with context processing
+- **🎯 Intent Recognition**: Intelligent tool selection using LLM-powered intent detection and context processing
+- **📋 Enhanced Database Management**: Flexible table naming, automatic schema creation, and migration support with advanced memory storage
 - **🔧 Structured Responses**: Built-in support for structured completion responses
+- **🧠 Adaptive Context Management**: Hierarchical memory layers with intelligent token budgeting and compression
 
 ## Agent-First Approach
 
@@ -103,13 +104,14 @@ Ready to create your first AI agent with advanced chat management? Visit our [Qu
 ## Core Concepts
 
 - [**Agents**](/docs/concepts/agents) - The heart of Astreus - unified interface for all operations including chat management
-- [**Providers**](/docs/concepts/providers) - Connect to different LLM providers like OpenAI, Ollama, and more
-- [**Memory**](/docs/concepts/memory) - Store and retrieve conversation history with advanced session management
-- [**Chat**](/docs/concepts/chat) - Advanced streaming chat system with real-time responses and metadata management
-- [**Tasks**](/docs/concepts/tasks) - Break complex operations into manageable sub-tasks with structured workflows
+- [**Memory Storage**](/docs/concepts/memory) - Hierarchical memory system with immediate, summarized, and persistent layers
+- [**Chat Service**](/docs/concepts/chat) - Advanced streaming chat system with real-time responses and metadata management
+- [**Task Execution**](/docs/concepts/tasks) - Intelligent task orchestration with dependency management and execution
+- [**Plugin Registry**](/docs/concepts/plugins) - Centralized plugin management with automatic tool registration
+- [**Provider Client**](/docs/concepts/providers) - Unified interface for multiple AI model providers
+- [**Context Processor**](/docs/concepts/context) - Adaptive context window management with token budgeting
 - [**Media Analysis**](/docs/concepts/media-analysis) - AI-powered image, document, and file analysis capabilities
 - [**Intent Recognition**](/docs/concepts/intent-recognition) - Intelligent tool selection using LLM-powered intent detection
-- [**Plugins**](/docs/concepts/plugins) - Extend agent capabilities with custom tools and integrations
 - [**RAG (Retrieval Augmented Generation)**](/docs/concepts/rag) - Automatic document search tools with Vector and Document RAG
 
 ## Popular Guides

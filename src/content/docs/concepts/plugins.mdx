@@ -1,27 +1,35 @@
 ---
-title: Plugins
+title: Plugin Registry
 ---
 
 ![Plugins](/docs/plugins.webp)
 
-Plugins extend agent capabilities by providing specialized tools and functions. With Astreus's **agent-centric architecture**, plugins are managed directly through agents using `agent.addTool()` and `agent.getAvailableTools()`.
+Plugin Registry extends agent capabilities through a **centralized plugin management system** with automatic tool registration. The system provides specialized tools and functions with intelligent orchestration.
 
-## Plugin Architecture
+## Plugin Registry Architecture
 
-Plugins in Astreus provide:
+The Plugin Registry in Astreus provides:
 
+- **Centralized Management**: Global plugin registry with automatic tool registration
 - **Tool Functions**: Specific capabilities like sending emails, posting to social media
-- **Agent Integration**: Direct integration through `agent.addTool()`
+- **Agent Integration**: Direct integration through `agent.addTool()` and plugin registry
 - **Type Safety**: Full TypeScript support with proper type definitions
 - **Error Handling**: Built-in error handling and validation
 - **Configuration**: Flexible configuration options for different use cases
+- **Automatic Registration**: Plugins automatically register with the global registry
 
 ## Agent-Centric Plugin Usage
 
 With the enhanced approach, plugins are managed directly through agents:
 
 ```typescript
-import { createAgent, createProvider, createMemory, createDatabase } from '@astreus-ai/astreus';
+import { 
+  createAgent, 
+  createProvider, 
+  createMemory, 
+  createDatabase, 
+  PluginRegistry 
+} from '@astreus-ai/astreus';
 import { ResendPlugin } from '@astreus-ai/resend-plugin';
 import { WhatsAppPlugin } from '@astreus-ai/whatsapp-plugin';
 import { XPlugin } from '@astreus-ai/x-plugin';

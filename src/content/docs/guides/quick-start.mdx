@@ -4,7 +4,7 @@ title: Quick Start Guide
 
 ![Quick Start Guide](/docs/quick-start.webp)
 
-This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent with **streaming capabilities**, **advanced chat management**, **media analysis**, and **intent recognition**.
+This guide will help you get started with Astreus by setting up your development environment and creating your first AI agent with **hierarchical memory storage**, **adaptive context management**, **streaming capabilities**, and **intelligent task execution**.
 
 ## Installation
 
@@ -40,9 +40,9 @@ DATABASE_PATH=./astreus.db  # Only for SQLite
 LOG_LEVEL=info  # debug, info, warn, error
 ```
 
-## Creating Your First Agent with Chat Management
+## Creating Your First Agent with Adaptive Context
 
-With Astreus, everything revolves around the **Agent** with enhanced chat management. Each component automatically creates its required database tables when first used. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
+With Astreus, everything revolves around the **Agent** with enhanced memory storage and adaptive context management. Each component automatically creates its required database tables when first used. Create a file named `my-agent.js` (or `.ts` if using TypeScript):
 
 ```typescript
 import { 
@@ -59,19 +59,27 @@ async function main() {
     // Initialize the database (no need to setup schema)
     const db = await createDatabase();
     
-    // Create memory instance (automatically creates memories table)
+    // Create memory instance with adaptive context (automatically creates memories table)
     const memory = await createMemory({
       database: db,
-      tableName: "conversations" // Custom table name
+      tableName: "conversations", // Custom table name
+      enableAdaptiveContext: true, // Enable hierarchical memory layers
+      tokenBudget: {
+        total: 4000,
+        immediate: 1600,    // 40% for recent messages
+        summarized: 1400,   // 35% for summaries
+        persistent: 1000    // 25% for persistent data
+      }
     });
 
-    // Create chat manager instance (automatically creates chats table)
-    const chatManager = await createChat({
+    // Create chat service instance (automatically creates chats table)
+    const chatService = await createChat({
       database: db,
       memory: memory,
       tableName: "chats", // Custom table name
       maxChats: 100,
-      autoGenerateTitles: true
+      autoGenerateTitles: true,
+      enableAdaptiveContext: true // Enable adaptive context for chat sessions
     });
 
     // Configure your provider
@@ -83,11 +91,11 @@ async function main() {
     // Create an agent - automatically creates agents table when needed
     const agent = await createAgent({
       name: 'MyFirstAgent',
-      description: 'A helpful AI assistant with streaming and chat management capabilities',
+      description: 'A helpful AI assistant with adaptive context and intelligent memory',
       provider: provider,
       memory: memory,
-      chat: chatManager, // Chat management system
-      systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely and accurately."
+      chat: chatService, // Chat service system
+      systemPrompt: "You are a friendly and helpful AI assistant with advanced memory. Answer questions concisely and accurately."
     });
 
     // 📊 Create a structured chat with metadata

@@ -1,6 +1,5 @@
 import { createMDX } from 'fumadocs-mdx/next';
 
-// MDX desteği ekleyelim
 const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */

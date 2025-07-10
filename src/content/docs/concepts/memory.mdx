@@ -1,21 +1,24 @@
 ---
-title: Memory
+title: Memory Storage
 ---
 
 ![Memory](/docs/memory.webp)
 
-Memory in Astreus is **agent-centric** and provides powerful conversation history management with **session-based organization**. Instead of managing memory separately, you access it directly through agents with built-in session tracking.
+Memory Storage in Astreus is a **hierarchical memory system** that provides powerful conversation history management with **adaptive context management**. The system features immediate, summarized, and persistent memory layers with intelligent token budgeting.
 
-## Agent-Centric Memory Architecture
+## Hierarchical Memory Architecture
 
-With the new approach, memory is accessed through agents and automatically manages:
+The Memory Storage system uses a three-layer architecture for optimal context management:
 
-- **Session-Based History**: Organized conversations by session ID
+- **Immediate Layer**: Recent messages (40% of token budget)
+- **Summarized Layer**: Compressed conversation summaries (35% of token budget)  
+- **Persistent Layer**: Long-term important facts (25% of token budget)
+- **Adaptive Context**: Automatic context window management with intelligent compression
+- **Session-Based Organization**: Conversations organized by session ID
 - **Automatic Message Storage**: Messages saved during `agent.chat()` and `agent.chat({ stream: true })`
 - **Direct Memory Access**: Full memory operations through `agent.getMemory()`
-- **Session Management**: Built-in session listing and management
-- **Metadata Support**: Rich metadata for each message and session
 - **Semantic Search**: Optional vector embeddings for content search
+- **Priority-Based Retention**: Important content stays longer based on multiple factors
 
 ## Memory Through Agents
 
@@ -27,12 +30,19 @@ import { createAgent, createProvider, createMemory, createDatabase } from '@astr
 async function setupAgentWithMemory() {
   const db = await createDatabase();
   
-  // Create memory with advanced features
+  // Create memory with advanced features including adaptive context
   const memory = await createMemory({
     database: db,
     tableName: "conversations",
     maxEntries: 200,
-    enableEmbeddings: true  // Enable semantic search
+    enableEmbeddings: true,      // Enable semantic search
+    enableAdaptiveContext: true, // Enable adaptive context management
+    tokenBudget: {              // Custom token budget allocation
+      total: 4000,
+      immediate: 1600,    // 40% for recent messages
+      summarized: 1400,   // 35% for summaries
+      persistent: 1000    // 25% for persistent data
+    }
   });
 
   const provider = createProvider({ 
@@ -220,6 +230,87 @@ const advancedAgent = await createAgent({
 | `tableName` | string | Table name for memory storage | "memories" |
 | `maxEntries` | number | Max entries per session | 100 |
 | `enableEmbeddings` | boolean | Enable semantic search | false |
+| `enableAdaptiveContext` | boolean | Enable adaptive context management | false |
+| `tokenBudget` | TokenBudgetConfig | Token allocation across layers | Default budget |
+| `priorityWeights` | PriorityWeights | Priority weights for content retention | Default weights |
+| `defaultCompressionStrategy` | CompressionStrategy | Default compression strategy | SUMMARIZE |
+
+## Adaptive Context Management
+
+When `enableAdaptiveContext` is true, the memory system automatically manages context across three hierarchical layers:
+
+```typescript
+// Enable adaptive context with custom configuration
+const adaptiveMemory = await createMemory({
+  database: db,
+  tableName: "adaptive_conversations",
+  maxEntries: 300,
+  enableAdaptiveContext: true,
+  tokenBudget: {
+    total: 6000,
+    immediate: 3000,    // 50% for recent messages
+    summarized: 2000,   // 33% for summaries
+    persistent: 1000    // 17% for persistent data
+  },
+  priorityWeights: {
+    recency: 0.4,       // Prioritize recent messages
+    frequency: 0.1,     // Less weight to frequency
+    importance: 0.4,    // High importance weight
+    userInteraction: 0.1,
+    sentiment: 0.0      // Ignore sentiment
+  }
+});
+
+const agent = await createAgent({
+  name: 'AdaptiveAgent',
+  provider: provider,
+  memory: adaptiveMemory,
+  systemPrompt: "You are an intelligent assistant with advanced memory management."
+});
+
+// Context is automatically managed during conversations
+const response = await agent.chat({
+  message: "Remember that I prefer concise answers",
+  sessionId: "preferences",
+  stream: true,
+  onChunk: (chunk) => console.log(chunk)
+});
+
+// Later conversations will remember preferences even with long context
+const response2 = await agent.chat({
+  message: "What did I tell you about my communication preferences?",
+  sessionId: "preferences",
+  stream: true,
+  onChunk: (chunk) => console.log(chunk)
+});
+```
+
+### Adaptive Context Methods
+
+Access adaptive context features directly:
+
+```typescript
+// Get adaptive context layers for a session
+const contextLayers = await memory.getAdaptiveContext("session-1", 4000);
+console.log("Immediate messages:", contextLayers.immediate.messages.length);
+console.log("Summary:", contextLayers.summarized.summary);
+console.log("Important facts:", contextLayers.persistent.importantFacts.length);
+
+// Update context with new information
+await memory.updateContextLayers("session-1", {
+  role: "user",
+  content: "Important: I'm a software engineer",
+  timestamp: new Date()
+});
+
+// Compress context when needed
+const compressionResult = await memory.compressContext("session-1", "SUMMARIZE");
+console.log("Compression result:", compressionResult);
+
+// Get formatted context for display
+const formattedContext = await memory.getFormattedContext("session-1", 4000);
+console.log("Formatted context:", formattedContext);
+```
 
 ## Semantic Search with Embeddings
 
