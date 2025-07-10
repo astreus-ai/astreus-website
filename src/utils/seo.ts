@@ -330,5 +330,70 @@ export const pageSEO = {
       'quick start',
       'user manual'
     ]
+  },
+  // New section-specific SEO
+  core: {
+    title: 'Core Concepts - Astreus AI Agent Framework',
+    description: 'Essential concepts for understanding Astreus AI agents. Learn about agents, chat systems, memory management, and task handling.',
+    keywords: [
+      'ai agent concepts',
+      'agent architecture',
+      'conversational ai basics',
+      'ai memory systems',
+      'task management ai',
+      'agent fundamentals',
+      'ai chat systems',
+      'intelligent agent design',
+      'ai agent core features',
+      'agent development basics'
+    ]
+  },
+  features: {
+    title: 'Features - Advanced AI Agent Capabilities',
+    description: 'Explore advanced features of Astreus AI including RAG, intent recognition, media analysis, and context processing.',
+    keywords: [
+      'RAG ai',
+      'retrieval augmented generation',
+      'intent recognition ai',
+      'media analysis ai',
+      'context processing',
+      'ai features',
+      'advanced ai capabilities',
+      'multimodal ai',
+      'intelligent content analysis',
+      'ai context management'
+    ]
+  },
+  integrations: {
+    title: 'Integrations - Connect Your AI Agents',
+    description: 'Integrate Astreus AI with external services, providers, and plugins. Build connected AI experiences.',
+    keywords: [
+      'ai integrations',
+      'llm providers',
+      'ai agent plugins',
+      'api integrations',
+      'third party ai',
+      'ai connectivity',
+      'external ai services',
+      'ai ecosystem',
+      'agent extensions',
+      'ai platform integrations'
+    ]
+  },
+  infrastructure: {
+    title: 'Infrastructure - AI Agent System Management',
+    description: 'System configuration, database management, and logging for Astreus AI agents. Enterprise-ready infrastructure.',
+    keywords: [
+      'ai infrastructure',
+      'agent configuration',
+      'ai database',
+      'ai logging',
+      'system management',
+      'enterprise ai',
+      'ai deployment',
+      'agent monitoring',
+      'ai operations',
+      'infrastructure management'
+    ]
   }
 };

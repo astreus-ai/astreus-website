@@ -1,0 +1,9 @@
+{
+  "title": "Infrastructure",
+  "description": "System configuration and operational tools",
+  "pages": [
+    "configuration",
+    "database",
+    "logging"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Integrations",
+  "description": "External integrations and plugin system",
+  "pages": [
+    "providers",
+    "plugins"
+  ]
+}

@@ -34,7 +34,23 @@ module.exports = {
       } else if (path.includes('/guides/')) {
         priority = 0.8;
         changefreq = 'biweekly';
-      } else if (path.includes('/concepts/')) {
+      } 
+      // New structure priorities
+      else if (path.includes('/core/')) {
+        priority = 0.8; // High priority for core concepts
+        changefreq = 'monthly';
+      } else if (path.includes('/features/')) {
+        priority = 0.7;
+        changefreq = 'monthly';
+      } else if (path.includes('/integrations/')) {
+        priority = 0.7;
+        changefreq = 'monthly';
+      } else if (path.includes('/infrastructure/')) {
+        priority = 0.6;
+        changefreq = 'monthly';
+      }
+      // Legacy concepts path (deprecated)
+      else if (path.includes('/concepts/')) {
         priority = 0.7;
         changefreq = 'monthly';
       } else if (path.includes('/plugins/')) {

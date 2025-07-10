@@ -67,7 +67,12 @@ export const metadata: Metadata = {
     
     // Other important terms
     'Plugins', 'plugins', 'RAG', 'Intent Recognition', 'intent recognition',
-    'voice ai', 'Voice AI'
+    'voice ai', 'Voice AI',
+    
+    // New structure keywords
+    'core concepts', 'Core Concepts', 'ai agent features', 'AI Agent Features',
+    'ai integrations', 'AI Integrations', 'ai infrastructure', 'AI Infrastructure',
+    'media analysis', 'Media Analysis', 'context processing', 'Context Processing'
   ],
   authors: [{ name: 'Astreus Team' }],
   creator: 'Astreus',

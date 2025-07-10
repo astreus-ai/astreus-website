@@ -1,0 +1,10 @@
+{
+  "title": "Features",
+  "description": "Advanced features and capabilities of Astreus AI",
+  "pages": [
+    "rag",
+    "intent-recognition",
+    "media-analysis",
+    "context"
+  ]
+}
