@@ -4,10 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiBook, FiMenu, FiX } from 'react-icons/fi';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuList = ["Agents", "Plugins"];
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -74,7 +75,7 @@ export default function Navbar() {
             
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
-              {["Documentation", "Plugins", "Github"].map((item, i) => (
+              {menuList.map((item, i) => (
                 <motion.div
                   key={item}
                   initial={{ opacity: 0, y: -10 }}
@@ -84,15 +85,20 @@ export default function Navbar() {
                   <Link 
                     href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
                     target={item === "Github" ? "_blank" : undefined}
-                    className="text-white hover:text-white/80 transition-colors"
+                    className={`text-white hover:text-white/80 transition-colors relative ${item === "Agents" ? "mr-3" : ""}`}
                   >
                     {item}
+                    {item === "Agents" && (
+                      <span className="absolute -top-2 -right-8 text-[10px] bg-white/100 backdrop-blur-sm border border-white/20 text-black px-1 py-0.125 rounded-full font-semibold">
+                        NEW
+                      </span>
+                    )}
                   </Link>
                 </motion.div>
               ))}
             </div>
             
-            {/* Get Started Button */}
+            {/* Docs Button */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -103,7 +109,8 @@ export default function Navbar() {
                 href="/docs/guides/quick-start" 
                 className="px-5 py-3 text-sm bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors"
               >
-                GET STARTED
+                <FiBook className="inline mr-2" size={18} />
+                <span className='uppercase'>Docs</span>
               </Link>
             </motion.div>
 
@@ -160,25 +167,31 @@ export default function Navbar() {
           
           {/* Links in middle as buttons */}
           <div className="flex-grow flex flex-col items-center justify-center gap-6">
-            {["Documentation", "Plugins", "Github"].map((item) => (
+            {menuList.map((item) => (
               <Link 
                 key={item}
                 href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
                 target={item === "Github" ? "_blank" : undefined}
-                className="px-8 py-3 text-base font-medium text-white border border-white/20 rounded-full bg-black/20 hover:bg-white/10 transition-all text-center min-w-[200px]"
+                className="px-8 py-3 text-base font-medium text-white border border-white/20 rounded-full bg-black/20 hover:bg-white/10 transition-all text-center min-w-[200px] relative"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item}
+                {item === "Agents" && (
+                  <span className="absolute -top-2 -right-2 text-[10px] bg-white/100 backdrop-blur-sm border border-white/20 text-black px-1 py-0.125 rounded-full font-semibold">
+                    NEW
+                  </span>
+                )}
               </Link>
             ))}
             
-            {/* Get Started button moved right below links */}
+            {/* Docs button moved right below links */}
             <Link 
               href="/docs/guides/quick-start" 
-              className="px-8 py-3 text-base bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors min-w-[200px] text-center mt-2"
+              className="px-8 py-3 text-base font-medium bg-white text-black rounded-full hover:bg-white/90 transition-all text-center min-w-[200px]"
               onClick={() => setMobileMenuOpen(false)}
             >
-              GET STARTED
+              <FiBook className="inline mr-2" size={18} />
+              <span className='uppercase'>Docs</span>
             </Link>
           </div>
           

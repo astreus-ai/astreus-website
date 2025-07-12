@@ -6,24 +6,24 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PluginCard from '@/components/PluginCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { plugins } from '@/constants/plugins';
+import { agents } from '@/constants/agents';
 import { FiSearch } from 'react-icons/fi';
 
-export default function PluginsClient() {
+export default function AgentsClient() {
   const [searchTerm, setSearchTerm] = useState('');
   
   useEffect(() => {
     // Component mounted
   }, []);
   
-  const filteredPlugins = useMemo(() => {
-    if (!searchTerm) return plugins;
+  const filteredAgents = useMemo(() => {
+    if (!searchTerm) return agents;
     
     const lowercaseSearch = searchTerm.toLowerCase();
-    return plugins.filter(plugin => 
-      plugin.title.toLowerCase().includes(lowercaseSearch) ||
-      plugin.description.toLowerCase().includes(lowercaseSearch) ||
-      plugin.tags.some(tag => tag.toLowerCase().includes(lowercaseSearch))
+    return agents.filter(agent => 
+      agent.title.toLowerCase().includes(lowercaseSearch) ||
+      agent.description.toLowerCase().includes(lowercaseSearch) ||
+      agent.tags.some(tag => tag.toLowerCase().includes(lowercaseSearch))
     );
   }, [searchTerm]);
 
@@ -78,9 +78,9 @@ export default function PluginsClient() {
             }}
             className="text-center mb-12"
           >
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4">Plugins</h1>
+            <h1 className="text-4xl sm:text-5xl font-bold mb-4">Agents</h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Extend your Astreus experience with these powerful plugins
+              Explore pre-built AI agents powered by Astreus 
             </p>
           </motion.div>
           
@@ -98,7 +98,7 @@ export default function PluginsClient() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search plugins..."
+                placeholder="Search agents..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-5 py-4 pl-12 bg-white/10 text-white border border-white/20 rounded-full focus:outline-none focus:ring-2 focus:ring-white/30 backdrop-blur-sm"
@@ -107,7 +107,7 @@ export default function PluginsClient() {
             </div>
           </motion.div>
           
-          {/* Plugin Cards */}
+          {/* Agent Cards */}
           <motion.div 
             className="flex flex-wrap justify-center w-full gap-6 mb-16"
             variants={container}
@@ -115,20 +115,20 @@ export default function PluginsClient() {
             animate="show"
           >
             <AnimatePresence>
-              {filteredPlugins.map((plugin) => (
-                <PluginCard key={plugin.id} plugin={plugin} />
+              {filteredAgents.map((agent) => (
+                <PluginCard key={agent.id} plugin={agent} />
               ))}
             </AnimatePresence>
           </motion.div>
           
           {/* Empty state */}
-          {filteredPlugins.length === 0 && (
+          {filteredAgents.length === 0 && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
-              <p className="text-xl text-gray-400">No plugins found</p>
+              <p className="text-xl text-gray-400">No agents found</p>
             </motion.div>
           )}
         </div>

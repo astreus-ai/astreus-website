@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { IoHome, IoDocumentText } from 'react-icons/io5';
+import { IoHome } from 'react-icons/io5';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { FiBook } from 'react-icons/fi';
 
 export default function NotFoundClient() {
   return (
@@ -52,7 +53,7 @@ export default function NotFoundClient() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <motion.h1 
-              className="text-8xl md:text-9xl font-bold text-white mb-6"
+              className="text-5xl sm:text-8xl md:text-9xl font-bold text-white mb-2 sm:mb-6"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
@@ -61,7 +62,7 @@ export default function NotFoundClient() {
             </motion.h1>
             
             <motion.h2 
-              className="text-3xl md:text-4xl font-bold mb-4 text-white"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-white"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
@@ -70,7 +71,7 @@ export default function NotFoundClient() {
             </motion.h2>
             
             <motion.p 
-              className="text-gray-300 text-lg mb-12 max-w-md mx-auto"
+              className="text-gray-300 text-base sm:text-lg mb-12 max-w-md mx-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.8 }}
@@ -89,15 +90,15 @@ export default function NotFoundClient() {
                 className="px-6 text-sm uppercase py-4 bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors text-lg inline-flex items-center gap-2"
               >
                 <IoHome className="w-5 h-5" />
-                Go Home
+                Return to Home Page
               </Link>
               
               <Link
                 href="/docs"
                 className="px-6 text-sm uppercase py-4 bg-transparent backdrop-blur-sm border border-white/20 text-white rounded-full font-semibold hover:bg-white/10 transition-colors text-lg inline-flex items-center gap-2"
               >
-                <IoDocumentText className="w-5 h-5" />
-                Documentation
+                <FiBook className="w-5 h-5" />
+                Docs
               </Link>
             </motion.div>
           </motion.div>

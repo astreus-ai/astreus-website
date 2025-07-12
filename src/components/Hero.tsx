@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { RiGithubLine } from 'react-icons/ri';
+import { FiBook } from 'react-icons/fi';
 
 const Hero = () => {
   const containerVariants = {
@@ -106,7 +107,8 @@ const Hero = () => {
               href="/docs/guides/quick-start" 
               className="px-6 text-sm uppercase py-4 bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors text-lg inline-block"
             >
-              Get Started
+              <FiBook className="inline mr-2" size={18} />
+              <span className='uppercase'>Docs</span>
             </Link>
           </motion.div>
           
@@ -117,7 +119,7 @@ const Hero = () => {
               className="px-6 text-sm uppercase py-4 bg-transparent backdrop-blur-sm border border-white/20 text-white rounded-full font-semibold hover:bg-white/10 transition-colors text-lg flex items-center gap-2"
             >
               <RiGithubLine size={18} />
-              Star on GitHub
+              GitHub
             </Link>
           </motion.div>
         </motion.div>

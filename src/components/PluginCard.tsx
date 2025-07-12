@@ -34,7 +34,7 @@ export default function PluginCard({ plugin }: PluginCardProps) {
             alt={plugin.title}
             width={400}
             height={225}
-            className="rounded-lg shadow-lg w-full h-full object-cover"
+            className="rounded-lg w-full h-full object-cover"
           />
         </div>
         
@@ -56,18 +56,18 @@ export default function PluginCard({ plugin }: PluginCardProps) {
       
       <div className="flex gap-3 mt-4">
         <Link 
-          href={plugin.githubUrl} 
-          target="_blank" 
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm"
-        >
-          <FiGithub /> GitHub
-        </Link>
-        <Link 
           href={plugin.docsUrl} 
           target="_blank" 
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm"
         >
           <FiBook /> Docs
+        </Link>
+        <Link 
+          href={plugin.githubUrl} 
+          target="_blank" 
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm"
+        >
+          <FiGithub /> GitHub
         </Link>
       </div>
     </motion.div>

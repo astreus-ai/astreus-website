@@ -395,5 +395,29 @@ export const pageSEO = {
       'ai operations',
       'infrastructure management'
     ]
+  },
+  agents: {
+    title: 'Agents - Pre-built AI Agents',
+    description: 'Explore powerful pre-built AI agents powered by Astreus framework. Ready-to-use intelligent agents for trading, research, customer support, and more.',
+    keywords: [
+      'pre-built ai agents',
+      'ready made ai agents',
+      'ai agent examples',
+      'trading ai agent',
+      'research ai agent',
+      'customer support ai',
+      'social media ai agent',
+      'ai agent templates',
+      'agent marketplace',
+      'ai solutions',
+      'intelligent agents',
+      'autonomous ai agents',
+      'specialized ai agents',
+      'industry ai agents',
+      'business ai agents',
+      'ai agent library',
+      'agent showcase',
+      'production ready agents'
+    ]
   }
 };

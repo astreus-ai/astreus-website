@@ -1,9 +1,9 @@
 import { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { FaGithub, FaHome } from 'react-icons/fa';
+import { FaHome } from 'react-icons/fa';
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
-    title: 'Astreus - Documentation',
+    title: 'Astreus - Docs',
   },
   themeSwitch: {
     enabled: false,
@@ -11,15 +11,10 @@ export const baseOptions: BaseLayoutProps = {
   links: [
     {
       type: 'main',
-      text: 'Star on Github',
-      url: 'https://github.com/astreus-ai/astreus',
-      icon: <FaGithub className="w-4 h-4" />
-    },
-    {
-      type: 'main',
-      text: 'Return to home page',
+      text: 'Return to Home Page',
       url: '/',
       icon: <FaHome className="w-4 h-4" />
     },
-  ]
+  ],
+  githubUrl: 'https://github.com/astreus-ai',
 }; 
