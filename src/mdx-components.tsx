@@ -6,7 +6,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultComponents,
     // HTML `ref` attribute conflicts with `forwardRef`
-    pre: ({ ref: _ref, ...props }) => (
+    pre: ({ ...props }: React.ComponentProps<'pre'>) => (
       <CodeBlock {...props}>
         <Pre>{props.children}</Pre>
       </CodeBlock>

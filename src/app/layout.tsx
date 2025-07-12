@@ -146,7 +146,15 @@ export default function RootLayout({
               "Plugin System",
               "Multi-modal Support",
               "Real-time Communication",
-              "Enterprise Ready"
+              "Enterprise Ready",
+              "RAG Implementation",
+              "Intent Recognition",
+              "Media Analysis",
+              "Context Processing",
+              "Memory Management",
+              "Task Execution",
+              "Provider Integration",
+              "Infrastructure Support"
             ],
             requirements: "Node.js 18+",
             memoryRequirement: "512MB",

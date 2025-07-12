@@ -50,7 +50,17 @@ export default function StructuredData({ type, data }: StructuredDataProps) {
             'Conversational AI',
             'LLM',
             'Chatbot Development',
-            'AI Development Tools'
+            'AI Development Tools',
+            'Intelligent Agents',
+            'Machine Learning',
+            'Natural Language Processing',
+            'Autonomous Agents',
+            'AI Automation',
+            'Plugin System',
+            'RAG Implementation',
+            'Intent Recognition',
+            'Media Analysis',
+            'Context Processing'
           ],
           ...data
         };

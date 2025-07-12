@@ -58,7 +58,7 @@ function generatePageSpecificKeywords(pageTitle: string, slug: string[] = []): s
   const specificKeywords: string[] = [];
   
   // Installation/Getting Started
-  if (title.includes('install') || title.includes('getting started') || title.includes('setup')) {
+  if (title.includes('install') || title.includes('getting started') || title.includes('setup') || title.includes('quick start')) {
     specificKeywords.push(
       'astreus installation', 'Astreus installation', 'astreus setup', 'Astreus setup',
       'install astreus', 'install Astreus', 'getting started astreus', 'getting started Astreus',
@@ -84,21 +84,22 @@ function generatePageSpecificKeywords(pageTitle: string, slug: string[] = []): s
     );
   }
   
-  // Agents
+  // Agents - Core concept
   if (title.includes('agent') || slugPath.includes('agent')) {
     specificKeywords.push(
       'astreus agents', 'Astreus agents', 'create astreus agent', 'create Astreus agent',
       'astreus ai agent', 'Astreus AI agent', 'build agent astreus', 'build agent Astreus',
-      'astreus agent development', 'Astreus agent development', 'ai agent with astreus'
+      'astreus agent development', 'Astreus agent development', 'ai agent with astreus',
+      'intelligent agents', 'autonomous agents', 'conversational agents'
     );
   }
   
-  // Plugins
+  // Plugins - Updated for new structure
   if (title.includes('plugin') || slugPath.includes('plugin')) {
     specificKeywords.push(
       'astreus plugins', 'Astreus plugins', 'astreus plugin development', 'Astreus plugin development',
       'create astreus plugin', 'create Astreus plugin', 'astreus extensions', 'Astreus extensions',
-      'astreus plugin api', 'Astreus plugin API'
+      'astreus plugin api', 'Astreus plugin API', 'custom plugins', 'plugin registry'
     );
   }
   
@@ -107,7 +108,7 @@ function generatePageSpecificKeywords(pageTitle: string, slug: string[] = []): s
     specificKeywords.push(
       'astreus chat', 'Astreus chat', 'astreus conversation', 'Astreus conversation',
       'astreus chatbot', 'Astreus chatbot', 'chat with astreus', 'chat with Astreus',
-      'astreus messaging', 'Astreus messaging'
+      'astreus messaging', 'Astreus messaging', 'conversational ai', 'chat interface'
     );
   }
   
@@ -120,21 +121,84 @@ function generatePageSpecificKeywords(pageTitle: string, slug: string[] = []): s
     );
   }
   
-  // Concepts/Theory
-  if (slugPath.includes('concept') || title.includes('concept') || title.includes('theory')) {
+  // Memory - New core concept
+  if (title.includes('memory') || slugPath.includes('memory')) {
     specificKeywords.push(
-      'astreus concepts', 'Astreus concepts', 'astreus theory', 'Astreus theory',
-      'understand astreus', 'understand Astreus', 'astreus architecture', 'Astreus architecture',
-      'how astreus works', 'how Astreus works'
+      'astreus memory', 'Astreus memory', 'ai memory management', 'conversation memory',
+      'context memory', 'memory persistence', 'memory storage', 'memory retrieval'
+    );
+  }
+  
+  // Tasks - New core concept  
+  if (title.includes('task') || slugPath.includes('task')) {
+    specificKeywords.push(
+      'astreus tasks', 'Astreus tasks', 'task execution', 'task management',
+      'automated tasks', 'task scheduling', 'task runner', 'ai tasks'
+    );
+  }
+  
+  // RAG - Updated for features section
+  if (title.includes('rag') || slugPath.includes('rag')) {
+    specificKeywords.push(
+      'astreus rag', 'Astreus RAG', 'retrieval augmented generation', 'rag setup',
+      'rag implementation', 'document retrieval', 'knowledge base', 'vector search'
+    );
+  }
+  
+  // Intent Recognition - New feature
+  if (title.includes('intent') || slugPath.includes('intent')) {
+    specificKeywords.push(
+      'intent recognition', 'Intent Recognition', 'natural language understanding',
+      'intent classification', 'user intent', 'nlu', 'NLU'
+    );
+  }
+  
+  // Media Analysis - New feature
+  if (title.includes('media') || slugPath.includes('media')) {
+    specificKeywords.push(
+      'media analysis', 'Media Analysis', 'image analysis', 'video analysis',
+      'multimodal ai', 'visual ai', 'content analysis'
+    );
+  }
+  
+  // Context Processing - New feature
+  if (title.includes('context') || slugPath.includes('context')) {
+    specificKeywords.push(
+      'context processing', 'Context Processing', 'context awareness',
+      'contextual ai', 'context management', 'situational awareness'
+    );
+  }
+  
+  // Providers - Updated for integrations
+  if (title.includes('provider') || slugPath.includes('provider')) {
+    specificKeywords.push(
+      'astreus providers', 'Astreus providers', 'llm providers', 'ai providers',
+      'provider integration', 'external providers', 'service providers'
+    );
+  }
+  
+  // Infrastructure - New section
+  if (slugPath.includes('infrastructure') || title.includes('infrastructure')) {
+    specificKeywords.push(
+      'astreus infrastructure', 'Astreus infrastructure', 'deployment', 'scaling',
+      'production deployment', 'infrastructure setup', 'system architecture'
+    );
+  }
+  
+  // Logging - Infrastructure component
+  if (title.includes('logging') || slugPath.includes('logging')) {
+    specificKeywords.push(
+      'astreus logging', 'Astreus logging', 'log management', 'application logs',
+      'debug logs', 'system monitoring', 'observability'
     );
   }
   
   // Guides/Tutorials
-  if (title.includes('guide') || title.includes('tutorial') || title.includes('how to')) {
+  if (title.includes('guide') || title.includes('tutorial') || title.includes('how to') || slugPath.includes('guides')) {
     specificKeywords.push(
       'astreus guide', 'Astreus guide', 'astreus tutorial', 'Astreus tutorial',
       'astreus how to', 'Astreus how to', 'learn astreus', 'learn Astreus',
-      'astreus examples', 'Astreus examples'
+      'astreus examples', 'Astreus examples', 'step by step guide'
     );
   }
   
@@ -142,7 +206,8 @@ function generatePageSpecificKeywords(pageTitle: string, slug: string[] = []): s
   const generalKeywords = [
     'ai agent tutorial', 'framework guide', 'api documentation', 'developer guide',
     'technical documentation', 'getting started', 'implementation guide', 'user manual',
-    'documentation', 'docs', 'reference', 'manual'
+    'documentation', 'docs', 'reference', 'manual', 'ai framework documentation',
+    'intelligent agent guide', 'conversational ai docs', 'llm framework guide'
   ];
   
   return [...baseKeywords, ...specificKeywords, ...generalKeywords];
@@ -175,20 +240,27 @@ export async function generateMetadata(props: {
       url,
       type: 'article',
       siteName: 'Astreus',
+      locale: 'en_US',
       images: [
         {
-          url: '/astreus-logo.svg',
+          url: 'https://astreus.org/astreus-logo.svg',
           width: 1200,
           height: 630,
           alt: title,
+          type: 'image/svg+xml',
         },
       ],
+      authors: ['Astreus Team'],
+      section: 'Documentation',
+      tags: pageKeywords.slice(0, 10), // Include top 10 keywords as tags
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description: page.data.description,
-      images: ['/astreus-logo.svg'],
+      images: ['https://astreus.org/astreus-logo.svg'],
+      creator: '@astreus_ai',
+      site: '@astreus_ai',
     },
     alternates: {
       canonical: url,

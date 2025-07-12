@@ -4,22 +4,9 @@ Allow: /
 Disallow: /api/
 Disallow: /_next/
 Disallow: /node_modules/
-Disallow: /.well-known/
-Disallow: /admin/
-
-# Allow important documentation sections
-Allow: /docs/core/
-Allow: /docs/features/
-Allow: /docs/integrations/
-Allow: /docs/infrastructure/
-Allow: /docs/guides/
-Allow: /docs/plugins/
 
 # Host
 Host: https://astreus.org
 
 # Sitemaps
 Sitemap: https://astreus.org/sitemap.xml
-
-# Crawl-delay (optional)
-Crawl-delay: 1
