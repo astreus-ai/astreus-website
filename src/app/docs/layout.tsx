@@ -9,6 +9,10 @@ export default function Layout({ children }: { children: ReactNode }) {
       <DocsLayout 
         tree={source.pageTree} 
         {...baseOptions}
+        sidebar={{
+          defaultOpenLevel: 0,
+          tabs: undefined
+        }}
       >
         {children}
       </DocsLayout>

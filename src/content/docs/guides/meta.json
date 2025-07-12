@@ -1,0 +1,10 @@
+{
+  "title": "Guides",
+  "description": "Step-by-step tutorials and how-to guides",
+  "icon": "BookOpen",
+  "pages": [
+    "quick-start",
+    "custom-plugins",
+    "rag-setup"
+  ]
+}

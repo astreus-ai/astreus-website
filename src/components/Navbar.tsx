@@ -54,7 +54,7 @@ export default function Navbar() {
         }}
       >
         <nav className="backdrop-blur-sm bg-black/5 border border-t-2 border-t-white/20 border-l-white/15 border-r-white/15 border-b-white/10 rounded-full w-[90%] max-w-5xl">
-          <div className="px-2 py-2 md:py-3 pl-5 flex items-center justify-between">
+          <div className="px-2 py-2 md:py-3 pl-5 flex items-center justify-between relative">
             {/* Logo */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -73,7 +73,7 @@ export default function Navbar() {
             </motion.div>
             
             {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
               {["Documentation", "Plugins", "Github"].map((item, i) => (
                 <motion.div
                   key={item}

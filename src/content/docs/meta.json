@@ -1,0 +1,24 @@
+{
+  "pages": [
+    "---Core Concepts---",
+    "agents",
+    "chat",
+    "memory",
+    "tasks",
+    "---Features---",
+    "rag",
+    "intent-recognition",
+    "media-analysis",
+    "context",
+    "---Infrastructure---",
+    "configuration",
+    "database",
+    "logging",
+    "---Integrations---",
+    "providers",
+    "plugin-registry",
+    "---",
+    "plugins",
+    "guides"
+  ]
+}
