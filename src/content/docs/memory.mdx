@@ -532,30 +532,5 @@ console.log('Session statistics:', stats);
 6. **Error Handling**: Handle memory operations with proper error handling
 7. **Performance**: Limit history retrieval for better performance
 
-## Migration from Direct Memory Usage
-
-If you're migrating from direct memory management:
-
-```typescript
-// ❌ Old Direct Memory Approach
-const memory = await createMemory({ database, tableName: "memories" });
-await memory.add({
-  agentId: "agent-123",
-  sessionId: "session-456",
-  role: 'user',
-  content: "Hello"
-});
-const history = await memory.getBySession("session-456");
-
-// ✅ New Agent-Centric Approach
-const agent = await createAgent({ provider, memory });
-await agent.chat({
-  message: "Hello",
-  sessionId: "session-456",
-  stream: true,
-  onChunk: (chunk) => console.log(chunk)
-});
-const history = await agent.getHistory("session-456");
-```
 
 The agent-centric memory system provides a more intuitive and powerful way to manage conversation history with built-in session management and advanced search capabilities. 

@@ -29,11 +29,12 @@ import { createAgent, createTaskManager, createTask } from '@astreus-ai/astreus'
 // Create an agent
 const agent = await createAgent({ /* configuration */ });
 
-// Create a task executor (TaskManager is an alias for backward compatibility)
+// Create a task executor
 const taskExecutor = createTaskManager({
   agentId: agent.id,
   memory: agent.config.memory,
   database: agent.config.database,
+  personality: agent.getPersonality(), // Tasks inherit agent's personality
   concurrency: 5,  // Run up to 5 tasks in parallel
   maxRetries: 3    // Retry failed tasks up to 3 times
 });
@@ -56,6 +57,28 @@ const directTask = await createTask({
   description: "Process and analyze the data set",
   input: { dataFile: "sales_2023.csv" }
 });
+```
+
+## Direct Agent Task Creation
+
+For simplified task creation, agents can create and execute tasks directly with automatic personality integration:
+
+```typescript
+// Create tasks directly through agent (recommended for most use cases)
+const researchTask = await agent.createTask({
+  name: "Research Topic",
+  description: "Research information about quantum computing"
+});
+
+const summaryTask = await agent.createTask({
+  name: "Create Summary", 
+  description: "Summarize the research findings",
+  dependsOn: [researchTask.id]  // This task depends on research task
+});
+
+// Execute tasks (agent's personality is automatically used)
+const researchResult = await agent.executeTask(researchTask.id);
+const summaryResult = await agent.executeTask(summaryTask.id);
 ```
 
 ## Task Configuration Options

@@ -1,0 +1,274 @@
+---
+title: Personality
+description: Create and manage distinct AI personalities for your agents
+icon: Users
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
+The Astreus AI framework includes a comprehensive personality system that allows you to create distinct AI personalities and seamlessly integrate them with agents. Personality prompts are automatically integrated into both **chat interactions** and **task executions**.
+
+## Features
+
+- 🎭 **Pre-built Personalities**: 5 default personalities ready to use
+- 💾 **Database Storage**: Persistent storage with full CRUD operations  
+- 🤖 **Agent Integration**: Automatic prompt integration in chat and tasks
+- 🔍 **Search & Discovery**: Find personalities by name or description
+- ⚡ **Performance**: In-memory caching for fast access
+
+## Quick Start
+
+### Create a Personality Manager
+
+```typescript
+import { createDatabase, createPersonalityManager } from '@astreus-ai/astreus';
+
+// Create database and personality manager
+const database = await createDatabase({ type: 'sqlite', connection: './data.db' });
+const personalityManager = await createPersonalityManager(database);
+```
+
+### Use Pre-built Personalities
+
+The framework comes with 5 built-in personalities:
+
+<Tabs items={['Helpful Assistant', 'Creative Writer', 'Technical Expert', 'Analyst', 'Teacher']}>
+<Tab value="Helpful Assistant">
+
+```typescript
+const helpfulAssistant = await personalityManager.getByName('helpful-assistant');
+```
+
+**Best for**: General assistance, customer service, everyday interactions
+
+</Tab>
+<Tab value="Creative Writer">
+
+```typescript
+const creativeWriter = await personalityManager.getByName('creative-writer');
+```
+
+**Best for**: Content creation, storytelling, poetry, creative projects
+
+</Tab>
+<Tab value="Technical Expert">
+
+```typescript
+const technicalExpert = await personalityManager.getByName('technical-expert');
+```
+
+**Best for**: Code reviews, technical documentation, programming help
+
+</Tab>
+<Tab value="Analyst">
+
+```typescript
+const analyst = await personalityManager.getByName('analyst');
+```
+
+**Best for**: Research, problem analysis, data interpretation
+
+</Tab>
+<Tab value="Teacher">
+
+```typescript
+const teacher = await personalityManager.getByName('teacher');
+```
+
+**Best for**: Learning, training, education, explanations
+
+</Tab>
+</Tabs>
+
+### Create Custom Personalities
+
+```typescript
+// Create a custom personality
+const customPersonality = await personalityManager.create({
+  name: 'friendly-teacher',
+  description: 'A patient and encouraging teacher',
+  prompt: `You are a friendly, patient teacher who loves helping students learn. 
+           You explain complex concepts in simple terms, use encouraging language, 
+           and always check for understanding. You celebrate small wins and 
+           make learning enjoyable.`
+});
+```
+
+## Agent Integration
+
+### Creating Agents with Personalities
+
+```typescript
+import { createAgent, createProvider, createMemory } from '@astreus-ai/astreus';
+
+// Create agent with personality
+const agent = await createAgent({
+  name: 'teaching-bot',
+  provider: await createProvider({ type: 'openai', model: 'gpt-4o-mini' }),
+  memory: await createMemory({ type: 'sqlite' }),
+  personality: customPersonality  // 🎭 Personality automatically integrated!
+});
+
+// Or set personality later
+agent.setPersonality(technicalExpert);
+```
+
+### Dynamic Personality Switching
+
+```typescript
+// Switch personalities based on context
+const personalities = {
+  creative: await personalityManager.getByName('creative-writer'),
+  technical: await personalityManager.getByName('technical-expert'),
+  helpful: await personalityManager.getByName('helpful-assistant')
+};
+
+// Switch based on user request
+if (userRequest.includes('creative') || userRequest.includes('story')) {
+  agent.setPersonality(personalities.creative);
+} else if (userRequest.includes('code') || userRequest.includes('technical')) {
+  agent.setPersonality(personalities.technical);
+} else {
+  agent.setPersonality(personalities.helpful);
+}
+
+const response = await agent.chat({ message: userRequest });
+```
+
+## How It Works
+
+### Chat Integration
+
+When you use `agent.chat()`, the personality prompt is automatically prepended to the system prompt:
+
+```typescript
+// In Agent.chat() method:
+const finalSystemPrompt = this.getCombinedSystemPrompt(systemPrompt);
+// Result: [Personality Prompt] + [Original System Prompt]
+```
+
+### Task Integration  
+
+When executing tasks, personality prompts are integrated into the task execution context:
+
+```typescript
+// Option 1: Direct task creation through agent (recommended)
+const task = await agent.createTask({
+  name: "explain-concept", 
+  description: "Explain a complex topic to a student"
+});
+
+const result = await agent.executeTask(task.id, {
+  topic: "machine learning"
+});
+// 🎭 Agent's personality is automatically used in task execution
+
+// Option 2: Manual TaskManager with personality
+const taskManager = await createTaskManager({
+  database,
+  personality: customPersonality  // All tasks will use this personality
+});
+```
+
+## API Reference
+
+### PersonalityManager
+
+```typescript
+interface PersonalityManagerInstance {
+  // Create a new personality
+  create(config: PersonalityConfig): Promise<PersonalityInstance>;
+  
+  // Get personality by ID
+  get(id: string): Promise<PersonalityInstance | null>;
+  
+  // Get personality by name
+  getByName(name: string): Promise<PersonalityInstance | null>;
+  
+  // List all personalities
+  list(limit?: number): Promise<PersonalityInstance[]>;
+  
+  // Search personalities
+  search(query: string): Promise<PersonalityInstance[]>;
+  
+  // Update personality
+  update(id: string, updates: Partial<PersonalityConfig>): Promise<void>;
+  
+  // Delete personality  
+  delete(id: string): Promise<void>;
+}
+```
+
+### Agent Personality Methods
+
+```typescript
+interface AgentInstance {
+  // Get current personality
+  getPersonality(): PersonalityInstance | undefined;
+  
+  // Set personality
+  setPersonality(personality: PersonalityInstance): void;
+  
+  // Remove personality
+  removePersonality(): void;
+}
+```
+
+## Examples
+
+### Customer Service Bot
+
+```typescript
+const customerServicePersonality = await personalityManager.create({
+  name: 'customer-service',
+  description: 'Professional customer service representative',
+  prompt: `You are a professional customer service representative. You are helpful, 
+           patient, and solution-oriented. You always acknowledge customer concerns, 
+           provide clear explanations, and offer practical solutions. You maintain 
+           a positive, empathetic tone even in difficult situations.`
+});
+
+const serviceBot = await createAgent({
+  name: 'service-bot',
+  provider: provider,
+  memory: memory,
+  personality: customerServicePersonality
+});
+```
+
+### Code Review Assistant
+
+```typescript
+const codeReviewPersonality = await personalityManager.create({
+  name: 'code-reviewer',
+  description: 'Senior software engineer focused on code quality',
+  prompt: `You are a senior software engineer with expertise in code review. 
+           You focus on code quality, best practices, security, and maintainability. 
+           You provide constructive feedback with specific suggestions and explain 
+           the reasoning behind your recommendations. You are thorough but respectful.`
+});
+
+const reviewBot = await createAgent({
+  name: 'code-reviewer',
+  provider: provider,
+  memory: memory,
+  personality: codeReviewPersonality
+});
+```
+
+## Best Practices
+
+1. **Specific Prompts**: Make personality prompts specific and detailed for better consistency
+2. **Context Awareness**: Consider the use case when choosing or creating personalities  
+3. **Testing**: Test personalities with various inputs to ensure desired behavior
+4. **Caching**: PersonalityManager automatically caches personalities for performance
+5. **Naming**: Use descriptive names that clearly indicate the personality's purpose
+
+## Integration Notes
+
+- ✅ **Chat Methods**: `agent.chat()` and `agent.chatWithId()` automatically use personality prompts
+- ✅ **Task Execution**: `agent.createTask()` and `agent.executeTask()` automatically use agent's personality
+- ✅ **Manual Task Creation**: TaskManager can be configured with personality for all tasks
+- ✅ **System Prompts**: Personality prompts are prepended to existing system prompts
+- ✅ **Database Storage**: All personalities are persisted and survive restarts  
+- ✅ **Memory Management**: Automatic caching for optimal performance

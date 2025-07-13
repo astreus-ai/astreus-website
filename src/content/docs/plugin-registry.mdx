@@ -583,45 +583,4 @@ const robustTool: Tool = {
 9. **Logging**: Add appropriate logging for debugging and monitoring
 10. **Versioning**: Version your plugins for better maintenance
 
-## Migration from Plugin Managers
-
-If you're migrating from the old plugin manager approach:
-
-```typescript
-// ❌ Old Plugin Manager Approach
-const pluginManager = createPluginManager();
-pluginManager.addPlugin(resendPlugin);
-const agent = await createAgent({ 
-  provider, 
-  memory, 
-  plugins: [pluginManager] 
-});
-
-// ✅ New Agent-Centric Approach
-const agent = await createAgent({ 
-  provider, 
-  memory 
-});
-agent.addTool(resendPlugin.getTool());
-```
-
-## Legacy Plugin Support
-
-For backward compatibility, the old PluginManager is still available:
-
-```typescript
-import { PluginManager } from '@astreus-ai/astreus';
-
-// Legacy approach (still supported)
-const pluginManager = new PluginManager();
-// ... plugin manager operations
-
-// Can still be used with agents
-const agent = await createAgent({
-  provider,
-  memory,
-  plugins: [pluginManager] // Legacy support
-});
-```
-
-The agent-centric plugin system provides a more streamlined and intuitive way to extend agent capabilities with better integration and management. 
+ 

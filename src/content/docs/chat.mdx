@@ -615,36 +615,6 @@ for (const chat of oldChats) {
 }
 ```
 
-## Migration from Previous Versions
-
-If you're upgrading from earlier versions:
-
-```typescript
-// ❌ Old standalone chat manager approach
-const chatManager = await createChat({
-  provider: myProvider,
-  memory: myMemory
-});
-const response = await chatManager.chat({
-  chatId,
-  agentId,
-  message,
-  model: provider.getModel('gpt-4o-mini')
-});
-
-// ✅ New agent-centric approach
-const agent = await createAgent({
-  name: 'MyAgent',
-  provider: myProvider,
-  memory: myMemory,
-  chat: myChatManager
-});
-const response = await agent.chatWithId({
-  message,
-  chatId,
-  userId
-});
-```
 
 ## Next Steps
 

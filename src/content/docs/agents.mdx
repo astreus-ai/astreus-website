@@ -44,6 +44,7 @@ Each Astreus agent provides:
 - **🔌 Tool Integration**: Add and use custom tools
 - **🗄️ Database Access**: Direct access to underlying storage
 - **🎯 Provider Flexibility**: Switch models and providers dynamically
+- **🎭 Personality System**: Create and assign distinct AI personalities
 - **🖼️ Media Analysis**: AI-powered image, document, and file analysis
 - **🤖 Intent Recognition**: Smart tool selection based on task context
 - **📋 Enhanced Database**: Custom table naming and flexible schema management
@@ -58,7 +59,8 @@ import {
   createProvider,
   createMemory,
   createDatabase,
-  createChat
+  createChat,
+  createPersonalityManager
 } from '@astreus-ai/astreus';
 
 async function createMyAgent() {
@@ -88,7 +90,11 @@ async function createMyAgent() {
     apiKey: process.env.OPENAI_API_KEY
   });
 
-  // Create an agent with all capabilities including chat management
+  // Create personality manager and get a personality
+  const personalityManager = await createPersonalityManager(db);
+  const personality = await personalityManager.getByName('helpful-assistant');
+
+  // Create an agent with all capabilities including chat management and personality
   const agent = await createAgent({
     name: 'MyAssistant',
     description: 'A helpful AI assistant with streaming and chat management capabilities',
@@ -96,6 +102,7 @@ async function createMyAgent() {
     memory: memory,
     database: db,
     chat: chatManager, // Chat management system
+    personality: personality, // AI personality
     systemPrompt: "You are a helpful AI assistant that provides detailed, accurate responses.",
     tools: [customTool1, customTool2] // Optional tools
   });
@@ -209,8 +216,8 @@ const response = await agent.chatWithId({
   metadata: { location: "New York" }
 });
 
-// Standard chat with session ID (legacy support)
-const legacyResponse = await agent.chat({
+// Standard chat with session ID
+const sessionResponse = await agent.chat({
   message: "Hello!",
   sessionId: "simple-session",
   temperature: 0.7
@@ -566,7 +573,7 @@ await agent.chatWithId({
   userId: "user123"
 });
 
-// ⚠️ Legacy: Session-based chat (still supported)
+// Session-based chat
 await agent.chat({
   message: "Help with my project",
   sessionId: "project-session"

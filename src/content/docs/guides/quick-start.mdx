@@ -56,7 +56,8 @@ import {
   createAgent, 
   createProvider,
   createMemory,
-  createDatabase
+  createDatabase,
+  createPersonalityManager
 } from '@astreus-ai/astreus';
 
 async function main() {
@@ -74,12 +75,17 @@ async function main() {
     model: 'gpt-4o-mini'  // Fast and affordable option
   });
 
-  // Create an agent
+  // Create personality manager and get a helpful personality
+  const personalityManager = await createPersonalityManager(db);
+  const personality = await personalityManager.getByName('helpful-assistant');
+
+  // Create an agent with personality
   const agent = await createAgent({
     name: 'HelloAgent',
     description: 'A simple AI assistant',
     provider: provider,
     memory: memory,
+    personality: personality, // Agent will have a helpful personality
     systemPrompt: "You are a friendly and helpful AI assistant. Answer questions concisely."
   });
 
