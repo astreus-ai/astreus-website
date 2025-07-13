@@ -23,16 +23,18 @@ yarn add @astreus-ai/astreus
 
 ## Environment Setup
 
-Create a `.env` file in your project root with your API keys:
+Create a `.env` file in your project root with your configuration:
 
 ```bash
-# OpenAI API Key (Required for OpenAI provider)
+# Global Model Configuration (applies to all providers)
+MODEL_NAME=gpt-4o-mini  # Main model name
+TEMPERATURE=0.7         # Model temperature (0.0 - 1.0)
+MAX_TOKENS=2048        # Maximum tokens per response
+EMBEDDING_MODEL=text-embedding-3-small  # For RAG and embeddings
+
+# Provider API Keys
 OPENAI_API_KEY=your_openai_api_key
-
-# Anthropic API Key (Required for Claude provider)
 ANTHROPIC_API_KEY=your_anthropic_api_key
-
-# Google API Key (Required for Gemini provider)
 GOOGLE_API_KEY=your_google_api_key
 
 # Database Configuration (tables created automatically when needed)
@@ -69,10 +71,9 @@ async function main() {
     database: db
   });
 
-  // Configure your provider
+  // Configure your provider (uses MODEL_NAME from .env)
   const provider = createProvider({
-    type: 'openai',
-    model: 'gpt-4o-mini'  // Fast and affordable option
+    type: 'openai'  // Model automatically loaded from MODEL_NAME env var
   });
 
   // Create personality manager and get a helpful personality
@@ -163,10 +164,9 @@ async function main() {
       enableAdaptiveContext: true // Enable adaptive context for chat sessions
     });
 
-    // Configure your provider
+    // Configure your provider (uses global env vars)
     const provider = createProvider({
-      type: 'openai',
-      model: 'gpt-4o-mini'
+      type: 'openai'  // Model, temperature, and tokens from env vars
     });
 
     // Create an advanced agent
@@ -458,7 +458,7 @@ Now that you have a basic agent running with chat management and streaming capab
 ### Simple Chat Bot
 ```typescript
 const agent = await createAgent({
-  provider: createProvider({ type: 'openai', model: 'gpt-4o-mini' }),
+  provider: createProvider({ type: 'openai' }), // Uses MODEL_NAME from env
   memory: await createMemory({ database: await createDatabase() }),
   chat: await createChat({ database: db, memory: memory })
 });

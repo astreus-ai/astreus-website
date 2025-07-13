@@ -22,25 +22,36 @@ Astreus configuration features:
 
 Configure Astreus using environment variables for different deployment scenarios:
 
-### Provider Configuration
+### Global Model Configuration
+
+Astreus uses provider-agnostic environment variables for consistent configuration across all providers:
 
 ```bash
-# OpenAI Configuration
+# Global Model Configuration (applies to all providers)
+MODEL_NAME=gpt-4o-mini           # Main model name
+TEMPERATURE=0.7                  # Model temperature (0.0 - 1.0)
+MAX_TOKENS=2048                 # Maximum tokens per response
+EMBEDDING_MODEL=text-embedding-3-small  # Embedding model for RAG
+
+# Examples for different providers:
+# MODEL_NAME=claude-3-haiku-20240307     # For Claude
+# MODEL_NAME=gemini-1.5-flash           # For Gemini
+# MODEL_NAME=llama3.2                   # For Ollama
+```
+
+### Provider API Keys
+
+```bash
+# Provider API Keys
 OPENAI_API_KEY=sk-your-openai-key
-OPENAI_BASE_URL=https://api.openai.com/v1  # Optional custom base URL
-OPENAI_EMBEDDING_API_KEY=sk-embedding-key  # Optional separate key for embeddings
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small  # Default embedding model
-
-# Anthropic (Claude) Configuration  
 ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
-ANTHROPIC_BASE_URL=https://api.anthropic.com  # Optional custom base URL
-
-# Google (Gemini) Configuration
 GOOGLE_API_KEY=your-google-api-key
-GOOGLE_BASE_URL=https://generativelanguage.googleapis.com  # Optional custom base URL
 
-# Ollama Configuration
-OLLAMA_BASE_URL=http://localhost:11434  # Default Ollama URL
+# Optional Provider Base URLs
+OPENAI_BASE_URL=https://api.openai.com/v1
+ANTHROPIC_BASE_URL=https://api.anthropic.com
+GOOGLE_BASE_URL=https://generativelanguage.googleapis.com
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
 ### Database Configuration
@@ -597,9 +608,7 @@ const developmentConfig = {
     path: './dev-astreus.db'
   },
   provider: {
-    type: 'openai',
-    model: 'gpt-4o-mini',
-    temperature: 0.9  // Higher creativity for development
+    type: 'openai'  // Uses MODEL_NAME, TEMPERATURE, MAX_TOKENS from env
   },
   logging: {
     level: 'debug',
@@ -626,10 +635,7 @@ const productionConfig = {
     }
   },
   provider: {
-    type: 'openai', 
-    model: 'gpt-4o-mini',
-    temperature: 0.7,
-    maxTokens: 1000
+    type: 'openai'  // Uses global env vars for consistency
   },
   logging: {
     level: 'warn',
@@ -666,9 +672,9 @@ function loadConfig() {
     },
     provider: {
       type: process.env.PROVIDER_TYPE || 'openai',
-      model: process.env.MODEL_NAME || 'gpt-4o-mini',
-      apiKey: process.env.OPENAI_API_KEY,
-      temperature: parseFloat(process.env.TEMPERATURE) || 0.7
+      model: process.env.MODEL_NAME,
+      temperature: parseFloat(process.env.TEMPERATURE || '0.7'),
+      maxTokens: parseInt(process.env.MAX_TOKENS || '2048')
     },
     logging: {
       level: process.env.LOG_LEVEL || 'info',
