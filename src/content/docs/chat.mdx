@@ -5,7 +5,7 @@ icon: MessageSquare
 
 ![Chat](/docs/chat.webp)
 
-The **Chat System** in Astreus is **agent-centric** and provides powerful **real-time streaming** capabilities with **advanced chat management**. Instead of managing separate chat managers, everything flows through the agent with built-in session management, chat organization, and metadata support.
+The **Chat System** in Astreus is **agent-centric** and provides powerful **real-time streaming** capabilities with **advanced chat management**. The enhanced chat service features improved response handling, robust conversation history management, and seamless provider compatibility. Everything flows through the agent with built-in session management, chat organization, and metadata support.
 
 ## Agent-Centric Chat Architecture
 
@@ -163,7 +163,7 @@ The enhanced chat system provides **real-time streaming** with both chat IDs and
 ### Streaming with Session IDs
 
 ```typescript
-// Real-time streaming with session management
+// Real-time streaming with enhanced response handling
 await agent.chat({
   message: "Explain machine learning in simple terms",
   sessionId: "ml-tutorial-789",
@@ -172,7 +172,7 @@ await agent.chat({
   metadata: { topic: 'education', level: 'beginner' },
   stream: true,
   onChunk: (chunk) => {
-    // Each chunk arrives in real-time
+    // Each chunk arrives in real-time with improved provider compatibility
     process.stdout.write(chunk);
     
     // Send to frontend via WebSocket

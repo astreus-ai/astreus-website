@@ -5,15 +5,17 @@ icon: Brain
 
 ![Memory](/docs/memory.webp)
 
-Memory Storage in Astreus is a **hierarchical memory system** that provides powerful conversation history management with **adaptive context management**. The system features immediate, summarized, and persistent memory layers with intelligent token budgeting.
+Memory Storage in Astreus is a **hierarchical memory system** that provides powerful conversation history management with **adaptive context management**. The enhanced system features intelligent AI-powered summarization, automatic context layer management, and smart frequency tracking across immediate, summarized, and persistent memory layers with intelligent token budgeting.
 
 ## Hierarchical Memory Architecture
 
 The Memory Storage system uses a three-layer architecture for optimal context management:
 
 - **Immediate Layer**: Recent messages (40% of token budget)
-- **Summarized Layer**: Compressed conversation summaries (35% of token budget)  
+- **Summarized Layer**: AI-powered conversation summaries (35% of token budget)  
 - **Persistent Layer**: Long-term important facts (25% of token budget)
+- **Intelligent Summarization**: AI-powered summarization with simple fallback when provider unavailable
+- **Automatic Context Loading**: Smart loading of context layers from database storage
 - **Adaptive Context**: Automatic context window management with intelligent compression
 - **Session-Based Organization**: Conversations organized by session ID
 - **Automatic Message Storage**: Messages saved during `agent.chat()` and `agent.chat({ stream: true })`
@@ -231,7 +233,7 @@ const advancedAgent = await createAgent({
 | `tableName` | string | Table name for memory storage | "memories" |
 | `maxEntries` | number | Max entries per session | 100 |
 | `enableEmbeddings` | boolean | Enable semantic search | false |
-| `enableAdaptiveContext` | boolean | Enable adaptive context management | false |
+| `enableAdaptiveContext` | boolean | Enable adaptive context management with AI analysis | false |
 | `tokenBudget` | TokenBudgetConfig | Token allocation across layers | Default budget |
 | `priorityWeights` | PriorityWeights | Priority weights for content retention | Default weights |
 | `defaultCompressionStrategy` | CompressionStrategy | Default compression strategy | SUMMARIZE |
@@ -308,9 +310,13 @@ await memory.updateContextLayers("session-1", {
 const compressionResult = await memory.compressContext("session-1", "SUMMARIZE");
 console.log("Compression result:", compressionResult);
 
-// Get formatted context for display
+// Get formatted context for display (includes AI-generated summaries)
 const formattedContext = await memory.getFormattedContext("session-1", 4000);
 console.log("Formatted context:", formattedContext);
+
+// Generate intelligent summary for session
+const sessionSummary = await memory.generateSummary("session-1");
+console.log("AI-powered session summary:", sessionSummary);
 ```
 
 ## Semantic Search with Embeddings

@@ -5,7 +5,7 @@ icon: Image
 
 ![Media Analysis](/docs/media-analysis.webp)
 
-Astreus includes powerful AI-powered media analysis capabilities that allow your agents to understand and analyze various types of media files including images, documents, and other file formats.
+Astreus includes powerful AI-powered media analysis capabilities with enhanced provider compatibility that allow your agents to understand and analyze various types of media files including images, documents, and other file formats. The system automatically detects provider capabilities and provides seamless fallbacks for optimal compatibility.
 
 ## Overview
 
@@ -16,6 +16,8 @@ Media analysis in Astreus provides:
 - **🎨 Visual Understanding**: Understand UI elements, designs, and visual layouts
 - **📊 Chart & Graph Analysis**: Interpret data visualizations and trends
 - **🔍 Context-Aware Analysis**: Provide additional context for more accurate results
+- **🔄 Provider Compatibility**: Automatic detection of vision capabilities across different LLM providers
+- **⚡ Fallback Support**: Seamless handling when specific analysis methods aren't available
 
 ## Image Analysis
 
@@ -171,7 +173,7 @@ const response = await agent.chat({
 
 ## Error Handling
 
-Implement proper error handling for media analysis:
+Implement proper error handling for media analysis with improved provider compatibility:
 
 ```typescript
 try {
@@ -189,10 +191,35 @@ try {
     console.error('Unsupported image format');
   } else if (error.message.includes('file too large')) {
     console.error('Image file too large');
+  } else if (error.message.includes('Media analysis not supported')) {
+    console.error('Current provider does not support media analysis. Please use a vision-capable model like GPT-4 Vision, Claude-3, or configure a provider with analyzeMedia support.');
   } else {
     console.error('Analysis failed:', error);
   }
 }
+```
+
+## Provider Compatibility
+
+The media analysis system automatically detects and adapts to different provider capabilities:
+
+```typescript
+// The system checks for:
+// 1. Dedicated analyzeMedia method
+// 2. Vision capability through complete method
+// 3. Model name patterns (vision, 4o, claude-3)
+
+// Supported vision-capable models:
+// - GPT-4 Vision (gpt-4-vision-preview, gpt-4o)
+// - Claude-3 (claude-3-sonnet, claude-3-opus, claude-3-haiku)
+// - Custom providers with analyzeMedia method
+
+// Automatic fallback ensures seamless operation across providers
+const analysis = await agent.analyzeImage({
+  imagePath: './diagram.png',
+  prompt: 'Explain this technical diagram'
+  // System automatically chooses best available method
+});
 ```
 
 ## Supported File Types

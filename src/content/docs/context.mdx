@@ -5,7 +5,7 @@ icon: Layers
 
 ![Context Processor](/docs/context.webp)
 
-The **Context Processor** is Astreus's advanced adaptive context window management system that intelligently manages conversation context across multiple hierarchical layers. It automatically optimizes context retention based on importance, recency, and token budgets.
+The **Context Processor** is Astreus's advanced adaptive context window management system that intelligently manages conversation context across multiple hierarchical layers. It features AI-powered sentiment and importance analysis, automatic content prioritization, and intelligent frequency tracking. The system automatically optimizes context retention based on importance, recency, sentiment, and token budgets.
 
 ## Overview
 
@@ -18,10 +18,14 @@ The Context Processor implements a three-layer hierarchical architecture:
 ## Key Features
 
 - **Hierarchical Memory**: Three-layer architecture (immediate, summarized, persistent)
+- **AI-Powered Analysis**: Intelligent sentiment and importance scoring using LLM providers
+- **Frequency Tracking**: Automatic keyword and topic frequency analysis for better prioritization
 - **Token Budgeting**: Intelligent allocation of context window space
-- **Priority-Based Retention**: Important content stays longer based on multiple factors
+- **Priority-Based Retention**: Content prioritized using recency, frequency, importance, sentiment, and user interaction
 - **Automatic Compression**: Context is compressed when token limits are reached
 - **Compression Strategies**: SUMMARIZE, KEYWORD_EXTRACT, SEMANTIC_CLUSTER, TEMPORAL_COMPRESS
+- **Fallback Heuristics**: Smart heuristic analysis when AI providers are unavailable
+- **Unicode Support**: International language support with Unicode-aware text processing
 - **Session Isolation**: Each session has its own context manager
 - **Seamless Integration**: Works transparently with all other components
 - **Cleanup Management**: Automatic cleanup of inactive context managers
@@ -159,17 +163,21 @@ export const DEFAULT_TOKEN_BUDGET = {
 
 ## Priority Weights
 
-Content priority is calculated using multiple factors:
+Content priority is calculated using multiple AI-powered and heuristic factors:
 
 ```typescript
 export const DEFAULT_PRIORITY_WEIGHTS = {
   recency: 0.3,       // Recent messages get higher priority
-  frequency: 0.2,     // Frequently repeated topics
-  importance: 0.25,   // Important information
+  frequency: 0.2,     // Frequently repeated topics (AI-extracted keywords and topics)
+  importance: 0.25,   // Important information (AI-analyzed or heuristic scoring)
   userInteraction: 0.15, // User messages prioritized over system messages
-  sentiment: 0.1      // Emotional intensity
+  sentiment: 0.1      // Emotional intensity (AI-analyzed or heuristic scoring)
 };
 ```
+
+**AI-Powered Analysis**: When an LLM provider is available, the system uses AI to analyze sentiment and importance scores. The AI analyzes content context, emotional tone, and semantic importance for more accurate prioritization.
+
+**Fallback Heuristics**: When AI providers are unavailable, the system falls back to intelligent heuristic analysis using language-agnostic patterns, Unicode-aware text processing, and content characteristics like length, special characters, and structural elements.
 
 ## Compression Strategies
 
