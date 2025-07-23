@@ -1,0 +1,32 @@
+---
+title: Agent with Knowledge
+icon: BookOpen
+---
+
+![Example](/docs/example.webp)
+
+Create agents with knowledge base capabilities for enhanced information retrieval.
+
+## Knowledge Agent
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create agent with knowledge enabled
+const agent = await Agent.create({
+  name: 'KnowledgeBot',
+  model: 'gpt-4o',
+  knowledge: true,
+  systemPrompt: 'You can search and retrieve information from knowledge bases.'
+});
+
+// Add knowledge directly to agent
+await agent.addKnowledge(
+  'TypeScript is a strongly typed programming language that builds on JavaScript by adding static type definitions...',
+  'TypeScript Best Practices'
+);
+
+// Agent automatically uses knowledge in conversations
+const response = await agent.ask("What are the best practices for TypeScript development?");
+console.log(response); // Uses knowledge base automatically
+```

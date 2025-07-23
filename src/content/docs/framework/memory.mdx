@@ -1,0 +1,63 @@
+---
+title: Memory
+icon: Brain
+---
+
+![Memory](/docs/memory.webp)
+
+**Persistent conversation memory with vector search and automatic context integration**
+
+## Overview
+
+The Memory system provides agents with long-term memory capabilities, enabling them to remember past conversations, learn from interactions, and maintain context across sessions. When memory is enabled, agents automatically store and retrieve relevant information from previous conversations, creating a more personalized and context-aware experience.
+
+## Enabling Memory
+
+Enable memory for an agent by setting the `memory` option to `true`:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'MemoryAgent',
+  model: 'gpt-4',
+  memory: true  // Enable persistent memory
+});
+```
+
+## Example
+
+Here's a complete example showing how memory works across conversations:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create an agent with memory
+const agent = await Agent.create({
+  name: 'PersonalAssistant',
+  model: 'gpt-4',
+  memory: true,
+  systemPrompt: 'You are a helpful personal assistant who remembers user preferences.'
+});
+
+// First conversation
+const response1 = await agent.ask('My name is John and I love TypeScript');
+console.log(response1);
+// Output: "Nice to meet you, John! It's great that you love TypeScript..."
+
+// Later conversation - agent remembers
+const response2 = await agent.ask('What programming language do I like?');
+console.log(response2);
+// Output: "You mentioned that you love TypeScript, John!"
+
+// Memory persists even after restarting
+const sameAgent = await Agent.create({
+  name: 'PersonalAssistant', // Same name retrieves existing memories
+  model: 'gpt-4',
+  memory: true
+});
+
+const response3 = await sameAgent.ask('Do you remember my name?');
+console.log(response3);
+// Output: "Yes, your name is John!"
+```

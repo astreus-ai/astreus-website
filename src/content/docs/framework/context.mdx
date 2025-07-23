@@ -1,0 +1,73 @@
+---
+title: Context
+icon: Layers
+---
+
+![Context](/docs/context.webp)
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+**Three-layer context management system with automatic compression**
+
+## Overview
+
+Context management in Astreus uses a sophisticated three-layer system to efficiently handle conversation history while respecting token limits. The system automatically compresses and manages context to ensure agents can maintain long conversations without exceeding model constraints, while preserving the most important information.
+
+## Three-Layer System
+
+The context management system operates across three distinct layers:
+
+<Steps>
+<Step>
+### Immediate Context
+The most recent messages in the conversation that are sent directly to the LLM. This layer contains the full, uncompressed conversation history up to the token limit.
+</Step>
+
+<Step>
+### Summarized Context
+When conversations exceed the immediate context limit, older messages are automatically summarized and compressed. This layer maintains the essence of past conversations in a condensed format.
+</Step>
+
+<Step>
+### Persistent Context
+Long-term storage of all conversation history. When needed, the system can retrieve and reconstruct context from this layer using vector search to find relevant past interactions.
+</Step>
+</Steps>
+
+## Example
+
+Here's how context management works automatically in Astreus:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create an agent with context compression enabled
+const agent = await Agent.create({
+  name: 'ContextAwareAgent',
+  model: 'gpt-4',
+  memory: true,
+  contextCompression: true  // Enable automatic context management
+});
+
+// Long conversation example
+for (let i = 1; i <= 20; i++) {
+  const response = await agent.ask(`Tell me fact #${i} about TypeScript`);
+  console.log(`Fact ${i}:`, response);
+}
+
+// After many messages, the system automatically:
+// 1. Keeps recent messages in immediate context
+// 2. Summarizes older messages to save tokens
+// 3. Stores everything in persistent context
+
+// The agent can still reference early conversation
+const summary = await agent.ask('What was the first fact you told me?');
+console.log(summary);
+// The agent retrieves context from compressed/persistent layers
+
+// Context management happens transparently
+const analysis = await agent.ask('Analyze all the TypeScript facts you shared');
+// System automatically reconstructs relevant context from all three layers
+```
+
+The context compression system ensures that agents can handle conversations of any length while maintaining coherence and staying within token limits.

@@ -50,7 +50,7 @@
   }
 }
 
-@layer utilities {}
+@layer components {}
 
 @keyframes fadeIn {
   from {

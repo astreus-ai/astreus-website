@@ -1,0 +1,59 @@
+---
+title: Task Attachments
+icon: Paperclip
+---
+
+![Example](/docs/example.webp)
+
+Attach multiple file types to tasks for comprehensive analysis.
+
+## Task with Multiple Attachments
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'AnalysisAgent',
+  model: 'gpt-4o',
+  vision: true // Enable vision for images
+});
+
+// Code review task with multiple file types
+const reviewTask = await agent.createTask({
+  prompt: `Perform a comprehensive analysis:
+    1. Review the code for security issues
+    2. Check the design mockup for usability
+    3. Verify dependencies are up to date
+    4. Review documentation completeness`,
+  attachments: [
+    { 
+      type: 'code', 
+      path: '/src/auth/login.ts', 
+      name: 'Login Controller',
+      language: 'typescript' 
+    },
+    { 
+      type: 'image', 
+      path: '/designs/login-ui.png', 
+      name: 'Login UI Mockup' 
+    },
+    { 
+      type: 'json', 
+      path: '/package.json', 
+      name: 'Dependencies' 
+    },
+    { 
+      type: 'markdown', 
+      path: '/docs/api.md', 
+      name: 'API Documentation' 
+    }
+  ],
+  metadata: {
+    type: 'comprehensive-review',
+    priority: 'high'
+  }
+});
+
+const result = await agent.executeTask(reviewTask.id);
+console.log('Analysis complete:', result.response);
+```

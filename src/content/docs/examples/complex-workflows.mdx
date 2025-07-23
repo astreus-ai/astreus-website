@@ -1,0 +1,65 @@
+---
+title: Complex Workflows
+icon: Network
+---
+
+![Example](/docs/example.webp)
+
+Build sophisticated multi-agent workflows with advanced orchestration patterns.
+
+## Multi-Agent Pipeline
+
+```typescript
+import { Agent, Graph } from '@astreus-ai/astreus';
+
+// Create specialized agents
+const researcher = await Agent.create({
+  name: 'Researcher',
+  model: 'gpt-4o',
+  systemPrompt: 'You research topics thoroughly.'
+});
+
+const writer = await Agent.create({
+  name: 'Writer',
+  model: 'gpt-4o',
+  systemPrompt: 'You create engaging content.'
+});
+
+const editor = await Agent.create({
+  name: 'Editor',
+  model: 'gpt-4o',
+  systemPrompt: 'You review and polish content.'
+});
+
+// Create complex pipeline
+const pipeline = new Graph({
+  name: 'content-pipeline',
+  defaultAgentId: researcher.getId(),
+  maxConcurrency: 2
+});
+
+// Research phase
+const research = pipeline.addTaskNode({
+  prompt: 'Research AI trends in 2024',
+  agentId: researcher.getId()
+});
+
+// Writing phase
+const writing = pipeline.addTaskNode({
+  prompt: 'Write an article based on the research',
+  agentId: writer.getId(),
+  dependencies: [research]
+});
+
+// Editing phase
+const editing = pipeline.addTaskNode({
+  prompt: 'Review and polish the article',
+  agentId: editor.getId(),
+  dependencies: [writing]
+});
+
+// Execute pipeline
+const results = await pipeline.run();
+
+console.log('Final article:', results.results[editing].response);
+```

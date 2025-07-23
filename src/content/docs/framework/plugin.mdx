@@ -1,0 +1,333 @@
+---
+title: Plugin
+icon: Puzzle
+---
+
+![Plugin](/docs/plugin.webp)
+
+**Extensible tool system with JSON schema validation and automatic function calling**
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Overview
+
+Plugins extend agent capabilities by providing tools that can be called during conversations. The plugin system is built around a decorator pattern that enhances agents with tool execution capabilities. It provides automatic parameter validation, error handling, and seamless LLM integration with function calling.
+
+## Built-in Tools
+
+Astreus comes with several built-in tools available to all agents:
+
+### Knowledge Tools
+- **search_knowledge**: Search through the agent's knowledge base for relevant information
+  - `query` (string, required): Search query
+  - `limit` (number, optional): Maximum results (default: 5)
+  - `threshold` (number, optional): Similarity threshold (default: 0.7)
+
+### Vision Tools
+- **analyze_image**: General image analysis with custom prompts
+- **describe_image**: Generate accessibility-friendly descriptions
+- **extract_text_from_image**: OCR capabilities for text extraction
+
+## Creating Custom Plugins
+
+<Steps>
+<Step>
+### Define Your Tool
+
+Create a tool definition with handler function:
+
+```typescript
+import { ToolDefinition, ToolContext } from '@astreus-ai/astreus';
+
+const weatherTool: ToolDefinition = {
+  name: 'get_weather',
+  description: 'Get current weather information for a location',
+  parameters: {
+    location: {
+      name: 'location',
+      type: 'string',
+      description: 'City name or location',
+      required: true
+    },
+    units: {
+      name: 'units',
+      type: 'string',
+      description: 'Temperature units (celsius or fahrenheit)',
+      required: false
+    }
+  },
+  handler: async (params: Record<string, any>, context?: ToolContext) => {
+    try {
+      // Your tool implementation
+      const weather = await fetchWeather(params.location, params.units);
+      
+      return {
+        success: true,
+        data: {
+          temperature: weather.temp,
+          conditions: weather.conditions,
+          location: params.location
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+};
+```
+</Step>
+
+<Step>
+### Create the Plugin
+
+Bundle your tools into a plugin:
+
+```typescript
+import { Plugin } from '@astreus-ai/astreus';
+
+const weatherPlugin: Plugin = {
+  name: 'weather-plugin',
+  version: '1.0.0',
+  description: 'Weather information tools',
+  tools: [weatherTool],
+  
+  // Optional: Plugin initialization
+  initialize: async (config?: Record<string, any>) => {
+    console.log('Weather plugin initialized');
+  },
+  
+  // Optional: Plugin cleanup
+  cleanup: async () => {
+    console.log('Weather plugin cleaned up');
+  }
+};
+```
+</Step>
+
+<Step>
+### Register with Agent
+
+Register your plugin with an agent:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'WeatherAgent',
+  model: 'gpt-4'
+});
+
+// Register the plugin
+await agent.registerPlugin(weatherPlugin, {
+  name: 'weather-plugin',
+  config: {
+    apiKey: process.env.WEATHER_API_KEY
+  }
+});
+```
+</Step>
+</Steps>
+
+## Tool Parameter Types
+
+The plugin system supports comprehensive parameter validation:
+
+```typescript
+// Parameter type definitions
+interface ToolParameter {
+  name: string;              // Parameter name
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  description: string;       // Parameter description
+  required: boolean;         // Whether parameter is required
+  enum?: string[];          // Allowed values (for string types)
+  default?: any;            // Default value
+  properties?: Record<string, ToolParameter>; // For object types
+  items?: ToolParameter;    // For array types
+}
+```
+
+### Parameter Examples
+
+```typescript
+const advancedTool: ToolDefinition = {
+  name: 'process_data',
+  description: 'Process data with various options',
+  parameters: {
+    // String with enum values
+    format: {
+      name: 'format',
+      type: 'string',
+      description: 'Output format',
+      required: true,
+      enum: ['json', 'csv', 'xml']
+    },
+    
+    // Number with default
+    limit: {
+      name: 'limit',
+      type: 'number',
+      description: 'Maximum records to process',
+      required: false,
+      default: 100
+    },
+    
+    // Object with nested properties
+    options: {
+      name: 'options',
+      type: 'object',
+      description: 'Processing options',
+      required: false,
+      properties: {
+        includeHeaders: {
+          name: 'includeHeaders',
+          type: 'boolean',
+          description: 'Include column headers',
+          required: false,
+          default: true
+        }
+      }
+    },
+    
+    // Array of strings
+    fields: {
+      name: 'fields',
+      type: 'array',
+      description: 'Fields to include',
+      required: false,
+      items: {
+        name: 'field',
+        type: 'string',
+        description: 'Field name'
+      }
+    }
+  },
+  handler: async (params) => {
+    // Tool implementation
+    return { success: true, data: params };
+  }
+};
+```
+
+## Using Tools in Conversations
+
+### Automatic Tool Usage
+
+Agents with registered plugins can automatically use tools during conversations:
+
+```typescript
+const agent = await Agent.create({
+  name: 'AssistantAgent',
+  model: 'gpt-4'
+});
+
+await agent.registerPlugin(weatherPlugin);
+
+// Agent can automatically call tools based on conversation
+const response = await agent.ask("What's the weather like in Tokyo?");
+// Agent will automatically call get_weather tool and incorporate results
+
+console.log(response);
+// "The current weather in Tokyo is 22°C with clear skies..."
+```
+
+### Manual Tool Execution
+
+You can also execute tools manually:
+
+```typescript
+// Execute single tool
+const result = await agent.executeToolCall({
+  id: 'call-123',
+  name: 'get_weather',
+  parameters: { 
+    location: 'New York',
+    units: 'celsius'
+  }
+});
+
+console.log(result.success ? result.data : result.error);
+
+// Execute multiple tools
+const results = await agent.executeToolCalls([
+  { id: 'call-1', name: 'get_weather', parameters: { location: 'Tokyo' } },
+  { id: 'call-2', name: 'get_weather', parameters: { location: 'London' } }
+]);
+```
+
+### Tool-Enhanced Tasks
+
+Use tools in structured tasks with control options:
+
+```typescript
+const result = await agent.executeTaskWithTools(
+  "Compare the weather in Tokyo, London, and New York",
+  {
+    maxToolCalls: 10,           // Limit tool usage
+    allowedTools: ['get_weather'], // Restrict to specific tools
+    timeout: 30000              // 30 second timeout
+  }
+);
+```
+
+## Tool Context and Metadata
+
+Tools receive execution context with useful information:
+
+```typescript
+const contextAwareTool: ToolDefinition = {
+  name: 'log_action',
+  description: 'Log an action with context',
+  parameters: {
+    action: {
+      name: 'action',
+      type: 'string',
+      description: 'Action to log',
+      required: true
+    }
+  },
+  handler: async (params, context) => {
+    // Access execution context
+    console.log(`Agent ${context?.agentId} performed: ${params.action}`);
+    console.log(`Task ID: ${context?.taskId}`);
+    console.log(`User ID: ${context?.userId}`);
+    console.log(`Metadata:`, context?.metadata);
+    
+    return {
+      success: true,
+      data: { logged: true, timestamp: new Date().toISOString() }
+    };
+  }
+};
+```
+
+## Plugin Management
+
+### Plugin Registration
+
+```typescript
+// Register with configuration
+await agent.registerPlugin(myPlugin, {
+  name: 'my-plugin',
+  config: {
+    apiKey: 'your-api-key',
+    baseUrl: 'https://api.example.com'
+  }
+});
+```
+
+### Plugin Control
+
+```typescript
+// List registered plugins
+const plugins = agent.listPlugins();
+
+// Unregister plugin
+await agent.unregisterPlugin('weather-plugin');
+
+// Get specific plugin
+const weatherPlugin = agent.getPlugin('weather-plugin');
+```
+

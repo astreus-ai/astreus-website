@@ -1,0 +1,196 @@
+---
+title: Knowledge
+icon: BookOpen
+---
+
+![Knowledge](/docs/knowledge.webp)
+
+**RAG integration with document processing and vector search**
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Overview
+
+The Knowledge system provides retrieval-augmented generation (RAG) capabilities, allowing agents to access and utilize external documents in their responses. It automatically processes documents, creates vector embeddings, and enables semantic search for relevant information. Agents with knowledge can provide more accurate, contextual responses based on your documents.
+
+## Enabling Knowledge
+
+Enable knowledge for an agent by setting the `knowledge` option to `true`:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'KnowledgeAgent',
+  model: 'gpt-4',
+  knowledge: true  // Enable knowledge base access (default: false)
+});
+```
+
+## Adding Documents
+
+<Steps>
+<Step>
+### Add Text Content
+Add content directly as a string:
+
+```typescript
+await agent.addKnowledge(
+  'Your important content here',
+  'Document Title',
+  { category: 'documentation' }
+);
+```
+</Step>
+
+<Step>
+### Add from File
+Add content from supported file types:
+
+```typescript
+// Add PDF file
+await agent.addKnowledgeFromFile(
+  '/path/to/document.pdf',
+  { source: 'manual', version: '1.0' }
+);
+
+// Add text file
+await agent.addKnowledgeFromFile('/path/to/notes.txt');
+```
+</Step>
+
+<Step>
+### Add from Directory
+Process all supported files in a directory:
+
+```typescript
+await agent.addKnowledgeFromDirectory(
+  '/path/to/docs',
+  { project: 'documentation' }
+);
+```
+</Step>
+</Steps>
+
+## Supported File Types
+
+- **Text files**: `.txt`, `.md`, `.json`
+- **PDF files**: `.pdf` (with text extraction)
+
+## How It Works
+
+The knowledge system follows a sophisticated processing pipeline:
+
+<Steps>
+<Step>
+### Document Processing
+Documents are stored and indexed in the knowledge database with metadata.
+</Step>
+
+<Step>
+### Text Chunking
+Content is split into chunks (1000 characters with 200 character overlap) for optimal retrieval.
+</Step>
+
+<Step>
+### Vector Embeddings
+Each chunk is converted to vector embeddings using OpenAI or Ollama embedding models.
+</Step>
+
+<Step>
+### Semantic Search
+When agents receive queries, relevant chunks are retrieved using cosine similarity search.
+</Step>
+
+<Step>
+### Context Integration
+Retrieved information is automatically added to the agent's context for enhanced responses.
+</Step>
+</Steps>
+
+## Example Usage
+
+Here's a complete example of using knowledge with an agent:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create agent with knowledge enabled
+const agent = await Agent.create({
+  name: 'DocumentAssistant',
+  model: 'gpt-4',
+  knowledge: true,
+  systemPrompt: 'You are a helpful assistant with access to company documentation.'
+});
+
+// Add documentation
+await agent.addKnowledgeFromFile('./company-handbook.pdf', {
+  type: 'handbook',
+  department: 'hr'
+});
+
+await agent.addKnowledge(`
+Our API uses REST principles with JSON responses.
+Authentication is done via Bearer tokens.
+Rate limiting is 1000 requests per hour.
+`, 'API Documentation', {
+  type: 'api-docs',
+  version: '2.0'
+});
+
+// Query with automatic knowledge retrieval
+const response = await agent.ask('What is our API rate limit?');
+console.log(response);
+// The agent will automatically search the knowledge base and include relevant context
+
+// Manual knowledge search
+const results = await agent.searchKnowledge('API authentication', 5, 0.7);
+results.forEach(result => {
+  console.log(`Similarity: ${result.similarity}`);
+  console.log(`Content: ${result.content}`);
+});
+```
+
+## Managing Knowledge
+
+```typescript
+// List all documents
+const documents = await agent.getKnowledgeDocuments();
+
+// Delete specific document
+await agent.deleteKnowledgeDocument(documentId);
+
+// Clear all knowledge
+await agent.clearKnowledge();
+
+// Search with custom parameters
+const results = await agent.searchKnowledge(
+  'search query',
+  10,    // limit: max results
+  0.8    // threshold: similarity threshold
+);
+```
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# Database (required)
+KNOWLEDGE_DB_URL=postgresql://user:password@host:port/database
+
+# Embedding provider (optional, default: openai)
+EMBEDDING_PROVIDER=openai  # or 'ollama'
+EMBEDDING_MODEL=text-embedding-3-small
+
+# OpenAI (if using OpenAI embeddings)
+OPENAI_API_KEY=your_openai_key
+```
+
+### Chunking Options
+
+The system uses default chunking settings optimized for most use cases:
+- **Chunk size**: 1000 characters
+- **Chunk overlap**: 200 characters
+- **Similarity threshold**: 0.7
+

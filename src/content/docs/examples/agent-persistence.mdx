@@ -1,0 +1,52 @@
+---
+title: Agent Persistence
+icon: Database
+---
+
+![Example](/docs/example.webp)
+
+Save and load agents from database for reusability.
+
+## Agent Persistence
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create and configure an agent
+const agent = await Agent.create({
+  name: 'ProjectAssistant',
+  model: 'gpt-4o',
+  memory: true,
+  knowledge: true,
+  systemPrompt: 'You are a specialized project management assistant with memory and knowledge.'
+});
+
+// Use the agent for some tasks
+const task1 = await agent.createTask({
+  prompt: "Remember that our project deadline is March 15th"
+});
+await agent.executeTask(task1.id);
+
+console.log(`Created agent with ID: ${agent.getId()}`);
+
+// Later, in a different session...
+// Find the agent by name
+const loadedAgent = await Agent.findByName('ProjectAssistant');
+
+if (loadedAgent) {
+  // Agent retains all its configuration and memory
+  const task2 = await loadedAgent.createTask({
+    prompt: "What is our project deadline?"
+  });
+  
+  const result = await loadedAgent.executeTask(task2.id);
+  console.log(result.response); // Should remember March 15th
+}
+
+// List all saved agents
+const allAgents = await Agent.list();
+console.log(`Found ${allAgents.length} saved agents`);
+
+// Find by ID
+const agentById = await Agent.findById(1);
+```

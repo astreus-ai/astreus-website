@@ -1,0 +1,33 @@
+---
+title: Agent with Vision
+icon: Eye
+---
+
+![Example](/docs/example.webp)
+
+Create agents capable of processing and analyzing images.
+
+## Vision Agent
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'VisionBot',
+  model: 'gpt-4o',
+  vision: true,
+  systemPrompt: 'You can analyze and describe images in detail.'
+});
+
+// Analyze an image
+const task = await agent.createTask({
+  prompt: "Analyze this screenshot and describe what you see",
+  attachments: [{
+    type: 'image',
+    path: './screenshot.png'
+  }]
+});
+
+const result = await agent.executeTask(task.id);
+console.log(result.content); // Detailed image analysis
+```

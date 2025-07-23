@@ -34,7 +34,7 @@ export default function StructuredData({ type, data }: StructuredDataProps) {
           },
           description: 'Build, deploy, and manage intelligent conversational agents powered by large language models',
           url: 'https://astreus.org',
-          downloadUrl: 'https://github.com/astreus-ai/astreus',
+          downloadUrl: 'https://github.com/astreus-ai/astreus/astreus',
           author: {
             '@type': 'Organization',
             name: 'Astreus',

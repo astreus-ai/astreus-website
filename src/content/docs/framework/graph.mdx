@@ -1,0 +1,161 @@
+---
+title: Graph
+icon: GitBranch
+---
+
+![Graph](/docs/graph.webp)
+
+**Workflow orchestration with dependency management and parallel execution**
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Overview
+
+The Graph system enables you to create complex workflows by connecting tasks and agents with dependencies, conditions, and parallel execution capabilities. It provides a visual and programmatic way to orchestrate multi-step processes, handle branching logic, and coordinate multiple agents working together.
+
+## Creating a Graph
+
+Graphs are composed of nodes (tasks or agents) and edges (connections between them):
+
+```typescript
+import { Graph } from '@astreus-ai/astreus';
+
+// Create a workflow graph
+const graph = new Graph({
+  name: 'content-creation-pipeline',
+  description: 'Research and write technical content',
+  defaultAgentId: 1  // Use an existing agent ID
+});
+
+// Add task nodes
+const researchNodeId = graph.addTaskNode({
+  prompt: 'Research the latest TypeScript features and summarize key findings',
+  model: 'gpt-4',
+  metadata: { type: 'research' }
+});
+
+const writeNodeId = graph.addTaskNode({
+  prompt: 'Write a comprehensive blog post about the TypeScript features research',
+  model: 'gpt-4',
+  dependencies: [researchNodeId],  // Depends on research completion
+  metadata: { type: 'writing' }
+});
+
+// Execute the graph
+const results = await graph.run();
+
+console.log('Success:', results.success);
+console.log('Results:', results.results);
+```
+
+## Graph Execution Flow
+
+<Steps>
+<Step>
+### Node Resolution
+Graph analyzes all nodes and their dependencies to determine execution order.
+</Step>
+
+<Step>
+### Parallel Execution
+Independent nodes run simultaneously for optimal performance.
+</Step>
+
+<Step>
+### Dependency Waiting
+Dependent nodes wait for their prerequisites to complete before starting.
+</Step>
+
+<Step>
+### Result Collection
+All node outputs are collected and made available in the final result.
+</Step>
+</Steps>
+
+## Advanced Example
+
+Here's a complex workflow with dependencies and parallel execution:
+
+```typescript
+import { Graph } from '@astreus-ai/astreus';
+
+// Create workflow graph with default agent
+const graph = new Graph({
+  name: 'code-optimization-pipeline',
+  description: 'Analyze and optimize codebase',
+  defaultAgentId: 1,  // Use existing agent ID
+  maxConcurrency: 3   // Allow 3 parallel nodes
+});
+
+// Add task nodes
+const analysisNodeId = graph.addTaskNode({
+  prompt: 'Analyze the codebase for performance issues and categorize them by severity',
+  model: 'gpt-4',
+  priority: 10,  // High priority
+  metadata: { step: 'analysis' }
+});
+
+const optimizationNodeId = graph.addTaskNode({
+  prompt: 'Based on the analysis, implement performance optimizations',
+  model: 'gpt-4',
+  dependencies: [analysisNodeId],  // Depends on analysis
+  metadata: { step: 'optimization' }
+});
+
+const testNodeId = graph.addTaskNode({
+  prompt: 'Run performance tests and validate the optimizations',
+  model: 'gpt-4',
+  dependencies: [optimizationNodeId],  // Depends on optimization
+  metadata: { step: 'testing' }
+});
+
+const documentationNodeId = graph.addTaskNode({
+  prompt: 'Document all changes and performance improvements',
+  model: 'gpt-4',
+  dependencies: [analysisNodeId],  // Can run parallel to optimization
+  priority: 5,  // Lower priority
+  metadata: { step: 'documentation' }
+});
+
+// Add edges (optional, as dependencies already create edges)
+graph.addEdge(analysisNodeId, optimizationNodeId);
+graph.addEdge(analysisNodeId, documentationNodeId);
+graph.addEdge(optimizationNodeId, testNodeId);
+
+// Execute the graph
+const results = await graph.run({ stream: true });
+
+console.log('Pipeline results:', results);
+console.log('Completed nodes:', results.completedNodes);
+console.log('Failed nodes:', results.failedNodes);
+console.log('Duration:', results.duration, 'ms');
+
+// Access execution log
+const log = graph.getExecutionLog();
+log.forEach(entry => {
+  console.log(`[${entry.level}] ${entry.timestamp}: ${entry.message}`);
+});
+```
+
+## Graph Persistence
+
+Graphs can also be saved to and loaded from the database:
+
+```typescript
+// Save graph to database
+const graphId = await graph.save();
+console.log(`Graph saved with ID: ${graphId}`);
+
+// Load graph from database
+const loadedGraph = await Graph.findById(graphId);
+
+// List all saved graphs
+const graphs = await Graph.list();
+console.log('Available graphs:', graphs);
+
+// Update existing graph
+await graph.update();
+
+// Delete graph
+await graph.delete();
+```

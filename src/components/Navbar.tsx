@@ -4,11 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { FiBook, FiMenu, FiX } from 'react-icons/fi';
+import { FiZap, FiMenu, FiX } from 'react-icons/fi';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const menuList = ["Agents", "Plugins"];
+  const menuList: string[] = ['Documentation', 'Github'];
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -83,7 +83,7 @@ export default function Navbar() {
                   transition={{ delay: 0.8 + (i * 0.1) }}
                 >
                   <Link 
-                    href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
+                    href={item === "Github" ? "https://github.com/astreus-ai/astreus/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
                     target={item === "Github" ? "_blank" : undefined}
                     className={`text-white hover:text-white/80 transition-colors relative ${item === "Agents" ? "mr-3" : ""}`}
                   >
@@ -98,7 +98,7 @@ export default function Navbar() {
               ))}
             </div>
             
-            {/* Docs Button */}
+            {/* Get Started Button */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -106,11 +106,11 @@ export default function Navbar() {
               className="hidden md:block"
             >
               <Link 
-                href="/docs/guides/quick-start" 
+                href="/docs" 
                 className="px-5 py-3 text-sm bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors"
               >
-                <FiBook className="inline mr-2" size={18} />
-                <span className='uppercase'>Docs</span>
+                <FiZap className="inline mr-2" size={18} />
+                <span className='uppercase'>Get Started</span>
               </Link>
             </motion.div>
 
@@ -170,7 +170,7 @@ export default function Navbar() {
             {menuList.map((item) => (
               <Link 
                 key={item}
-                href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
+                href={item === "Github" ? "https://github.com/astreus-ai/astreus/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
                 target={item === "Github" ? "_blank" : undefined}
                 className="px-8 py-3 text-base font-medium text-white border border-white/20 rounded-full bg-black/20 hover:bg-white/10 transition-all text-center min-w-[200px] relative"
                 onClick={() => setMobileMenuOpen(false)}
@@ -184,14 +184,14 @@ export default function Navbar() {
               </Link>
             ))}
             
-            {/* Docs button moved right below links */}
+            {/* Get Started button moved right below links */}
             <Link 
-              href="/docs/guides/quick-start" 
+              href="/docs" 
               className="px-8 py-3 text-base font-medium bg-white text-black rounded-full hover:bg-white/90 transition-all text-center min-w-[200px]"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <FiBook className="inline mr-2" size={18} />
-              <span className='uppercase'>Docs</span>
+              <FiZap className="inline mr-2" size={18} />
+              <span className='uppercase'>Get Started</span>
             </Link>
           </div>
           
