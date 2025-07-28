@@ -7,6 +7,17 @@ icon: GitBranch
 
 Create simple workflow graphs to orchestrate multi-step processes.
 
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# Database for agent and graph persistence
+DATABASE_URL=sqlite:./astreus.db
+```
+
 ## Sequential Workflow
 
 ```typescript
@@ -21,7 +32,7 @@ const agent = await Agent.create({
 // Create a graph
 const graph = new Graph({
   name: 'research-workflow',
-  defaultAgentId: agent.getId()
+  defaultAgentId: agent.id
 });
 
 // Add sequential tasks

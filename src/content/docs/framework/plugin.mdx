@@ -117,7 +117,7 @@ import { Agent } from '@astreus-ai/astreus';
 
 const agent = await Agent.create({
   name: 'WeatherAgent',
-  model: 'gpt-4'
+  model: 'gpt-4o'
 });
 
 // Register the plugin
@@ -220,7 +220,7 @@ Agents with registered plugins can automatically use tools during conversations:
 ```typescript
 const agent = await Agent.create({
   name: 'AssistantAgent',
-  model: 'gpt-4'
+  model: 'gpt-4o'
 });
 
 await agent.registerPlugin(weatherPlugin);
@@ -303,31 +303,4 @@ const contextAwareTool: ToolDefinition = {
 };
 ```
 
-## Plugin Management
-
-### Plugin Registration
-
-```typescript
-// Register with configuration
-await agent.registerPlugin(myPlugin, {
-  name: 'my-plugin',
-  config: {
-    apiKey: 'your-api-key',
-    baseUrl: 'https://api.example.com'
-  }
-});
-```
-
-### Plugin Control
-
-```typescript
-// List registered plugins
-const plugins = agent.listPlugins();
-
-// Unregister plugin
-await agent.unregisterPlugin('weather-plugin');
-
-// Get specific plugin
-const weatherPlugin = agent.getPlugin('weather-plugin');
-```
 

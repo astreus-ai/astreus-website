@@ -7,6 +7,22 @@ icon: BookOpen
 
 Create agents with knowledge base capabilities for enhanced information retrieval.
 
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# Knowledge database (required for RAG)
+KNOWLEDGE_DB_URL=postgresql://user:password@localhost:5432/knowledge
+# or SQLite for development
+KNOWLEDGE_DB_URL=sqlite:./knowledge.db
+
+# Main database for agent persistence
+DATABASE_URL=sqlite:./astreus.db
+```
+
 ## Knowledge Agent
 
 ```typescript
@@ -16,6 +32,7 @@ import { Agent } from '@astreus-ai/astreus';
 const agent = await Agent.create({
   name: 'KnowledgeBot',
   model: 'gpt-4o',
+  embeddingModel: 'text-embedding-3-small', // Specify embedding model directly
   knowledge: true,
   systemPrompt: 'You can search and retrieve information from knowledge bases.'
 });

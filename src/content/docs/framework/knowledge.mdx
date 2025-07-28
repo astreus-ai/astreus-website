@@ -179,12 +179,21 @@ const results = await agent.searchKnowledge(
 # Database (required)
 KNOWLEDGE_DB_URL=postgresql://user:password@host:port/database
 
-# Embedding provider (optional, default: openai)
-EMBEDDING_PROVIDER=openai  # or 'ollama'
-EMBEDDING_MODEL=text-embedding-3-small
-
-# OpenAI (if using OpenAI embeddings)
+# API key for embeddings (uses same provider as agent's model)
 OPENAI_API_KEY=your_openai_key
+```
+
+### Embedding Model Configuration
+
+Specify the embedding model directly in the agent configuration:
+
+```typescript
+const agent = await Agent.create({
+  name: 'KnowledgeAgent',
+  model: 'gpt-4o',
+  embeddingModel: 'text-embedding-3-small',  // Specify embedding model here
+  knowledge: true
+});
 ```
 
 ### Chunking Options

@@ -5,7 +5,18 @@ icon: Layers
 
 ![Example](/docs/example.webp)
 
-Use Astreus's three-layer context system for long conversations.
+Use Astreus's context compression system for long conversations.
+
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# Database for agent persistence and context storage
+DATABASE_URL=sqlite:./astreus.db
+```
 
 ## Context Compression
 
@@ -15,7 +26,6 @@ import { Agent } from '@astreus-ai/astreus';
 const agent = await Agent.create({
   name: 'ContextAgent',
   model: 'gpt-4o',
-  memory: true,
   contextCompression: true, // Enable automatic context management
   systemPrompt: 'You can handle very long conversations efficiently.'
 });
@@ -27,7 +37,7 @@ for (let i = 1; i <= 50; i++) {
   });
   
   const result = await agent.executeTask(task.id);
-  console.log(`Fact ${i}:`, result.response.substring(0, 100) + '...');
+  console.log(`Fact ${i}:`, result.response.slice(0, 100) + '...');
 }
 
 // Test context retrieval - agent should remember early facts

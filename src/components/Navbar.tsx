@@ -83,7 +83,7 @@ export default function Navbar() {
                   transition={{ delay: 0.8 + (i * 0.1) }}
                 >
                   <Link 
-                    href={item === "Github" ? "https://github.com/astreus-ai/astreus/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
+                    href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
                     target={item === "Github" ? "_blank" : undefined}
                     className={`text-white hover:text-white/80 transition-colors relative ${item === "Agents" ? "mr-3" : ""}`}
                   >
@@ -170,7 +170,7 @@ export default function Navbar() {
             {menuList.map((item) => (
               <Link 
                 key={item}
-                href={item === "Github" ? "https://github.com/astreus-ai/astreus/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
+                href={item === "Github" ? "https://github.com/astreus-ai/astreus" : item === "Documentation" ? "/docs" : `/${item.toLowerCase()}`}
                 target={item === "Github" ? "_blank" : undefined}
                 className="px-8 py-3 text-base font-medium text-white border border-white/20 rounded-full bg-black/20 hover:bg-white/10 transition-all text-center min-w-[200px] relative"
                 onClick={() => setMobileMenuOpen(false)}

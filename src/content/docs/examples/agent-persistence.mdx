@@ -7,12 +7,28 @@ icon: Database
 
 Save and load agents from database for reusability.
 
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# Database for agent persistence (required)
+DATABASE_URL=postgresql://user:password@localhost:5432/astreus
+# or SQLite for development
+DATABASE_URL=sqlite:./astreus.db
+
+# Optional: Knowledge database for agents with knowledge enabled
+KNOWLEDGE_DB_URL=sqlite:./knowledge.db
+```
+
 ## Agent Persistence
 
 ```typescript
 import { Agent } from '@astreus-ai/astreus';
 
-// Create and configure an agent
+// Create and configure an agent with persistence capabilities
 const agent = await Agent.create({
   name: 'ProjectAssistant',
   model: 'gpt-4o',
@@ -27,7 +43,7 @@ const task1 = await agent.createTask({
 });
 await agent.executeTask(task1.id);
 
-console.log(`Created agent with ID: ${agent.getId()}`);
+console.log(`Created agent with ID: ${agent.id}`);
 
 // Later, in a different session...
 // Find the agent by name

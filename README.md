@@ -31,7 +31,7 @@ This project uses Next.js 15 with React 19, TypeScript, and Tailwind CSS 4 with 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/astreus-ai/astreus/astreus-website.git
+git clone https://github.com/astreus-ai/astreus-website.git
 cd astreus-website
 ```
 
@@ -102,8 +102,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Astreus Team - [https://astreus.org](https://astreus.org)
 
-Project Link: [https://github.com/astreus-ai/astreus/astreus](https://github.com/astreus-ai/astreus/astreus)
+Project Link: [https://github.com/astreus-ai/astreus](https://github.com/astreus-ai/astreus)
 
 ## 🔍 Learn More
 
-To learn more about Astreus, check out the [Astreus repository](https://github.com/astreus-ai/astreus/astreus). 
+To learn more about Astreus, check out the [Astreus repository](https://github.com/astreus-ai/astreus). 

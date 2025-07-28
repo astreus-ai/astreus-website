@@ -7,6 +7,20 @@ icon: Puzzle
 
 Create and register custom plugins with tools for agents.
 
+## Environment Setup
+
+```bash
+# .env
+# LLM API key for agent
+OPENAI_API_KEY=sk-***
+
+# Weather API key for the custom plugin (example)
+WEATHER_API_KEY=your-weather-api-key
+
+# Database for agent persistence
+DATABASE_URL=sqlite:./astreus.db
+```
+
 ## Custom Weather Plugin
 
 ```typescript

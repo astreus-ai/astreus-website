@@ -94,7 +94,7 @@ const Hero = () => {
           className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto"
           variants={itemVariants}
         >
-          Open-source AI agent framework for creating, deploying and managing intelligent conversational AI agents
+          Open-source AI agent framework for building autonomous systems that solve real-world tasks effectively
         </motion.p>
         
         {/* Buttons */}
@@ -114,7 +114,7 @@ const Hero = () => {
           
           <motion.div variants={buttonVariants}>
             <Link 
-              href="https://github.com/astreus-ai/astreus/astreus" 
+              href="https://github.com/astreus-ai/astreus" 
               target="_blank"
               className="px-6 text-sm uppercase py-4 bg-transparent backdrop-blur-sm border border-white/20 text-white rounded-full font-semibold hover:bg-white/10 transition-colors text-lg flex items-center gap-2"
             >

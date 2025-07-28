@@ -7,6 +7,22 @@ icon: Network
 
 Build sophisticated multi-agent workflows with advanced orchestration patterns.
 
+## Environment Setup
+
+```bash
+# .env
+# LLM API key for all agents
+OPENAI_API_KEY=sk-***
+
+# Database for agents and graph persistence
+DATABASE_URL=sqlite:./astreus.db
+
+# Optional: Different models for different agents
+RESEARCHER_MODEL=gpt-4o
+WRITER_MODEL=gpt-4o
+EDITOR_MODEL=gpt-4o-mini
+```
+
 ## Multi-Agent Pipeline
 
 ```typescript
@@ -34,27 +50,27 @@ const editor = await Agent.create({
 // Create complex pipeline
 const pipeline = new Graph({
   name: 'content-pipeline',
-  defaultAgentId: researcher.getId(),
+  defaultAgentId: researcher.id,
   maxConcurrency: 2
 });
 
 // Research phase
 const research = pipeline.addTaskNode({
   prompt: 'Research AI trends in 2024',
-  agentId: researcher.getId()
+  agentId: researcher.id
 });
 
 // Writing phase
 const writing = pipeline.addTaskNode({
   prompt: 'Write an article based on the research',
-  agentId: writer.getId(),
+  agentId: writer.id,
   dependencies: [research]
 });
 
 // Editing phase
 const editing = pipeline.addTaskNode({
   prompt: 'Review and polish the article',
-  agentId: editor.getId(),
+  agentId: editor.id,
   dependencies: [writing]
 });
 

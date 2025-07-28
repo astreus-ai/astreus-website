@@ -7,6 +7,17 @@ icon: Eye
 
 Create agents capable of processing and analyzing images.
 
+## Environment Setup
+
+```bash
+# .env
+# Vision-capable model API key
+OPENAI_API_KEY=sk-***
+
+# Database for agent persistence
+DATABASE_URL=sqlite:./astreus.db
+```
+
 ## Vision Agent
 
 ```typescript
@@ -15,6 +26,7 @@ import { Agent } from '@astreus-ai/astreus';
 const agent = await Agent.create({
   name: 'VisionBot',
   model: 'gpt-4o',
+  visionModel: 'gpt-4o',  // Specify vision model directly
   vision: true,
   systemPrompt: 'You can analyze and describe images in detail.'
 });
@@ -29,5 +41,5 @@ const task = await agent.createTask({
 });
 
 const result = await agent.executeTask(task.id);
-console.log(result.content); // Detailed image analysis
+console.log(result.response); // Detailed image analysis
 ```

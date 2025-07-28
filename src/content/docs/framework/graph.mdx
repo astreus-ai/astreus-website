@@ -20,31 +20,41 @@ Graphs are composed of nodes (tasks or agents) and edges (connections between th
 ```typescript
 import { Graph } from '@astreus-ai/astreus';
 
-// Create a workflow graph
+// Create a workflow graph with agent reference
+const agent = await Agent.create({
+  name: 'ContentAgent',
+  model: 'gpt-4o'
+});
+
 const graph = new Graph({
   name: 'content-creation-pipeline',
   description: 'Research and write technical content',
-  defaultAgentId: 1  // Use an existing agent ID
-});
+  defaultAgentId: agent.id  // Use the agent ID
+}, agent);
 
 // Add task nodes
 const researchNodeId = graph.addTaskNode({
   prompt: 'Research the latest TypeScript features and summarize key findings',
-  model: 'gpt-4',
+  model: 'gpt-4o',
+  priority: 10,
   metadata: { type: 'research' }
 });
 
 const writeNodeId = graph.addTaskNode({
-  prompt: 'Write a comprehensive blog post about the TypeScript features research',
-  model: 'gpt-4',
+  prompt: 'Write a comprehensive blog post based on the research findings',
+  model: 'gpt-4o',
   dependencies: [researchNodeId],  // Depends on research completion
+  priority: 5,
   metadata: { type: 'writing' }
 });
 
 // Execute the graph
-const results = await graph.run();
+const results = await graph.run({ stream: true });
 
 console.log('Success:', results.success);
+console.log('Completed nodes:', results.completedNodes);
+console.log('Failed nodes:', results.failedNodes);
+console.log('Duration:', results.duration, 'ms');
 console.log('Results:', results.results);
 ```
 
@@ -74,47 +84,57 @@ All node outputs are collected and made available in the final result.
 
 ## Advanced Example
 
-Here's a complex workflow with dependencies and parallel execution:
+Here's a complex workflow with dependencies, parallel execution, and error handling:
 
 ```typescript
 import { Graph } from '@astreus-ai/astreus';
 
 // Create workflow graph with default agent
+const agent = await Agent.create({
+  name: 'OptimizationAgent',
+  model: 'gpt-4o'
+});
+
 const graph = new Graph({
   name: 'code-optimization-pipeline',
   description: 'Analyze and optimize codebase',
-  defaultAgentId: 1,  // Use existing agent ID
-  maxConcurrency: 3   // Allow 3 parallel nodes
-});
+  defaultAgentId: agent.id,
+  maxConcurrency: 3,   // Allow 3 parallel nodes
+  timeout: 300000,     // 5 minute timeout
+  retryAttempts: 2     // Retry failed nodes twice
+}, agent);
 
-// Add task nodes
+// Add task nodes with proper configuration
 const analysisNodeId = graph.addTaskNode({
   prompt: 'Analyze the codebase for performance issues and categorize them by severity',
-  model: 'gpt-4',
+  model: 'gpt-4o',
   priority: 10,  // High priority
-  metadata: { step: 'analysis' }
+  metadata: { step: 'analysis', category: 'review' }
 });
 
 const optimizationNodeId = graph.addTaskNode({
   prompt: 'Based on the analysis, implement performance optimizations',
-  model: 'gpt-4',
+  model: 'gpt-4o',
   dependencies: [analysisNodeId],  // Depends on analysis
-  metadata: { step: 'optimization' }
+  priority: 8,
+  metadata: { step: 'optimization', category: 'implementation' }
 });
 
 const testNodeId = graph.addTaskNode({
   prompt: 'Run performance tests and validate the optimizations',
-  model: 'gpt-4',
+  model: 'gpt-4o',
   dependencies: [optimizationNodeId],  // Depends on optimization
-  metadata: { step: 'testing' }
+  priority: 6,
+  stream: true,  // Enable streaming for real-time feedback
+  metadata: { step: 'testing', category: 'validation' }
 });
 
 const documentationNodeId = graph.addTaskNode({
   prompt: 'Document all changes and performance improvements',
-  model: 'gpt-4',
+  model: 'gpt-4o',
   dependencies: [analysisNodeId],  // Can run parallel to optimization
   priority: 5,  // Lower priority
-  metadata: { step: 'documentation' }
+  metadata: { step: 'documentation', category: 'docs' }
 });
 
 // Add edges (optional, as dependencies already create edges)
@@ -130,32 +150,66 @@ console.log('Completed nodes:', results.completedNodes);
 console.log('Failed nodes:', results.failedNodes);
 console.log('Duration:', results.duration, 'ms');
 
-// Access execution log
-const log = graph.getExecutionLog();
-log.forEach(entry => {
-  console.log(`[${entry.level}] ${entry.timestamp}: ${entry.message}`);
+// Access individual node results
+Object.entries(results.results).forEach(([nodeId, result]) => {
+  console.log(`Node ${nodeId}:`, result);
 });
+
+// Check for errors
+if (results.errors && Object.keys(results.errors).length > 0) {
+  console.log('Errors:', results.errors);
+}
 ```
 
-## Graph Persistence
+## Graph Configuration
 
-Graphs can also be saved to and loaded from the database:
+Graphs support various configuration options:
 
 ```typescript
-// Save graph to database
-const graphId = await graph.save();
-console.log(`Graph saved with ID: ${graphId}`);
+interface GraphConfig {
+  id?: string;                 // Optional graph ID
+  name: string;                // Graph name (required)
+  description?: string;        // Graph description
+  defaultAgentId?: number;     // Default agent for task nodes
+  maxConcurrency?: number;     // Max parallel execution (default: 1)
+  timeout?: number;            // Execution timeout in ms
+  retryAttempts?: number;      // Retry attempts for failed nodes
+  metadata?: MetadataObject;   // Custom metadata
+}
 
-// Load graph from database
-const loadedGraph = await Graph.findById(graphId);
+// Example with full configuration
+const graph = new Graph({
+  name: 'advanced-pipeline',
+  description: 'Complex workflow with error handling',
+  defaultAgentId: agent.id,
+  maxConcurrency: 5,
+  timeout: 600000,  // 10 minutes
+  retryAttempts: 3,
+  metadata: { project: 'automation', version: '1.0' }
+}, agent);
+```
 
-// List all saved graphs
-const graphs = await Graph.list();
-console.log('Available graphs:', graphs);
+## Node Types and Options
 
-// Update existing graph
-await graph.update();
+### Task Nodes
+```typescript
+interface AddTaskNodeOptions {
+  prompt: string;              // Task prompt (required)
+  model?: string;              // Override model for this task
+  agentId?: number;            // Override default agent
+  stream?: boolean;            // Enable streaming for this task
+  dependencies?: string[];     // Node IDs this task depends on
+  priority?: number;           // Execution priority (higher = earlier)
+  metadata?: MetadataObject;   // Custom metadata
+}
+```
 
-// Delete graph
-await graph.delete();
+### Agent Nodes
+```typescript
+interface AddAgentNodeOptions {
+  agentId: number;             // Agent ID (required)
+  dependencies?: string[];     // Node IDs this agent depends on
+  priority?: number;           // Execution priority
+  metadata?: MetadataObject;   // Custom metadata
+}
 ```

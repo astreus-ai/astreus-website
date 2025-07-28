@@ -22,7 +22,7 @@ import { Agent } from '@astreus-ai/astreus';
 
 const agent = await Agent.create({
   name: 'TaskAgent',
-  model: 'gpt-4'
+  model: 'gpt-4o'
 });
 
 // Create a task
@@ -43,13 +43,18 @@ Tasks can be configured with the following attributes:
 interface TaskRequest {
   prompt: string;              // The task instruction or query
   useTools?: boolean;          // Enable/disable tool usage (default: true)
+  mcpServers?: MCPServerDefinition[]; // Task-level MCP servers
+  plugins?: Array<{            // Task-level plugins
+    plugin: Plugin;
+    config?: PluginConfig;
+  }>;
   attachments?: Array<{        // Files to attach to the task
     type: 'image' | 'pdf' | 'text' | 'markdown' | 'code' | 'json' | 'file';
     path: string;              // File path
     name?: string;             // Display name
     language?: string;         // Programming language (for code files)
   }>;
-  metadata?: Record<string, any>; // Custom metadata for tracking
+  metadata?: MetadataObject;   // Custom metadata for tracking
 }
 ```
 
@@ -57,12 +62,18 @@ interface TaskRequest {
 
 - **prompt**: The main instruction or query for the task. This is the only required field.
 - **useTools**: Controls whether the task can use tools/plugins. Defaults to `true` (inherits from agent if not specified).
+- **mcpServers**: Task-specific MCP (Model Context Protocol) servers to enable for this task.
+- **plugins**: Task-specific plugins to register for this task execution.
 - **attachments**: Array of files to attach to the task. Supports images, PDFs, text files, code files, and more.
 - **metadata**: Custom key-value pairs for organizing and tracking tasks (e.g., category, priority, tags).
 
 ## Task Lifecycle
 
 Tasks go through several states during execution:
+
+```typescript
+type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
+```
 
 <Steps>
 <Step>
@@ -71,7 +82,7 @@ Task is created but not yet started. Waiting for execution or dependencies.
 </Step>
 
 <Step>
-### Running
+### In Progress
 Task is actively being executed by the agent. Tools may be used during this phase.
 </Step>
 
@@ -96,7 +107,7 @@ import { Agent } from '@astreus-ai/astreus';
 // Create an agent
 const agent = await Agent.create({
   name: 'CodeReviewAssistant',
-  model: 'gpt-4',
+  model: 'gpt-4o',
   vision: true // Enable vision for screenshots
 });
 
@@ -143,9 +154,10 @@ const codeReviewTask = await agent.createTask({
   }
 });
 
-// Execute task
+// Execute task with streaming
 const result = await agent.executeTask(codeReviewTask.id, {
-  stream: true
+  model: 'gpt-4o',  // Override model for this task
+  stream: true      // Enable streaming response
 });
 
 console.log('Code review completed:', result.response);
@@ -166,8 +178,12 @@ const tasksWithFiles = await agent.listTasks({
 });
 
 tasksWithFiles.forEach(task => {
+  console.log(`Task ${task.id}: ${task.status}`);
   if (task.metadata?.attachments) {
-    console.log(`Task ${task.id} has ${task.metadata.attachments.length} attachments`);
+    console.log(`  - Has attachments`);
+  }
+  if (task.completedAt) {
+    console.log(`  - Completed: ${task.completedAt.toISOString()}`);
   }
 });
 ```
@@ -205,3 +221,4 @@ const recentTasks = await agent.listTasks({
   limit: 10
 });
 ```
+

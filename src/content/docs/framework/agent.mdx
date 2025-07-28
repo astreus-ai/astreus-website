@@ -50,17 +50,22 @@ interface AgentConfig {
   // Required
   name: string;                 // Unique identifier for the agent
   
-  // Optional
+  // Optional - Core Settings  
   description?: string;         // Agent description
-  model?: string;              // LLM model to use (default: 'gpt-4')
-  temperature?: number;        // Control response randomness (0-1)
-  maxTokens?: number;          // Maximum response length
+  model?: string;              // LLM model to use (default: 'gpt-4o-mini')
+  embeddingModel?: string;     // Specific model for embeddings (auto-detected)
+  visionModel?: string;        // Specific model for vision (auto-detected)
+  temperature?: number;        // Control response randomness (0-1, default: 0.7)
+  maxTokens?: number;          // Maximum response length (default: 2000)
   systemPrompt?: string;       // Custom system instructions
+  
+  // Optional - Capabilities
   memory?: boolean;            // Enable persistent memory (default: false)
   knowledge?: boolean;         // Enable knowledge base access (default: false)
-  vision?: boolean;            // Enable image processing
+  vision?: boolean;            // Enable image processing (default: false)
   useTools?: boolean;          // Enable tool/plugin usage (default: true)
-  contextCompression?: boolean; // Enable smart context management
+  contextCompression?: boolean; // Enable smart context management (default: false)
+  debug?: boolean;             // Enable debug logging (default: false)
 }
 ```
 
@@ -70,7 +75,9 @@ interface AgentConfig {
 const fullyConfiguredAgent = await Agent.create({
   name: 'AdvancedAssistant',
   description: 'Multi-purpose AI assistant',
-  model: 'gpt-4.5',
+  model: 'gpt-4o',
+  embeddingModel: 'text-embedding-3-small', // Optional: specific embedding model
+  visionModel: 'gpt-4o',                    // Optional: specific vision model
   temperature: 0.7,
   maxTokens: 2000,
   systemPrompt: 'You are an expert software architect...',
@@ -78,6 +85,8 @@ const fullyConfiguredAgent = await Agent.create({
   knowledge: true,
   vision: true,
   useTools: true,
-  contextCompression: true
+  contextCompression: true,
+  debug: true  // Enable debug logging
 });
 ```
+

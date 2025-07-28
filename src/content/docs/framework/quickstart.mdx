@@ -95,7 +95,7 @@ const agent = await Agent.create({
 // Create a graph for complex workflows
 const graph = new Graph({
   name: 'Research Pipeline',
-  defaultAgentId: agent.getId()
+  defaultAgentId: agent.id
 });
 
 // Add task nodes
@@ -115,7 +115,7 @@ const summaryNode = graph.addTaskNode({
 
 // Run the graph
 const graphResult = await graph.run();
-console.log(graphResult.results[summaryNode].response);
+console.log(graphResult.results[summaryNode]);
 ```
 </Step>
 

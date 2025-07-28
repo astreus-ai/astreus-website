@@ -7,6 +7,17 @@ icon: Paperclip
 
 Attach multiple file types to tasks for comprehensive analysis.
 
+## Environment Setup
+
+```bash
+# .env
+# Vision-capable model for image analysis
+OPENAI_API_KEY=sk-***
+
+# Database for agent persistence
+DATABASE_URL=sqlite:./astreus.db
+```
+
 ## Task with Multiple Attachments
 
 ```typescript
@@ -15,6 +26,7 @@ import { Agent } from '@astreus-ai/astreus';
 const agent = await Agent.create({
   name: 'AnalysisAgent',
   model: 'gpt-4o',
+  visionModel: 'gpt-4o',  // Specify vision model directly
   vision: true // Enable vision for images
 });
 

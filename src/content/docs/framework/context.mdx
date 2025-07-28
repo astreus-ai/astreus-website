@@ -7,36 +7,19 @@ icon: Layers
 
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-**Three-layer context management system with automatic compression**
+**Smart context management for long conversations with automatic compression**
 
 ## Overview
 
-Context management in Astreus uses a sophisticated three-layer system to efficiently handle conversation history while respecting token limits. The system automatically compresses and manages context to ensure agents can maintain long conversations without exceeding model constraints, while preserving the most important information.
+Context compression in Astreus provides intelligent conversation management by automatically handling long conversation histories. The system compresses older messages while preserving important information, ensuring agents can maintain coherent long conversations without exceeding model token limits.
 
-## Three-Layer System
+## How It Works
 
-The context management system operates across three distinct layers:
+Context compression automatically manages conversation history in the background. When conversations get long and approach token limits, the system intelligently compresses older messages while preserving important information.
 
-<Steps>
-<Step>
-### Immediate Context
-The most recent messages in the conversation that are sent directly to the LLM. This layer contains the full, uncompressed conversation history up to the token limit.
-</Step>
+## Basic Usage
 
-<Step>
-### Summarized Context
-When conversations exceed the immediate context limit, older messages are automatically summarized and compressed. This layer maintains the essence of past conversations in a condensed format.
-</Step>
-
-<Step>
-### Persistent Context
-Long-term storage of all conversation history. When needed, the system can retrieve and reconstruct context from this layer using vector search to find relevant past interactions.
-</Step>
-</Steps>
-
-## Example
-
-Here's how context management works automatically in Astreus:
+Enable context compression to get automatic conversation management:
 
 ```typescript
 import { Agent } from '@astreus-ai/astreus';
@@ -44,30 +27,46 @@ import { Agent } from '@astreus-ai/astreus';
 // Create an agent with context compression enabled
 const agent = await Agent.create({
   name: 'ContextAwareAgent',
-  model: 'gpt-4',
-  memory: true,
-  contextCompression: true  // Enable automatic context management
+  model: 'gpt-4o',
+  contextCompression: true  // Enable smart context management
 });
 
-// Long conversation example
-for (let i = 1; i <= 20; i++) {
+// Long conversations are automatically managed
+for (let i = 1; i <= 50; i++) {
   const response = await agent.ask(`Tell me fact #${i} about TypeScript`);
   console.log(`Fact ${i}:`, response);
 }
 
-// After many messages, the system automatically:
-// 1. Keeps recent messages in immediate context
-// 2. Summarizes older messages to save tokens
-// 3. Stores everything in persistent context
-
-// The agent can still reference early conversation
+// Agent can still reference early conversation through compressed context
 const summary = await agent.ask('What was the first fact you told me?');
-console.log(summary);
-// The agent retrieves context from compressed/persistent layers
-
-// Context management happens transparently
-const analysis = await agent.ask('Analyze all the TypeScript facts you shared');
-// System automatically reconstructs relevant context from all three layers
+console.log(summary); // System retrieves from compressed context
 ```
 
-The context compression system ensures that agents can handle conversations of any length while maintaining coherence and staying within token limits.
+## Example with Tasks
+
+Context compression works with both direct conversations and tasks:
+
+```typescript
+const agent = await Agent.create({
+  name: 'ResearchAgent',
+  model: 'gpt-4o',
+  contextCompression: true,
+  memory: true // Often used together with memory
+});
+
+// Create multiple related tasks
+const task1 = await agent.createTask({
+  prompt: "Research the latest trends in AI development"
+});
+
+const result1 = await agent.executeTask(task1.id);
+
+const task2 = await agent.createTask({
+  prompt: "Based on the research, what are the key opportunities?"
+});
+
+const result2 = await agent.executeTask(task2.id);
+// Task can reference previous context even if it was compressed
+```
+
+Context compression ensures agents can handle conversations and tasks of any length while maintaining coherence and staying within token limits.

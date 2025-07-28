@@ -131,33 +131,32 @@ const result = await agent.analyzeImageFromBase64(base64Image);
 
 ## Configuration
 
+### Vision Model Configuration
+
+Specify the vision model directly in the agent configuration:
+
+```typescript
+const agent = await Agent.create({
+  name: 'VisionAgent',
+  model: 'gpt-4o',
+  visionModel: 'gpt-4o',  // Specify vision model here
+  vision: true
+});
+```
+
 ### Environment Variables
 
 ```bash
-# Provider selection
-VISION_PROVIDER=openai  # Default: 'openai' if not set
-VISION_MODEL=gpt-4o     # Default: 'gpt-4o' for OpenAI, 'llava' for Ollama
-
-# OpenAI configuration  
-OPENAI_VISION_API_KEY=your_openai_key  # Optional, falls back to OPENAI_API_KEY
-OPENAI_API_KEY=your_openai_key         # Used if OPENAI_VISION_API_KEY not set
+# API keys (auto-detected based on model)
+OPENAI_API_KEY=your_openai_key         # For OpenAI models
+ANTHROPIC_API_KEY=your_anthropic_key   # For Claude models
+GOOGLE_API_KEY=your_google_key         # For Gemini models
 
 # Ollama configuration (local)
 OLLAMA_BASE_URL=http://localhost:11434  # Default if not set
 ```
 
-### Vision Configuration
-
-Configure the vision service with these options:
-
-```typescript
-interface VisionConfig {
-  provider: 'openai' | 'ollama';  // Vision provider
-  model?: string;                  // Model to use
-  apiKey?: string;                 // API key for provider
-  baseURL?: string;                // Custom base URL (OpenAI only)
-}
-```
+The vision system automatically selects the appropriate provider based on the `visionModel` specified in the agent configuration.
 
 ### Analysis Options
 
@@ -246,32 +245,9 @@ const response3 = await agent.ask(
 - **Default Model**: `llava`
 - **Features**: Local processing, no API costs, offline capability
 
-## Advanced Usage
+## Batch Processing
 
-### Custom Vision Service
-
-```typescript
-import { VisionService, VisionConfig } from '@astreus-ai/astreus';
-
-// Create custom vision service with configuration
-const config: VisionConfig = {
-  provider: 'openai',
-  model: 'gpt-4o',
-  apiKey: 'your-key',
-  baseURL: 'https://api.openai.com/v1'  // Optional
-};
-
-const visionService = new VisionService(config);
-
-// Direct service usage
-const analysis: string = await visionService.analyzeImage('/path/to/image.jpg', {
-  prompt: 'Perform detailed medical image analysis',
-  maxTokens: 2000,
-  detail: 'high'
-});
-```
-
-### Batch Processing
+Process multiple images efficiently:
 
 ```typescript
 const images = [
@@ -280,6 +256,7 @@ const images = [
   '/path/to/image3.gif'
 ];
 
+// Process all images in parallel
 const results = await Promise.all(
   images.map(imagePath => 
     agent.describeImage(imagePath, 'concise')
@@ -287,6 +264,18 @@ const results = await Promise.all(
 );
 
 console.log('Analysis results:', results);
+
+// Or use task attachments for batch processing
+const batchTask = await agent.createTask({
+  prompt: 'Analyze all these images and provide a comparative report',
+  attachments: images.map(path => ({
+    type: 'image',
+    path,
+    name: path.split('/').pop()
+  }))
+});
+
+const batchResult = await agent.executeTask(batchTask.id);
 ```
 
 
