@@ -26,6 +26,7 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable}`} suppressHydrationWarning>
       <head>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <StructuredData 
           type="organization" 
           data={{}} 
@@ -59,6 +60,8 @@ export default function RootLayout({
             storageRequirement: "100MB"
           }} 
         />
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
       </head>
