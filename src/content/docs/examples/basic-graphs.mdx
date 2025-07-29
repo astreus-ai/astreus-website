@@ -1,0 +1,51 @@
+---
+title: Basic Graphs
+icon: GitBranch
+---
+
+![Example](/docs/example.webp)
+
+Create simple workflow graphs to orchestrate multi-step processes.
+
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# Database for agent and graph persistence
+DATABASE_URL=sqlite:./astreus.db
+```
+
+## Sequential Workflow
+
+```typescript
+import { Agent, Graph } from '@astreus-ai/astreus';
+
+// Create an agent
+const agent = await Agent.create({
+  name: 'WorkflowAgent',
+  model: 'gpt-4o'
+});
+
+// Create a graph
+const graph = new Graph({
+  name: 'research-workflow',
+  defaultAgentId: agent.id
+});
+
+// Add sequential tasks
+const research = graph.addTaskNode({
+  prompt: 'Research artificial intelligence trends'
+});
+
+const summary = graph.addTaskNode({
+  prompt: 'Summarize the research findings',
+  dependencies: [research]
+});
+
+// Execute the graph
+const results = await graph.run();
+console.log('Final result:', results.results[summary].response);
+```

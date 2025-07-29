@@ -1,25 +1,6 @@
 {
   "pages": [
-    "---Core Concepts---",
-    "agents",
-    "chat",
-    "memory",
-    "tasks",
-    "---Features---",
-    "personality",
-    "rag",
-    "intent-recognition",
-    "media-analysis",
-    "context",
-    "---Infrastructure---",
-    "configuration",
-    "database",
-    "logging",
-    "---Integrations---",
-    "providers",
-    "plugin-registry",
-    "---",
-    "plugins",
-    "guides"
+    "framework",
+    "examples"
   ]
 }

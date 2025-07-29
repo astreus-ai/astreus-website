@@ -1,0 +1,72 @@
+---
+title: Context
+icon: Layers
+---
+
+![Context](/docs/context.webp)
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+**Smart context management for long conversations with automatic compression**
+
+## Overview
+
+Context compression in Astreus provides intelligent conversation management by automatically handling long conversation histories. The system compresses older messages while preserving important information, ensuring agents can maintain coherent long conversations without exceeding model token limits.
+
+## How It Works
+
+Context compression automatically manages conversation history in the background. When conversations get long and approach token limits, the system intelligently compresses older messages while preserving important information.
+
+## Basic Usage
+
+Enable context compression to get automatic conversation management:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create an agent with context compression enabled
+const agent = await Agent.create({
+  name: 'ContextAwareAgent',
+  model: 'gpt-4o',
+  contextCompression: true  // Enable smart context management
+});
+
+// Long conversations are automatically managed
+for (let i = 1; i <= 50; i++) {
+  const response = await agent.ask(`Tell me fact #${i} about TypeScript`);
+  console.log(`Fact ${i}:`, response);
+}
+
+// Agent can still reference early conversation through compressed context
+const summary = await agent.ask('What was the first fact you told me?');
+console.log(summary); // System retrieves from compressed context
+```
+
+## Example with Tasks
+
+Context compression works with both direct conversations and tasks:
+
+```typescript
+const agent = await Agent.create({
+  name: 'ResearchAgent',
+  model: 'gpt-4o',
+  contextCompression: true,
+  memory: true // Often used together with memory
+});
+
+// Create multiple related tasks
+const task1 = await agent.createTask({
+  prompt: "Research the latest trends in AI development"
+});
+
+const result1 = await agent.executeTask(task1.id);
+
+const task2 = await agent.createTask({
+  prompt: "Based on the research, what are the key opportunities?"
+});
+
+const result2 = await agent.executeTask(task2.id);
+// Task can reference previous context even if it was compressed
+```
+
+Context compression ensures agents can handle conversations and tasks of any length while maintaining coherence and staying within token limits.

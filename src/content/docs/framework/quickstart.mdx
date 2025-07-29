@@ -1,0 +1,124 @@
+---
+title: Quickstart
+icon: Rocket
+---
+
+![Quickstart](/docs/quickstart.webp)
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+**Build your first AI agent with Astreus in under 2 minutes**
+
+Let's create a simple agent that can execute tasks and respond intelligently.
+
+Before we proceed, make sure you have Astreus installed. If you haven't installed it yet, follow the [installation guide](/docs/framework/install).
+
+<Steps>
+
+<Step>
+### Create Environment File
+
+Create a `.env` file in your project root and add your OpenAI API key:
+
+```bash
+touch .env
+```
+
+Add your API key to the `.env` file:
+
+```bash
+OPENAI_API_KEY=sk-***
+```
+</Step>
+
+<Step>
+### Create your First Agent
+
+Create an agent with memory and system prompt:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create agent
+const agent = await Agent.create({
+  name: 'ResearchAgent',
+  model: 'gpt-4o',
+  memory: true,
+  systemPrompt: 'You are an expert research assistant.'
+});
+```
+</Step>
+
+<Step>
+### Create and Execute Task
+
+Create a task and execute it with your agent:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create agent
+const agent = await Agent.create({
+  name: 'ResearchAgent',
+  model: 'gpt-4o',
+  memory: true,
+  systemPrompt: 'You are an expert research assistant.'
+});
+
+// Create a task
+const task = await agent.createTask({
+  prompt: "Research latest news in Anthropic and OpenAI"
+});
+
+// Execute the task
+const result = await agent.executeTask(task.id);
+console.log(result.response);
+```
+</Step>
+
+<Step>
+### Build a Graph Workflow
+
+Create a workflow graph with multiple tasks:
+
+```typescript
+import { Agent, Graph } from '@astreus-ai/astreus';
+
+// Create agent
+const agent = await Agent.create({
+  name: 'ResearchAgent',
+  model: 'gpt-4o',
+  memory: true,
+  systemPrompt: 'You are an expert research assistant.'
+});
+
+// Create a graph for complex workflows
+const graph = new Graph({
+  name: 'Research Pipeline',
+  defaultAgentId: agent.id
+});
+
+// Add task nodes
+const researchNode = graph.addTaskNode({
+  prompt: 'Research the latest AI developments'
+});
+
+const analysisNode = graph.addTaskNode({
+  prompt: 'Analyze the research findings',
+  dependencies: [researchNode]
+});
+
+const summaryNode = graph.addTaskNode({
+  prompt: 'Create a summary report',
+  dependencies: [analysisNode]
+});
+
+// Run the graph
+const graphResult = await graph.run();
+console.log(graphResult.results[summaryNode]);
+```
+</Step>
+
+</Steps>
+
+Congratulations! You've created your first AI agent with Astreus.

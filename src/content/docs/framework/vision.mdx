@@ -1,0 +1,301 @@
+---
+title: Vision
+icon: Eye
+---
+
+![Vision](/docs/vision.webp)
+
+**Image analysis and document processing for multimodal interactions**
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Overview
+
+The Vision system enables agents to process and analyze images, providing multimodal AI capabilities for richer interactions. It supports multiple image formats, offers various analysis modes, and integrates seamlessly with both OpenAI and local Ollama providers for flexible deployment options.
+
+## Enabling Vision
+
+Enable vision capabilities for an agent by setting the `vision` option to `true`:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'VisionAgent',
+  model: 'gpt-4o',  // Vision-capable model
+  vision: true      // Enable vision capabilities (default: false)
+});
+```
+
+## Attachment System
+
+Astreus supports an intuitive attachment system for working with images:
+
+```typescript
+// Clean, modern attachment API
+const response = await agent.ask("What do you see in this image?", {
+  attachments: [
+    { type: 'image', path: '/path/to/image.jpg', name: 'My Photo' }
+  ]
+});
+```
+
+The attachment system automatically:
+- Detects the file type and selects appropriate tools
+- Enhances the prompt with attachment information
+- Enables tool usage when attachments are present
+
+## Vision Capabilities
+
+The vision system provides three core capabilities through built-in tools:
+
+### 1. General Image Analysis
+Analyze images with custom prompts and configurable detail levels:
+
+```typescript
+// Using attachments (recommended approach)
+const response = await agent.ask("Please analyze this screenshot and describe the UI elements", {
+  attachments: [
+    { type: 'image', path: '/path/to/screenshot.png', name: 'UI Screenshot' }
+  ]
+});
+
+// Using the analyze_image tool through conversation
+const response2 = await agent.ask("Please analyze the image at /path/to/screenshot.png and describe the UI elements");
+
+// Direct method call
+const analysis = await agent.analyzeImage('/path/to/image.jpg', {
+  prompt: 'What UI elements are visible in this interface?',
+  detail: 'high',
+  maxTokens: 1500
+});
+```
+
+### 2. Image Description
+Generate structured descriptions for different use cases:
+
+```typescript
+// Accessibility-friendly description
+const description = await agent.describeImage('/path/to/image.jpg', 'accessibility');
+
+// Available styles:
+// - 'detailed': Comprehensive description of all visual elements
+// - 'concise': Brief description of main elements  
+// - 'accessibility': Screen reader-friendly descriptions
+// - 'technical': Technical analysis including composition and lighting
+```
+
+### 3. Text Extraction (OCR)
+Extract and transcribe text from images:
+
+```typescript
+// Extract text with language hint
+const text = await agent.extractTextFromImage('/path/to/document.jpg', 'english');
+
+// The system maintains original formatting and structure
+console.log(text);
+```
+
+## Supported Formats
+
+The vision system supports these image formats:
+
+- **JPEG** (`.jpg`, `.jpeg`)
+- **PNG** (`.png`)
+- **GIF** (`.gif`)
+- **BMP** (`.bmp`)
+- **WebP** (`.webp`)
+
+### Input Sources
+
+<Steps>
+<Step>
+### File Paths
+Analyze images from local file system:
+
+```typescript
+const result = await agent.analyzeImage('/path/to/image.jpg');
+```
+</Step>
+
+<Step>
+### Base64 Data
+Analyze images from base64-encoded data:
+
+```typescript
+const base64Image = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...';
+const result = await agent.analyzeImageFromBase64(base64Image);
+```
+</Step>
+</Steps>
+
+## Configuration
+
+### Vision Model Configuration
+
+Specify the vision model directly in the agent configuration:
+
+```typescript
+const agent = await Agent.create({
+  name: 'VisionAgent',
+  model: 'gpt-4o',
+  visionModel: 'gpt-4o',  // Specify vision model here
+  vision: true
+});
+```
+
+### Environment Variables
+
+```bash
+# API keys (auto-detected based on model)
+OPENAI_API_KEY=your_openai_key         # For OpenAI models
+ANTHROPIC_API_KEY=your_anthropic_key   # For Claude models
+GOOGLE_API_KEY=your_google_key         # For Gemini models
+
+# Ollama configuration (local)
+OLLAMA_BASE_URL=http://localhost:11434  # Default if not set
+```
+
+The vision system automatically selects the appropriate provider based on the `visionModel` specified in the agent configuration.
+
+### Analysis Options
+
+Configure analysis behavior with these options:
+
+```typescript
+interface AnalysisOptions {
+  prompt?: string;           // Custom analysis prompt
+  maxTokens?: number;        // Response length limit (default: 1000)
+  detail?: 'low' | 'high';   // Analysis detail level (OpenAI only)
+}
+```
+
+## Usage Examples
+
+### Screenshot Analysis
+
+```typescript
+const agent = await Agent.create({
+  name: 'UIAnalyzer',
+  model: 'gpt-4o',
+  vision: true
+});
+
+// Analyze a UI screenshot
+const analysis = await agent.analyzeImage('/path/to/app-screenshot.png', {
+  prompt: 'Analyze this mobile app interface. Identify key UI components, layout structure, and potential usability issues.',
+  detail: 'high'
+});
+
+console.log(analysis);
+```
+
+### Document Processing
+
+```typescript
+// Extract text from scanned documents
+const documentText = await agent.extractTextFromImage('/path/to/scanned-invoice.jpg', 'english');
+
+// Generate accessible descriptions
+const accessibleDesc = await agent.describeImage('/path/to/chart.png', 'accessibility');
+```
+
+### Multimodal Conversations
+
+```typescript
+// Using attachments for cleaner API
+const response = await agent.ask("I'm getting an error. Can you analyze this screenshot and help me fix it?", {
+  attachments: [
+    { type: 'image', path: '/Users/john/Desktop/error.png', name: 'Error Screenshot' }
+  ]
+});
+
+// Multiple attachments
+const response2 = await agent.ask("Compare these UI mockups and suggest improvements", {
+  attachments: [
+    { type: 'image', path: '/designs/mockup1.png', name: 'Design A' },
+    { type: 'image', path: '/designs/mockup2.png', name: 'Design B' }
+  ]
+});
+
+// Traditional approach (still works)
+const response3 = await agent.ask(
+  "Please analyze the error screenshot at /Users/john/Desktop/error.png and suggest how to fix the issue"
+);
+```
+
+## Provider Comparison
+
+| Feature | OpenAI (gpt-4o) | Ollama (llava) |
+|---------|-----------------|----------------|
+| Analysis Quality | Excellent | Good |
+| Processing Speed | Fast | Variable |
+| Cost | Pay-per-use | Free (local) |
+| Privacy | Cloud-based | Local processing |
+| Detail Levels | Low/High | Standard |
+| Language Support | Extensive | Good |
+
+### OpenAI Provider
+- **Best for**: Production applications requiring high accuracy
+- **Default Model**: `gpt-4o`
+- **Features**: Detail level control, excellent text recognition
+
+### Ollama Provider (Local)
+- **Best for**: Privacy-sensitive applications or development
+- **Default Model**: `llava`
+- **Features**: Local processing, no API costs, offline capability
+
+## Batch Processing
+
+Process multiple images efficiently:
+
+```typescript
+const images = [
+  '/path/to/image1.jpg',
+  '/path/to/image2.png',
+  '/path/to/image3.gif'
+];
+
+// Process all images in parallel
+const results = await Promise.all(
+  images.map(imagePath => 
+    agent.describeImage(imagePath, 'concise')
+  )
+);
+
+console.log('Analysis results:', results);
+
+// Or use task attachments for batch processing
+const batchTask = await agent.createTask({
+  prompt: 'Analyze all these images and provide a comparative report',
+  attachments: images.map(path => ({
+    type: 'image',
+    path,
+    name: path.split('/').pop()
+  }))
+});
+
+const batchResult = await agent.executeTask(batchTask.id);
+```
+
+
+## Built-in Vision Tools
+
+When vision is enabled, these tools are automatically available:
+
+### analyze_image
+- **Parameters**: 
+  - `image_path` (string, required): Path to image file
+  - `prompt` (string, optional): Custom analysis prompt
+  - `detail` (string, optional): 'low' or 'high' detail level
+
+### describe_image
+- **Parameters**:
+  - `image_path` (string, required): Path to image file
+  - `style` (string, optional): Description style ('detailed', 'concise', 'accessibility', 'technical')
+
+### extract_text_from_image
+- **Parameters**:
+  - `image_path` (string, required): Path to image file
+  - `language` (string, optional): Language hint for better OCR accuracy
+

@@ -1,0 +1,55 @@
+---
+title: Context Compression
+icon: Layers
+---
+
+![Example](/docs/example.webp)
+
+Use Astreus's context compression system for long conversations.
+
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# Database for agent persistence and context storage
+DATABASE_URL=sqlite:./astreus.db
+```
+
+## Context Compression
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'ContextAgent',
+  model: 'gpt-4o',
+  contextCompression: true, // Enable automatic context management
+  systemPrompt: 'You can handle very long conversations efficiently.'
+});
+
+// Simulate a very long conversation
+for (let i = 1; i <= 50; i++) {
+  const task = await agent.createTask({
+    prompt: `Tell me an interesting fact about space. This is message #${i}.`
+  });
+  
+  const result = await agent.executeTask(task.id);
+  console.log(`Fact ${i}:`, result.response.slice(0, 100) + '...');
+}
+
+// Test context retrieval - agent should remember early facts
+const memoryTest = await agent.createTask({
+  prompt: "What was the first space fact you told me? Reference message #1."
+});
+
+const memoryResult = await agent.executeTask(memoryTest.id);
+console.log('Memory test result:', memoryResult.response);
+
+// System automatically:
+// 1. Keeps recent messages in immediate context
+// 2. Summarizes older messages to save tokens  
+// 3. Stores everything in persistent context for retrieval
+```

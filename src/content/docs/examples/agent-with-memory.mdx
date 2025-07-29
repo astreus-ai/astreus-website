@@ -1,0 +1,41 @@
+---
+title: Agent with Memory
+icon: Brain
+---
+
+![Example](/docs/example.webp)
+
+Build agents with persistent memory capabilities.
+
+## Environment Setup
+
+```bash
+# .env
+OPENAI_API_KEY=sk-***
+
+# Database for memory storage
+DATABASE_URL=postgresql://user:password@localhost:5432/astreus
+# or SQLite for development
+DATABASE_URL=sqlite:./astreus.db
+```
+
+## Memory Agent
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'MemoryBot',
+  model: 'gpt-4o',
+  memory: true,
+  systemPrompt: 'You remember our conversation history.'
+});
+
+// First conversation
+const response1 = await agent.ask("My name is John and I like TypeScript");
+console.log(response1);
+
+// Later conversation - agent remembers
+const response2 = await agent.ask("What's my name and what do I like?");
+console.log(response2); // Should remember John and TypeScript
+```

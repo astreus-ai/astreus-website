@@ -3,14 +3,24 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   
-  // Redirect /docs/concepts to first child (agents)
-  if (pathname === '/docs/concepts' || pathname === '/docs/concepts/') {
-    return NextResponse.redirect(new URL('/docs/concepts/agents', request.url));
+  // Redirect /docs to framework intro page
+  if (pathname === '/docs' || pathname === '/docs/') {
+    return NextResponse.redirect(new URL('/docs/framework/intro', request.url));
   }
   
-  // Redirect /docs/guides to first child (quick-start)
-  if (pathname === '/docs/guides' || pathname === '/docs/guides/') {
-    return NextResponse.redirect(new URL('/docs/guides/quick-start', request.url));
+  // Redirect /docs/framework to intro
+  if (pathname === '/docs/framework' || pathname === '/docs/framework/') {
+    return NextResponse.redirect(new URL('/docs/framework/intro', request.url));
+  }
+  
+  // Redirect /docs/examples to first child (quick-start)
+  if (pathname === '/docs/examples' || pathname === '/docs/examples/') {
+    return NextResponse.redirect(new URL('/docs/examples/quick-start', request.url));
+  }
+  
+  // Redirect /docs/plugins to first child (index)
+  if (pathname === '/docs/plugins' || pathname === '/docs/plugins/') {
+    return NextResponse.redirect(new URL('/docs/plugins/evm-plugin', request.url));
   }
   
   return NextResponse.next();
@@ -18,7 +28,13 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/docs/concepts/:path*',
-    '/docs/guides/:path*'
+    '/docs',
+    '/docs/',
+    '/docs/framework',
+    '/docs/framework/',
+    '/docs/examples',
+    '/docs/examples/',
+    '/docs/plugins',
+    '/docs/plugins/'
   ]
 };

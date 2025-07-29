@@ -1,0 +1,23 @@
+{
+  "title": "Framework",
+  "description": "Astreus Framework Docs",
+  "root": true,
+  "icon": "Layers",
+  "pages": [
+    "---Get Started---",
+    "intro",
+    "install",
+    "quickstart",
+    "---Concepts---",
+    "agent",
+    "memory",
+    "context",
+    "task",
+    "graph",
+    "knowledge",
+    "llm",
+    "plugin",
+    "mcp",
+    "vision"
+  ]
+}
