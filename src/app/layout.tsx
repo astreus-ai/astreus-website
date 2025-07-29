@@ -2,7 +2,6 @@ import '@/app/globals.css'
 import type { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 import { RootProvider } from 'fumadocs-ui/provider';
-import StructuredData from '@/components/StructuredData';
 
 // Define fonts
 const spaceGrotesk = Space_Grotesk({
@@ -26,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable}`} suppressHydrationWarning>
       <head>
+<<<<<<< Updated upstream
         <StructuredData 
           type="organization" 
           data={{}} 
@@ -70,6 +70,8 @@ export default function RootLayout({
             storageRequirement: "100MB"
           }} 
         />
+=======
+>>>>>>> Stashed changes
       </head>
       <body className={`${spaceGrotesk.className} antialiased flex flex-col h-screen`}>
         <RootProvider theme={{ defaultTheme: 'dark', forcedTheme: 'dark' }}>{children}</RootProvider>

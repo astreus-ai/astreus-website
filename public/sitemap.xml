@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<<<<<<< Updated upstream
 <url><loc>https://astreus.org/plugins</loc><lastmod>2025-07-12T19:03:20.076Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://astreus.org/agents</loc><lastmod>2025-07-12T19:03:20.077Z</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
 <url><loc>https://astreus.org</loc><lastmod>2025-07-12T19:03:20.077Z</lastmod><changefreq>weekly</changefreq><priority>1</priority></url>
@@ -25,4 +26,31 @@
 <url><loc>https://astreus.org/docs/providers</loc><lastmod>2025-07-12T19:03:20.077Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 <url><loc>https://astreus.org/docs/rag</loc><lastmod>2025-07-12T19:03:20.077Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 <url><loc>https://astreus.org/docs/tasks</loc><lastmod>2025-07-12T19:03:20.077Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+=======
+<url><loc>https://astreus.org</loc><lastmod>2025-07-29T00:36:27.589Z</lastmod><changefreq>weekly</changefreq><priority>1</priority></url>
+<url><loc>https://astreus.org/docs/examples/agent-persistence</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/agent-with-knowledge</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/agent-with-memory</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/agent-with-vision</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/basic-graphs</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/complex-workflows</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/context-compression</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/custom-plugins</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/mcp-integration</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/task-attachments</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/examples/your-first-agent</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/agent</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/context</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/graph</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/install</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/intro</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/knowledge</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/llm</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/mcp</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/memory</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/plugin</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/quickstart</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/task</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<url><loc>https://astreus.org/docs/framework/vision</loc><lastmod>2025-07-29T00:36:27.590Z</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+>>>>>>> Stashed changes
 </urlset>
