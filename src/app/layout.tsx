@@ -25,45 +25,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable}`} suppressHydrationWarning>
       <head>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        <StructuredData 
-          type="organization" 
-          data={{}} 
-        />
-        <StructuredData 
-          type="website" 
-          data={{}} 
-        />
-        <StructuredData 
-          type="software" 
-          data={{
-            version: "1.0.0",
-            datePublished: "2024-01-01",
-            dateModified: new Date().toISOString(),
-            license: "MIT",
-            downloadUrl: "https://github.com/astreus-ai/astreus",
-            codeRepository: "https://github.com/astreus-ai/astreus",
-            programmingLanguage: ["JavaScript", "TypeScript", "Python"],
-            runtimePlatform: ["Node.js", "Browser", "Server"],
-            applicationCategory: ["DeveloperApplication", "BusinessApplication"],
-            applicationSubCategory: "AI Development Framework",
-            featureList: [
-              "AI Agent Development",
-              "Conversational AI",
-              "LLM Integration",
-              "Plugin System"
-            ],
-            requirements: "Node.js 18+",
-            memoryRequirement: "512MB",
-            processorRequirement: "Any modern processor",
-            storageRequirement: "100MB"
-          }} 
-        />
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
       </head>
       <body className={`${spaceGrotesk.className} antialiased flex flex-col h-screen`}>
         <RootProvider theme={{ defaultTheme: 'dark', forcedTheme: 'dark' }}>{children}</RootProvider>
