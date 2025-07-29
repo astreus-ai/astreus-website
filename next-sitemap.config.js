@@ -17,65 +17,21 @@ module.exports = {
     ],
   },
   transform: async (config, path) => {
-    // Determine priority based on page importance
-    let priority = 0.5; // Default priority
-    let changefreq = 'monthly'; // Default change frequency
+    let priority = 0.5;
+    let changefreq = 'monthly';
     
-    // High priority pages (updated frequently)
     if (path === '/') {
       priority = 1.0;
       changefreq = 'weekly';
-    } 
-    // Documentation pages - high priority
-    else if (path.includes('/docs/')) {
-      if (path.includes('/guides/quick-start') || path.includes('/docs/index')) {
-        priority = 0.9;
-        changefreq = 'weekly';
-      } else if (path.includes('/guides/')) {
-        priority = 0.8;
-        changefreq = 'biweekly';
-      } 
-      // New structure priorities
-      else if (path.includes('/core/')) {
-        priority = 0.8; // High priority for core concepts
-        changefreq = 'monthly';
-      } else if (path.includes('/features/')) {
-        priority = 0.7;
-        changefreq = 'monthly';
-      } else if (path.includes('/integrations/')) {
-        priority = 0.7;
-        changefreq = 'monthly';
-      } else if (path.includes('/infrastructure/')) {
-        priority = 0.6;
-        changefreq = 'monthly';
-      }
-      // Legacy concepts path (deprecated)
-      else if (path.includes('/concepts/')) {
-        priority = 0.7;
-        changefreq = 'monthly';
-      } else if (path.includes('/plugins/')) {
-        priority = 0.6;
-        changefreq = 'monthly';
-      } else {
-        priority = 0.7;
-        changefreq = 'monthly';
-      }
-    }
-    // Plugins page - medium-high priority
-    else if (path === '/plugins') {
-      priority = 0.8;
-      changefreq = 'weekly';
-    }
-    // Other pages
-    else {
-      priority = 0.5;
+    } else if (path.includes('/docs/')) {
+      priority = 0.7;
       changefreq = 'monthly';
     }
     
     return {
       loc: path,
-      changefreq: changefreq,
-      priority: priority,
+      changefreq,
+      priority,
       lastmod: new Date().toISOString(),
     }
   },

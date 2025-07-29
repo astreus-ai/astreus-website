@@ -1,0 +1,22 @@
+{
+  "title": "Examples",
+  "description": "Example implementations", 
+  "root": true,
+  "icon": "Code",
+  "pages": [
+    "---Basics---",
+    "your-first-agent",
+    "agent-with-memory",
+    "agent-with-knowledge",
+    "agent-with-vision",
+    "---Advanced---",
+    "basic-graphs",
+    "complex-workflows",
+    "---Features---",
+    "context-compression",
+    "task-attachments", 
+    "custom-plugins",
+    "mcp-integration",
+    "agent-persistence"
+  ]
+}

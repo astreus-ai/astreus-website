@@ -1,0 +1,92 @@
+---
+title: Agent
+icon: Bot
+---
+
+![Agent](/docs/agent.webp)
+
+**Core AI entity with modular capabilities and decorator-based composition**
+
+## Overview
+
+Agents are the fundamental building blocks in Astreus. They provide intelligent conversation capabilities with configurable features like memory, tools, knowledge bases, and vision processing. Each agent operates independently with its own context, memory, and specialized capabilities.
+
+## Creating an Agent
+
+Creating an agent in Astreus is straightforward:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'MyAssistant',                        // Unique name for the agent
+  model: 'gpt-4o',                            // LLM model to use
+  systemPrompt: 'You are a helpful assistant', // Custom instructions
+  memory: true                                // Enable persistent memory
+});
+```
+
+## Choosing the LLM Model
+
+Astreus supports multiple LLM providers out of the box:
+
+```typescript
+const agent = await Agent.create({
+  name: 'MyAssistant',
+  model: 'gpt-4.5' // Set model here. Latest: 'gpt-4.5', 'claude-sonnet-4-20250514', 'gemini-2.5-pro', 'deepseek-r1'
+});
+```
+
+[Learn supported LLM providers and models →](/docs/framework/llm)
+
+## Agent Attributes
+
+Agents can be configured with various attributes to customize their behavior:
+
+### Core Attributes
+
+```typescript
+interface AgentConfig {
+  // Required
+  name: string;                 // Unique identifier for the agent
+  
+  // Optional - Core Settings  
+  description?: string;         // Agent description
+  model?: string;              // LLM model to use (default: 'gpt-4o-mini')
+  embeddingModel?: string;     // Specific model for embeddings (auto-detected)
+  visionModel?: string;        // Specific model for vision (auto-detected)
+  temperature?: number;        // Control response randomness (0-1, default: 0.7)
+  maxTokens?: number;          // Maximum response length (default: 2000)
+  systemPrompt?: string;       // Custom system instructions
+  
+  // Optional - Capabilities
+  memory?: boolean;            // Enable persistent memory (default: false)
+  knowledge?: boolean;         // Enable knowledge base access (default: false)
+  vision?: boolean;            // Enable image processing (default: false)
+  useTools?: boolean;          // Enable tool/plugin usage (default: true)
+  contextCompression?: boolean; // Enable smart context management (default: false)
+  debug?: boolean;             // Enable debug logging (default: false)
+}
+```
+
+### Example with All Attributes
+
+```typescript
+const fullyConfiguredAgent = await Agent.create({
+  name: 'AdvancedAssistant',
+  description: 'Multi-purpose AI assistant',
+  model: 'gpt-4o',
+  embeddingModel: 'text-embedding-3-small', // Optional: specific embedding model
+  visionModel: 'gpt-4o',                    // Optional: specific vision model
+  temperature: 0.7,
+  maxTokens: 2000,
+  systemPrompt: 'You are an expert software architect...',
+  memory: true,
+  knowledge: true,
+  vision: true,
+  useTools: true,
+  contextCompression: true,
+  debug: true  // Enable debug logging
+});
+```
+

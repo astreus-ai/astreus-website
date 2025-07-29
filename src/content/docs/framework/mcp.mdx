@@ -1,0 +1,196 @@
+---
+title: MCP
+icon: Network
+---
+
+![MCP](/docs/mcp.webp)
+
+**Model Context Protocol integration for connecting agents with external tools and services**
+
+## Overview
+
+MCP (Model Context Protocol) enables Astreus agents to connect with external tools and services seamlessly. Define MCP servers as simple objects with automatic environment variable loading and use them at different levels - agent, task, or conversation level.
+
+## Creating MCP Servers
+
+Define MCP servers as array objects with automatic environment loading:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Define MCP servers array
+const mcpServers = [
+  {
+    name: 'github',
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    // GITHUB_PERSONAL_ACCESS_TOKEN loaded from .env automatically
+  },
+  {
+    name: 'filesystem', 
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/Users/username/Documents"]
+  }
+];
+
+const agent = await Agent.create({
+  name: 'DevAgent',
+  model: 'gpt-4'
+});
+
+// Add MCP servers to agent
+await agent.addMCPServers(mcpServers);
+
+// Use automatically in conversations
+const response = await agent.ask("List my repositories and save to repos.txt");
+```
+
+## Example
+
+Here's a complete example showing MCP integration:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create agent
+const agent = await Agent.create({
+  name: 'DevAssistant',
+  model: 'gpt-4',
+  systemPrompt: 'You are a helpful development assistant with access to various tools.'
+});
+
+// Add MCP servers
+await agent.addMCPServers([
+  {
+    name: 'github',
+    command: "npx", 
+    args: ["-y", "@modelcontextprotocol/server-github"]
+  },
+  {
+    name: 'filesystem',
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/project"]
+  },
+  {
+    name: 'search',
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-brave-search"]
+  }
+]);
+
+// Agent now has access to GitHub, filesystem, and search tools
+const response = await agent.ask(`
+  Check my latest repositories, 
+  create a summary file in my project directory,
+  and search for TypeScript best practices
+`);
+
+console.log(response);
+```
+
+## Environment Variables
+
+MCP servers automatically load environment variables from your `.env` file:
+
+```bash
+# .env
+GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxxxxxxxxx
+BRAVE_API_KEY=your_brave_api_key
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
+```
+
+No need to specify environment variables in code - they're loaded automatically and securely.
+
+## Server Types
+
+### Local Servers (stdio)
+For servers that run as local processes:
+
+```typescript
+const localServers = [
+  {
+    name: 'sqlite',
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-sqlite", "--db-path", "/path/to/db.sqlite"],
+    cwd: "/working/directory"
+  }
+];
+```
+
+### Remote Servers (SSE)
+For servers that connect via HTTP/SSE:
+
+```typescript
+const remoteServers = [
+  {
+    name: 'api-server',
+    url: "https://api.example.com/mcp/events"
+  }
+];
+```
+
+## Multi-Level Usage
+
+### Agent Level
+Available for all tasks and conversations:
+
+```typescript
+// Agent-level: Available everywhere 
+await agent.addMCPServers([
+  {
+    name: 'filesystem',
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/Users/username/Documents"]
+  }
+]);
+```
+
+### Task Level
+Available for specific tasks:
+
+```typescript
+// Task-level: Available for this task only
+const task = await agent.createTask({
+  prompt: "Analyze my GitHub repositories",
+  mcpServers: [
+    {
+      name: 'github',
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-github"]
+    }
+  ]
+});
+```
+
+### Conversation Level
+Available for single conversations:
+
+```typescript
+// Conversation-level: Available for this conversation only
+const response = await agent.ask("Search for TypeScript news", {
+  mcpServers: [
+    {
+      name: 'search',
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-brave-search"]
+    }
+  ]
+});
+```
+
+## Manual Tool Access
+
+Access MCP tools programmatically:
+
+```typescript
+// List available MCP tools
+const tools = agent.getMCPTools();
+console.log('Available MCP tools:', tools.map(t => t.name));
+
+// Call specific MCP tool
+const result = await agent.callMCPTool('github:list_repos', {
+  owner: 'username'
+});
+```
+
+MCP integration provides powerful external tool access while maintaining security and simplicity.

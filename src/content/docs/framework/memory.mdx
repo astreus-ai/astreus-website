@@ -1,0 +1,132 @@
+---
+title: Memory
+icon: Brain
+---
+
+![Memory](/docs/memory.webp)
+
+**Persistent conversation memory with vector search and automatic context integration**
+
+## Overview
+
+The Memory system provides agents with long-term memory capabilities, enabling them to remember past conversations, learn from interactions, and maintain context across sessions. When memory is enabled, agents automatically store and retrieve relevant information from previous conversations, creating a more personalized and context-aware experience.
+
+## Enabling Memory
+
+Enable memory for an agent by setting the `memory` option to `true`:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'MemoryAgent',
+  model: 'gpt-4o',
+  memory: true  // Enable persistent memory
+});
+```
+
+## Basic Usage
+
+Here's a complete example showing how memory works across conversations:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create an agent with memory
+const agent = await Agent.create({
+  name: 'PersonalAssistant',
+  model: 'gpt-4o',
+  memory: true,
+  systemPrompt: 'You are a helpful personal assistant who remembers user preferences.'
+});
+
+// First conversation
+const response1 = await agent.ask('My name is John and I love TypeScript');
+console.log(response1);
+// Output: "Nice to meet you, John! It's great that you love TypeScript..."
+
+// Later conversation - agent remembers
+const response2 = await agent.ask('What programming language do I like?');
+console.log(response2);
+// Output: "You mentioned that you love TypeScript, John!"
+
+// Memory persists even after restarting
+const sameAgent = await Agent.create({
+  name: 'PersonalAssistant', // Same name retrieves existing memories
+  model: 'gpt-4o',
+  memory: true
+});
+
+const response3 = await sameAgent.ask('Do you remember my name?');
+console.log(response3);
+// Output: "Yes, your name is John!"
+```
+
+## Memory Methods
+
+When memory is enabled, agents have access to these memory management methods:
+
+```typescript
+// Add a memory manually
+const memory = await agent.addMemory(
+  'Important project information: Budget is $50k',
+  { type: 'project', category: 'budget' }
+);
+
+// Remember conversation with role context
+const userMemory = await agent.rememberConversation(
+  'I prefer TypeScript over JavaScript',
+  'user'
+);
+
+// Get a specific memory by ID
+const existingMemory = await agent.getMemory(memory.id);
+
+// Search memories by content
+const budgetMemories = await agent.searchMemories('budget', {
+  limit: 5,
+  startDate: new Date('2024-01-01')
+});
+
+// List all memories with options
+const allMemories = await agent.listMemories({
+  limit: 20,
+  orderBy: 'createdAt',
+  order: 'desc'
+});
+
+// Update a memory
+const updatedMemory = await agent.updateMemory(memory.id, {
+  content: 'Updated budget: $75k',
+  metadata: { type: 'project', category: 'budget', updated: true }
+});
+
+// Delete a specific memory
+const deleted = await agent.deleteMemory(memory.id);
+
+// Clear all memories
+const deletedCount = await agent.clearMemories();
+```
+
+## Memory Object Structure
+
+```typescript
+interface Memory {
+  id?: number;              // Unique memory identifier
+  agentId: number;          // ID of the owning agent
+  content: string;          // Memory content
+  embedding?: number[];     // Vector embedding (auto-generated)
+  metadata?: MetadataObject; // Custom metadata
+  createdAt?: Date;         // When memory was created
+  updatedAt?: Date;         // Last update time
+}
+
+interface MemorySearchOptions {
+  limit?: number;           // Max results (default: 10 for search, 100 for list)
+  offset?: number;          // Skip results (default: 0)
+  orderBy?: 'createdAt' | 'updatedAt' | 'relevance'; // Sort field
+  order?: 'asc' | 'desc';   // Sort order (default: 'desc')
+  startDate?: Date;         // Filter from date
+  endDate?: Date;           // Filter to date
+}
+```

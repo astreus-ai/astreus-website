@@ -1,0 +1,224 @@
+---
+title: Task
+icon: ListTodo
+---
+
+![Task](/docs/task.webp)
+
+**Structured task execution with status tracking and tool integration**
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Overview
+
+Tasks provide a way to organize and execute complex operations with your agents. They support status tracking, tool usage, and can be composed into larger workflows. Each task can have dependencies, execute specific actions, and maintain its own state throughout execution.
+
+## Creating Tasks
+
+Tasks are created through agents using a simple prompt-based approach:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'TaskAgent',
+  model: 'gpt-4o'
+});
+
+// Create a task
+const task = await agent.createTask({
+  prompt: 'Analyze the TypeScript code and suggest performance improvements'
+});
+
+// Execute the task
+const result = await agent.executeTask(task.id);
+console.log(result.response);
+```
+
+## Task Attributes
+
+Tasks can be configured with the following attributes:
+
+```typescript
+interface TaskRequest {
+  prompt: string;              // The task instruction or query
+  useTools?: boolean;          // Enable/disable tool usage (default: true)
+  mcpServers?: MCPServerDefinition[]; // Task-level MCP servers
+  plugins?: Array<{            // Task-level plugins
+    plugin: Plugin;
+    config?: PluginConfig;
+  }>;
+  attachments?: Array<{        // Files to attach to the task
+    type: 'image' | 'pdf' | 'text' | 'markdown' | 'code' | 'json' | 'file';
+    path: string;              // File path
+    name?: string;             // Display name
+    language?: string;         // Programming language (for code files)
+  }>;
+  metadata?: MetadataObject;   // Custom metadata for tracking
+}
+```
+
+### Attribute Details
+
+- **prompt**: The main instruction or query for the task. This is the only required field.
+- **useTools**: Controls whether the task can use tools/plugins. Defaults to `true` (inherits from agent if not specified).
+- **mcpServers**: Task-specific MCP (Model Context Protocol) servers to enable for this task.
+- **plugins**: Task-specific plugins to register for this task execution.
+- **attachments**: Array of files to attach to the task. Supports images, PDFs, text files, code files, and more.
+- **metadata**: Custom key-value pairs for organizing and tracking tasks (e.g., category, priority, tags).
+
+## Task Lifecycle
+
+Tasks go through several states during execution:
+
+```typescript
+type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
+```
+
+<Steps>
+<Step>
+### Pending
+Task is created but not yet started. Waiting for execution or dependencies.
+</Step>
+
+<Step>
+### In Progress
+Task is actively being executed by the agent. Tools may be used during this phase.
+</Step>
+
+<Step>
+### Completed
+Task has finished successfully with results available.
+</Step>
+
+<Step>
+### Failed
+Task encountered an error during execution. Error details are available.
+</Step>
+</Steps>
+
+## Example with Attachments and Tools
+
+Here's a complete example showing tasks with file attachments and tool integration:
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create an agent
+const agent = await Agent.create({
+  name: 'CodeReviewAssistant',
+  model: 'gpt-4o',
+  vision: true // Enable vision for screenshots
+});
+
+// Code review task with multiple file types
+const codeReviewTask = await agent.createTask({
+  prompt: `Please perform a comprehensive code review:
+    1. Check for security vulnerabilities
+    2. Identify performance issues
+    3. Suggest improvements for code quality
+    4. Review the UI mockup for usability issues`,
+  attachments: [
+    { 
+      type: 'code', 
+      path: '/src/auth/login.ts', 
+      name: 'Login Controller',
+      language: 'typescript' 
+    },
+    { 
+      type: 'code', 
+      path: '/src/middleware/security.js', 
+      name: 'Security Middleware',
+      language: 'javascript' 
+    },
+    { 
+      type: 'json', 
+      path: '/package.json', 
+      name: 'Package Dependencies' 
+    },
+    { 
+      type: 'image', 
+      path: '/designs/login-mockup.png', 
+      name: 'Login UI Mockup' 
+    },
+    { 
+      type: 'markdown', 
+      path: '/docs/security-requirements.md', 
+      name: 'Security Requirements' 
+    }
+  ],
+  metadata: {
+    type: 'code-review',
+    priority: 'high',
+    reviewer: 'ai-assistant'
+  }
+});
+
+// Execute task with streaming
+const result = await agent.executeTask(codeReviewTask.id, {
+  model: 'gpt-4o',  // Override model for this task
+  stream: true      // Enable streaming response
+});
+
+console.log('Code review completed:', result.response);
+
+// Documentation task with text files
+const docTask = await agent.createTask({
+  prompt: 'Update the API documentation based on the latest code changes',
+  attachments: [
+    { type: 'text', path: '/api/routes.txt', name: 'API Routes' },
+    { type: 'markdown', path: '/README.md', name: 'Current Documentation' }
+  ]
+});
+
+// List tasks with attachments
+const tasksWithFiles = await agent.listTasks({
+  orderBy: 'createdAt',
+  order: 'desc'
+});
+
+tasksWithFiles.forEach(task => {
+  console.log(`Task ${task.id}: ${task.status}`);
+  if (task.metadata?.attachments) {
+    console.log(`  - Has attachments`);
+  }
+  if (task.completedAt) {
+    console.log(`  - Completed: ${task.completedAt.toISOString()}`);
+  }
+});
+```
+
+## Managing Tasks
+
+Tasks can be managed and tracked throughout their lifecycle:
+
+```typescript
+// Update task with additional metadata
+await agent.updateTask(task.id, {
+  metadata: {
+    ...task.metadata,
+    progress: 50,
+    estimatedCompletion: new Date()
+  }
+});
+
+// Delete a specific task
+await agent.deleteTask(task.id);
+
+// Clear all tasks for an agent
+const deletedCount = await agent.clearTasks();
+console.log(`Deleted ${deletedCount} tasks`);
+
+// Search tasks with filters
+const pendingTasks = await agent.listTasks({
+  status: 'pending',
+  limit: 5
+});
+
+const recentTasks = await agent.listTasks({
+  orderBy: 'completedAt',
+  order: 'desc',
+  limit: 10
+});
+```
+

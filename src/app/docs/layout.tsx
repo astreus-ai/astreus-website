@@ -1,21 +1,18 @@
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
 import type { ReactNode } from 'react';
 import { baseOptions } from '@/app/layout.config';
 import { source } from '@/lib/source';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col max-h-screen">
-      <DocsLayout 
-        tree={source.pageTree} 
-        {...baseOptions}
-        sidebar={{
-          defaultOpenLevel: 0,
-          tabs: undefined
-        }}
-      >
-        {children}
-      </DocsLayout>
-    </div>
+    <DocsLayout 
+      tree={source.pageTree} 
+      sidebar={{
+        defaultOpenLevel: 0
+      }}
+      {...baseOptions}
+    >
+      {children}
+    </DocsLayout>
   );
 } 

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { RiGithubLine } from 'react-icons/ri';
-import { FiBook } from 'react-icons/fi';
+import { FiZap } from 'react-icons/fi';
 
 const Hero = () => {
   const containerVariants = {
@@ -94,7 +94,7 @@ const Hero = () => {
           className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto"
           variants={itemVariants}
         >
-          Open-source AI agent framework for creating, deploying and managing intelligent conversational AI agents
+          Open-source AI agent framework for building autonomous systems that solve real-world tasks effectively
         </motion.p>
         
         {/* Buttons */}
@@ -104,11 +104,11 @@ const Hero = () => {
         >
           <motion.div variants={buttonVariants}>
             <Link 
-              href="/docs/guides/quick-start" 
+              href="/docs" 
               className="px-6 text-sm uppercase py-4 bg-white text-black rounded-full font-semibold hover:bg-white/90 transition-colors text-lg inline-block"
             >
-              <FiBook className="inline mr-2" size={18} />
-              <span className='uppercase'>Docs</span>
+              <FiZap className="inline mr-2" size={18} />
+              <span className='uppercase'>Get Started</span>
             </Link>
           </motion.div>
           

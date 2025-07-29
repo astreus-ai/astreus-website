@@ -1,20 +1,20 @@
-import { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { FaHome } from 'react-icons/fa';
+import { DocsLayoutProps } from 'fumadocs-ui/layouts/notebook';
+import Image from 'next/image';
 
-export const baseOptions: BaseLayoutProps = {
+export const baseOptions: Partial<DocsLayoutProps> = {
   nav: {
-    title: 'Astreus - Docs',
+    transparentMode: 'top',
+    title: (
+      <div className="flex items-center gap-2 ml-2">
+        <Image src="/astreus-logo.svg" alt="Astreus" width={24} height={24} />
+        <span>Astreus</span>
+      </div>
+    ),
+    mode: 'top'
   },
   themeSwitch: {
     enabled: false,
   },
-  links: [
-    {
-      type: 'main',
-      text: 'Return to Home Page',
-      url: '/',
-      icon: <FaHome className="w-4 h-4" />
-    },
-  ],
-  githubUrl: 'https://github.com/astreus-ai',
+  tabMode: 'sidebar',
+  githubUrl: 'https://github.com/astreus-ai/astreus',
 }; 

@@ -5,7 +5,7 @@ import {
   Album, Brain, MessageSquare, ListTodo, Database, Target, 
   Image, Layers, Settings, HardDrive, FileText, Cloud, 
   Package, Home, BookOpen, Wrench, Zap, Mail, Bot,
-  Play, Code, Users
+  Play, Code, Users, Download, Rocket, GitBranch, Puzzle, Eye, Network, Paperclip
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { SiEthereum, SiX, SiResend } from 'react-icons/si';
@@ -14,7 +14,8 @@ const iconMap = {
   Album, Brain, MessageSquare, ListTodo, Database, Target,
   Image, Layers, Settings, HardDrive, FileText, Cloud,
   Package, Home, BookOpen, Wrench, Zap, Mail, Bot,
-  Play, Code, Users, FaWhatsapp, SiEthereum, SiX, SiResend
+  Play, Code, Users, Download, Rocket, GitBranch, Puzzle, Eye, Network, Paperclip,
+  FaWhatsapp, SiEthereum, SiX, SiResend
 };
 
 export const source = loader({

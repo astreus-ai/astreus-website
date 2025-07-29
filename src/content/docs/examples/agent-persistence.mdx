@@ -1,0 +1,68 @@
+---
+title: Agent Persistence
+icon: Database
+---
+
+![Example](/docs/example.webp)
+
+Save and load agents from database for reusability.
+
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# Database for agent persistence (required)
+DATABASE_URL=postgresql://user:password@localhost:5432/astreus
+# or SQLite for development
+DATABASE_URL=sqlite:./astreus.db
+
+# Optional: Knowledge database for agents with knowledge enabled
+KNOWLEDGE_DB_URL=sqlite:./knowledge.db
+```
+
+## Agent Persistence
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create and configure an agent with persistence capabilities
+const agent = await Agent.create({
+  name: 'ProjectAssistant',
+  model: 'gpt-4o',
+  memory: true,
+  knowledge: true,
+  systemPrompt: 'You are a specialized project management assistant with memory and knowledge.'
+});
+
+// Use the agent for some tasks
+const task1 = await agent.createTask({
+  prompt: "Remember that our project deadline is March 15th"
+});
+await agent.executeTask(task1.id);
+
+console.log(`Created agent with ID: ${agent.id}`);
+
+// Later, in a different session...
+// Find the agent by name
+const loadedAgent = await Agent.findByName('ProjectAssistant');
+
+if (loadedAgent) {
+  // Agent retains all its configuration and memory
+  const task2 = await loadedAgent.createTask({
+    prompt: "What is our project deadline?"
+  });
+  
+  const result = await loadedAgent.executeTask(task2.id);
+  console.log(result.response); // Should remember March 15th
+}
+
+// List all saved agents
+const allAgents = await Agent.list();
+console.log(`Found ${allAgents.length} saved agents`);
+
+// Find by ID
+const agentById = await Agent.findById(1);
+```

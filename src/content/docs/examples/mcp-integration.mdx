@@ -1,0 +1,62 @@
+---
+title: MCP Integration
+icon: Network
+---
+
+![Example](/docs/example.webp)
+
+Connect agents with external tools using Model Context Protocol.
+
+## Environment Setup
+
+```bash
+# .env
+# LLM API key
+OPENAI_API_KEY=sk-***
+
+# MCP Server credentials (loaded automatically)
+GITHUB_PERSONAL_ACCESS_TOKEN=ghp_***
+BRAVE_API_KEY=your-brave-api-key
+
+# Database for agent persistence  
+DATABASE_URL=sqlite:./astreus.db
+```
+
+## MCP Server Integration
+
+```typescript
+import { Agent } from '@astreus-ai/astreus';
+
+// Create agent
+const agent = await Agent.create({
+  name: 'DevAgent',
+  model: 'gpt-4o',
+  systemPrompt: 'You are a development assistant with access to GitHub and filesystem.'
+});
+
+// Add MCP servers (environment variables loaded automatically)
+await agent.addMCPServers([
+  {
+    name: 'github',
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    // GITHUB_PERSONAL_ACCESS_TOKEN loaded from .env
+  },
+  {
+    name: 'filesystem',
+    command: "npx", 
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/Users/username/Documents"]
+  }
+]);
+
+// Use MCP tools automatically
+const response = await agent.ask(`
+  List my GitHub repositories, 
+  find the most recent one,
+  and save a summary to a file called 'latest-repo.txt'
+`);
+
+console.log(response);
+// Agent automatically uses GitHub API and filesystem tools
+```
+
