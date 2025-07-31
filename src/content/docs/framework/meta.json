@@ -18,6 +18,8 @@
     "llm",
     "plugin",
     "mcp",
-    "vision"
+    "vision",
+    "---Configuration---",
+    "env-example"
   ]
 }
