@@ -14,6 +14,7 @@
     "context",
     "task",
     "graph",
+    "scheduler",
     "knowledge",
     "llm",
     "plugin",

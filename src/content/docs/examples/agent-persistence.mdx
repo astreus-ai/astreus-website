@@ -12,15 +12,15 @@ Save and load agents from database for reusability.
 ```bash
 # .env
 # LLM API key
-OPENAI_API_KEY=sk-***
+OPENAI_API_KEY=sk-your-openai-api-key-here
 
 # Database for agent persistence (required)
-DATABASE_URL=postgresql://user:password@localhost:5432/astreus
+DB_URL=postgresql://username:password@localhost:5432/astreus_db
 # or SQLite for development
-DATABASE_URL=sqlite:./astreus.db
+DB_URL=sqlite://./astreus.db
 
 # Optional: Knowledge database for agents with knowledge enabled
-KNOWLEDGE_DB_URL=sqlite:./knowledge.db
+KNOWLEDGE_DB_URL=sqlite://./knowledge.db
 ```
 
 ## Agent Persistence

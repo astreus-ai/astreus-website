@@ -1,0 +1,176 @@
+---
+title: Scheduled Workflows
+icon: Clock
+---
+
+![Example](/docs/example.webp)
+
+Build time-based automated workflows with smart dependency management and recurring schedules.
+
+## Environment Setup
+
+```bash
+# .env
+# LLM API key for scheduled tasks
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Database for persistence
+DB_URL=sqlite://./astreus.db
+
+# Environment
+NODE_ENV=development
+```
+
+## Content Publishing Pipeline
+
+Automate daily content creation with scheduled nodes:
+
+```typescript
+import { Agent, Graph, Scheduler } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'ContentAgent',
+  model: 'gpt-4o',
+  systemPrompt: 'You are a content creation specialist.'
+});
+
+const graph = new Graph({
+  name: 'Daily Content Pipeline',
+  description: 'Automated content creation and publishing',
+  defaultAgentId: agent.id,
+  maxConcurrency: 2
+}, agent);
+
+// 6 AM: Research trending topics
+const researchNode = graph.addScheduledTaskNode('Content Research', {
+  prompt: 'Research trending topics in AI and technology. Find 3-5 compelling topics for blog content.',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-20T06:00:00Z'),
+    recurrence: {
+      pattern: 'daily',
+      interval: 1,
+      daysOfWeek: [1, 2, 3, 4, 5] // Weekdays only
+    },
+    timezone: 'America/New_York'
+  }
+});
+
+// 8 AM: Create content (after research)
+const creationNode = graph.addScheduledTaskNode('Content Creation', {
+  prompt: 'Based on the research findings, create a comprehensive blog post on one of the trending topics.',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-20T08:00:00Z'),
+    recurrence: {
+      pattern: 'daily',
+      interval: 1,
+      daysOfWeek: [1, 2, 3, 4, 5]
+    },
+    timezone: 'America/New_York'
+  },
+  dependencies: [researchNode]
+});
+
+// 10 AM: SEO optimization (after content)
+const seoNode = graph.addScheduledTaskNode('SEO Optimization', {
+  prompt: 'Optimize the blog post for SEO: add meta description, keywords, and improve structure.',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-20T10:00:00Z'),
+    recurrence: {
+      pattern: 'daily',
+      interval: 1,
+      daysOfWeek: [1, 2, 3, 4, 5]
+    },
+    timezone: 'America/New_York'
+  },
+  dependencies: [creationNode]
+});
+
+// 12 PM: Publish content (after SEO)
+const publishNode = graph.addScheduledTaskNode('Content Publishing', {
+  prompt: 'Create social media posts and publishing schedule for the optimized content.',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-20T12:00:00Z'),
+    recurrence: {
+      pattern: 'daily',
+      interval: 1,
+      daysOfWeek: [1, 2, 3, 4, 5]
+    },
+    timezone: 'America/New_York'
+  },
+  dependencies: [seoNode]
+});
+
+await graph.save();
+
+// Start the scheduler for automatic execution
+await agent.startScheduler();
+
+console.log('Content pipeline scheduled and running!');
+```
+
+## Business Intelligence Dashboard
+
+Weekly automated reporting with multiple data sources:
+
+```typescript
+const biAgent = await Agent.create({
+  name: 'BIAgent',
+  model: 'gpt-4o',
+  systemPrompt: 'You are a business intelligence analyst.'
+});
+
+// Schedule individual tasks for different data sources
+const salesTask = await biAgent.scheduleTask({
+  prompt: 'Analyze weekly sales data and identify trends, top performers, and areas for improvement.',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-23T08:00:00Z'), // Monday 8 AM
+    recurrence: {
+      pattern: 'weekly',
+      interval: 1,
+      daysOfWeek: [1] // Every Monday
+    },
+    timezone: 'UTC'
+  },
+  options: {
+    maxRetries: 2,
+    timeout: 600000 // 10 minutes
+  }
+});
+
+const marketingTask = await biAgent.scheduleTask({
+  prompt: 'Review marketing campaign performance and ROI analysis for the previous week.',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-23T08:30:00Z'), // Monday 8:30 AM
+    recurrence: {
+      pattern: 'weekly',
+      interval: 1,
+      daysOfWeek: [1]
+    },
+    timezone: 'UTC'
+  }
+});
+
+const executiveSummary = await biAgent.scheduleTask({
+  prompt: 'Create executive summary report combining sales and marketing insights.',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-23T09:00:00Z'), // Monday 9 AM
+    recurrence: {
+      pattern: 'weekly',
+      interval: 1,
+      daysOfWeek: [1]
+    },
+    timezone: 'UTC'
+  }
+});
+
+console.log('BI reports scheduled for every Monday');
+```
+
+This example demonstrates comprehensive scheduled workflow patterns including content automation and business intelligence reporting. The scheduler provides a powerful foundation for building reliable, time-based AI automation systems.

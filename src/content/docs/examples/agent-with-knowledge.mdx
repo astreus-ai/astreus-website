@@ -12,15 +12,13 @@ Create agents with knowledge base capabilities for enhanced information retrieva
 ```bash
 # .env
 # LLM API key
-OPENAI_API_KEY=sk-***
+OPENAI_API_KEY=sk-your-openai-api-key-here
 
 # Knowledge database (required for RAG)
-KNOWLEDGE_DB_URL=postgresql://user:password@localhost:5432/knowledge
-# or SQLite for development
-KNOWLEDGE_DB_URL=sqlite:./knowledge.db
+KNOWLEDGE_DB_URL=postgresql://username:password@localhost:5432/knowledge_db
 
 # Main database for agent persistence
-DATABASE_URL=sqlite:./astreus.db
+DB_URL=sqlite://./astreus.db
 ```
 
 ## Knowledge Agent

@@ -1,0 +1,283 @@
+---
+title: Scheduler
+icon: Clock
+---
+
+![Scheduler](/docs/scheduler.webp)
+
+**Time-based task execution with dependency management and recurring schedules**
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Overview
+
+The Scheduler provides powerful time-based execution capabilities for tasks and graphs. It supports one-time and recurring schedules, intelligent dependency resolution, and complex workflow automation. The scheduler ensures that dependencies are always respected, even when they conflict with scheduled times.
+
+## Basic Task Scheduling
+
+Schedule individual tasks for future execution:
+
+```typescript
+import { Agent, Scheduler } from '@astreus-ai/astreus';
+
+const agent = await Agent.create({
+  name: 'SchedulerAgent',
+  model: 'gpt-4o'
+});
+
+// Schedule a one-time task
+const scheduledTask = await agent.scheduleTask({
+  prompt: 'Generate monthly report for December',
+  schedule: {
+    type: 'once',
+    executeAt: new Date('2024-12-25T09:00:00Z'),
+    timezone: 'America/New_York'
+  }
+});
+
+// Schedule a recurring task
+const dailyTask = await agent.scheduleTask({
+  prompt: 'Daily health check and status report',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-20T08:00:00Z'),
+    recurrence: {
+      pattern: 'daily',
+      interval: 1,
+      endDate: new Date('2025-12-31T23:59:59Z')
+    }
+  }
+});
+
+// Start the scheduler
+await agent.startScheduler();
+```
+
+## Schedule Configuration
+
+Configure schedules with flexible patterns and options:
+
+```typescript
+interface Schedule {
+  type: 'once' | 'recurring';
+  executeAt: Date;                    // When to first execute
+  recurrence?: {
+    pattern: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval?: number;                // Every N periods
+    endDate?: Date;                   // When to stop
+    maxExecutions?: number;           // Maximum executions
+    daysOfWeek?: number[];           // For weekly (0=Sunday)
+    dayOfMonth?: number;             // For monthly
+    monthOfYear?: number;            // For yearly
+  };
+  timezone?: string;                 // e.g., 'Europe/London'
+}
+```
+
+## Graph Scheduling with Dependencies
+
+Schedule graphs with intelligent dependency resolution:
+
+```typescript
+import { Graph } from '@astreus-ai/astreus';
+
+const graph = new Graph({
+  name: 'Morning Workflow',
+  defaultAgentId: agent.id
+}, agent);
+
+// Node A: Data collection at 6 AM
+const nodeA = graph.addScheduledTaskNode('Data Collection', {
+  prompt: 'Collect overnight data from all sources',
+  schedule: {
+    type: 'once',
+    executeAt: new Date('2024-12-20T06:00:00Z')
+  }
+});
+
+// Node B: Processing (wants 5 AM but depends on A)
+const nodeB = graph.addScheduledTaskNode('Data Processing', {
+  prompt: 'Process collected data and generate insights',
+  schedule: {
+    type: 'once',
+    executeAt: new Date('2024-12-20T05:00:00Z') // Earlier than A!
+  },
+  dependencies: [nodeA] // But must wait for A
+});
+
+// Node C: Report generation at 8 AM
+const nodeC = graph.addScheduledTaskNode('Report Generation', {
+  prompt: 'Generate morning executive report',
+  schedule: {
+    type: 'once',
+    executeAt: new Date('2024-12-20T08:00:00Z')
+  },
+  dependencies: [nodeB]
+});
+
+// Execute with scheduling enabled
+await graph.run({ 
+  respectSchedules: true,
+  waitForScheduled: true 
+});
+
+// Result: A runs at 06:00, B waits and runs after A (~06:05), C runs at 08:00
+```
+
+## Recurring Patterns
+
+Create sophisticated recurring schedules:
+
+<Steps>
+
+<Step>
+
+### Daily Schedules
+
+```typescript
+// Every day at 8 AM
+{
+  type: 'recurring',
+  executeAt: new Date('2024-12-20T08:00:00Z'),
+  recurrence: {
+    pattern: 'daily',
+    interval: 1,
+    maxExecutions: 365 // Stop after 1 year
+  }
+}
+
+// Every 3 days
+{
+  type: 'recurring',
+  executeAt: new Date('2024-12-20T08:00:00Z'),
+  recurrence: {
+    pattern: 'daily',
+    interval: 3
+  }
+}
+```
+
+</Step>
+
+<Step>
+
+### Weekly Schedules  
+
+```typescript
+// Every Monday at 9 AM
+{
+  type: 'recurring',
+  executeAt: new Date('2024-12-23T09:00:00Z'), // Monday
+  recurrence: {
+    pattern: 'weekly',
+    interval: 1,
+    daysOfWeek: [1] // Monday
+  }
+}
+
+// Every Monday and Friday
+{
+  type: 'recurring',
+  executeAt: new Date('2024-12-23T09:00:00Z'),
+  recurrence: {
+    pattern: 'weekly',
+    interval: 1,
+    daysOfWeek: [1, 5] // Monday and Friday
+  }
+}
+```
+
+</Step>
+
+<Step>
+
+### Monthly and Yearly
+
+```typescript
+// 15th of every month
+{
+  type: 'recurring',
+  executeAt: new Date('2024-12-15T10:00:00Z'),
+  recurrence: {
+    pattern: 'monthly',
+    interval: 1,
+    dayOfMonth: 15
+  }
+}
+
+// Every January 1st
+{
+  type: 'recurring',
+  executeAt: new Date('2025-01-01T00:00:00Z'),
+  recurrence: {
+    pattern: 'yearly',
+    interval: 1,
+    monthOfYear: 1
+  }
+}
+```
+
+</Step>
+
+</Steps>
+
+## Scheduler Management
+
+Monitor and control scheduled executions:
+
+```typescript
+// Get scheduler status
+const status = agent.getSchedulerStatus();
+console.log(`Running: ${status.running}, Active jobs: ${status.activeJobs}`);
+
+// List all scheduled items
+const pending = await agent.listScheduledItems('pending');
+const completed = await agent.listScheduledItems('completed');
+
+// Get specific scheduled item
+const item = await agent.getScheduledItem('task_123_456');
+
+// Cancel a scheduled item
+await agent.cancelScheduledItem('task_123_456');
+
+// Delete a scheduled item
+await agent.deleteScheduledItem('task_123_456');
+
+// Stop the scheduler
+await agent.stopScheduler();
+```
+
+## Advanced Options
+
+Configure retry logic and execution parameters:
+
+```typescript
+await agent.scheduleTask({
+  prompt: 'Critical system backup',
+  schedule: {
+    type: 'recurring',
+    executeAt: new Date('2024-12-20T02:00:00Z'),
+    recurrence: { pattern: 'daily', interval: 1 }
+  },
+  options: {
+    maxRetries: 3,              // Retry failed executions
+    retryDelay: 60000,          // 1 minute between retries
+    timeout: 300000,            // 5 minute execution timeout
+    respectDependencies: true   // Honor dependencies (default)
+  }
+});
+```
+
+## Dependency Resolution Logic
+
+The scheduler intelligently resolves conflicts between schedules and dependencies:
+
+| Scenario | Behavior |
+|----------|----------|
+| Node scheduled before dependency | **Waits for dependency to complete** |
+| Node scheduled after dependency | **Runs at scheduled time** |
+| Multiple dependencies | **Waits for ALL dependencies** |
+| Circular dependencies | **Error thrown during validation** |
+| Mixed scheduled/immediate nodes | **Works seamlessly together** |
+
+The scheduler provides a robust foundation for building automated, time-based AI workflows that respect dependencies and scale with your needs.
